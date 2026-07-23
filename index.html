@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2E6E5E">
+<meta name="theme-color" content="#F4F5F2">
 <link rel="manifest" href="./manifest.json">
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3410,6 +3410,33 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   .pj-sheetscrim,.pj-menu--sheet{transition:none!important}
 }
 
+/* ================= assignee pill + ⋯ button: glass ================= */
+.pj-avbtn,.pj-dots{
+  background:color-mix(in srgb,var(--surface) 55%,transparent);
+  border:1px solid color-mix(in srgb,var(--border) 70%,transparent);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 34%,transparent);
+  transition:background .16s,border-color .16s,color .16s,transform .16s}
+[data-theme="dark"] .pj-avbtn,[data-theme="dark"] .pj-dots{
+  background:color-mix(in srgb,var(--surface) 48%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent)}
+.pj-dots{padding:7px;border-radius:11px}
+.pj-avbtn{padding:3px 8px 3px 5px;border-radius:999px}
+@media (hover:hover) and (pointer:fine){
+  .pj-avbtn:hover,.pj-dots:hover{
+    background:color-mix(in srgb,var(--cc,var(--m-planning)) 14%,var(--surface));
+    border-color:color-mix(in srgb,var(--cc,var(--m-planning)) 34%,transparent)}
+}
+.pj-avbtn:active,.pj-dots:active{transform:scale(.94)}
+/* the focus card's ⋯ matches too */
+.focdots{background:color-mix(in srgb,var(--surface) 55%,transparent);
+  border:1px solid color-mix(in srgb,var(--border) 70%,transparent);border-radius:11px;
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 34%,transparent)}
+[data-theme="dark"] .focdots{background:color-mix(in srgb,var(--surface) 48%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent)}
+.focdots:active{transform:scale(.94)}
+
 </style>
 </head>
 <body>
@@ -4397,7 +4424,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  function applyTheme(pref){
  var eff = effective(pref);
  root.setAttribute('data-theme', eff);
- var meta = $('meta[name=theme-color]'); if(meta) meta.setAttribute('content', eff==='dark'?'#131314':'#2E6E5E');
+ var meta = $('meta[name=theme-color]'); if(meta) meta.setAttribute('content', eff==='dark'?'#131314':'#F4F5F2');
  $$('.seg__btn[data-theme]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-theme')===pref)); });
  }
  var themePref = Store.get(K.theme, 'system');
