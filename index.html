@@ -2625,7 +2625,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .pj-focus{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:26px;align-items:center;overflow:hidden;cursor:pointer;
   background:radial-gradient(130% 150% at 0% 0%, color-mix(in srgb,var(--cc) 12%,var(--surface)) 0%, var(--surface) 52%), var(--surface);
   border:1px solid color-mix(in srgb,var(--cc) 24%,var(--border));border-radius:26px;padding:24px 28px;box-shadow:var(--sh-2);transition:transform .25s,box-shadow .25s}
-@media (hover:hover){.pj-focus:hover{transform:translateY(-3px);box-shadow:var(--sh-3)}}
+@media (hover:hover) and (pointer:fine){.pj-focus:hover{transform:translateY(-3px);box-shadow:var(--sh-3)}}
 .pj-focus::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cc),color-mix(in srgb,var(--cc) 25%,transparent))}
 .pj-ring{position:relative;width:122px;height:122px;flex:none}
 .pj-ring svg{transform:rotate(-90deg)}
@@ -2671,7 +2671,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 
 /* ---- card: identical height, zero overflow ---- */
 .pj-card{position:relative;display:flex;flex-direction:column;min-height:182px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:15px 16px;box-shadow:var(--sh-1);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
-@media (hover:hover){.pj-card:hover{transform:translateY(-4px);box-shadow:var(--sh-2);border-color:color-mix(in srgb,var(--cc) 34%,var(--border))}}
+@media (hover:hover) and (pointer:fine){.pj-card:hover{transform:translateY(-4px);box-shadow:var(--sh-2);border-color:color-mix(in srgb,var(--cc) 34%,var(--border))}}
 .pj-card.is-drag{opacity:.4;transform:scale(.97)}
 .pj-card.is-drop{border-color:color-mix(in srgb,var(--cc) 55%,var(--border));box-shadow:0 0 0 3px color-mix(in srgb,var(--cc) 14%,transparent)}
 .pj-card__t{display:flex;align-items:center;gap:8px;margin-bottom:11px}
@@ -2901,8 +2901,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .pj-menu__av .pj-av,.pj-menu__av img{width:22px;height:22px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:.58rem;font-weight:700;color:#fff;border:none;margin:0}
 .pj-menu__none{font-size:.82rem;color:var(--text-3);padding:10px 11px;line-height:1.5}
 
-.pj-card:active{transform:scale(.985)}
-.pj-focus:active{transform:scale(.992)}
+
 /* ---- AI document card ---- */
 .aidoc{margin-top:10px;display:flex;flex-direction:column;gap:8px}
 .aidoc__row{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:15px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--sh-1)}
@@ -3359,6 +3358,40 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   box-shadow:0 6px 18px -8px color-mix(in srgb,var(--brand) 70%,transparent)}
 .wnew__b:active{transform:scale(.985)}
 @media (prefers-reduced-motion:reduce){.uptoast,.wnew,.wnew__card{transition:none}}
+
+/* ================= MENUS: glass + smooth motion ================= */
+.pj-menu{
+  background:color-mix(in srgb,var(--surface) 76%,transparent);
+  border:1px solid color-mix(in srgb,var(--border) 85%,transparent);
+  backdrop-filter:saturate(190%) blur(22px);-webkit-backdrop-filter:saturate(190%) blur(22px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 40%,transparent), 0 18px 50px -18px rgba(20,19,17,.5);
+  opacity:0;transform:translateY(-8px) scale(.96);transform-origin:top right;
+  transition:opacity .19s cubic-bezier(.22,.61,.36,1), transform .22s cubic-bezier(.22,.61,.36,1);
+  will-change:opacity,transform}
+[data-theme="dark"] .pj-menu{
+  background:color-mix(in srgb,var(--surface) 72%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 8%,transparent), 0 20px 55px -18px rgba(0,0,0,.8)}
+.pj-menu.is-open{opacity:1;transform:none}
+/* submenu swap: content fades out, new content fades in */
+.pj-menu.is-swap{opacity:.35;transform:scale(.985)}
+.pj-menu__i{transition:background .14s,color .14s,transform .14s}
+.pj-menu__i:active{transform:scale(.975)}
+.pj-menu.is-open .pj-menu__i{animation:pjMenuIn .26s cubic-bezier(.22,.61,.36,1) both}
+.pj-menu.is-open .pj-menu__i:nth-child(1){animation-delay:.01s}
+.pj-menu.is-open .pj-menu__i:nth-child(2){animation-delay:.03s}
+.pj-menu.is-open .pj-menu__i:nth-child(3){animation-delay:.05s}
+.pj-menu.is-open .pj-menu__i:nth-child(4){animation-delay:.07s}
+.pj-menu.is-open .pj-menu__i:nth-child(n+5){animation-delay:.09s}
+@keyframes pjMenuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* the settings sort dropdown uses the same shell, so it inherits the glass */
+.pj-sortwrap .pj-menu{transform-origin:top right}
+
+/* nothing behind the menu should twitch when it opens */
+.pj-card,.pj-focus{will-change:auto}
+@media (prefers-reduced-motion:reduce){
+  .pj-menu,.pj-menu__i{transition:none!important;animation:none!important}
+}
 
 </style>
 </head>
@@ -4215,16 +4248,18 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <h2 class="set__h">Privacy &amp; Terms</h2>
  <div class="legal">
  <h3 class="legal__h">Privacy Policy</h3>
- <p class="legal__p"><strong>Your family&rsquo;s life belongs to your family.</strong> Wisal stores your data on this device first. When you sign in, an encrypted copy syncs to your private cloud space (Supabase) so your household stays together across phones.</p>
- <p class="legal__p">Row-Level Security means each account can only ever read the household it owns or was invited into with a code. Wisal has <strong>no ads, no trackers, no analytics</strong>, and never sells or shares your data with anyone.</p>
- <p class="legal__p">Voice notes, photos and files you share in Chats travel through the same protected space. Backups you export are files in your own hands &mdash; keep them safe.</p>
- <p class="legal__p">You can erase everything at any time: <em>Settings &rarr; Reset</em> clears this device; <em>Account &rarr; Delete account &amp; data</em> erases your cloud copy too.</p>
+ <p class="legal__p"><strong>Your family&rsquo;s life belongs to your family.</strong> Wisal keeps your data on this device first. When you sign in, an encrypted copy syncs to your own private cloud space (Supabase) so your household stays together across phones.</p>
+ <p class="legal__p">Row-Level Security means each account can only ever read the household it owns or was invited into with a code. Wisal has <strong>no ads, no trackers and no analytics</strong>, and never sells or shares your data.</p>
+ <p class="legal__p"><strong>The AI assistant.</strong> When you send it a message, that message and a <em>summary</em> of your family data go to Google&rsquo;s Gemini service so it can answer. This happens only when you write to it. Your Secure Vault, the PIN-protected space, your passwords and your chat messages are <strong>never</strong> sent.</p>
+ <p class="legal__p">Voice notes, photos and files shared in Chats travel through the same protected space. Backups you export are files in your own hands &mdash; keep them safe.</p>
+ <p class="legal__p"><strong>Your PIN is yours alone.</strong> We cannot see inside the Vault, cannot recover it and cannot reset your PIN. If you forget it, that content is gone.</p>
+ <p class="legal__p">Erase everything whenever you like: <em>Settings &rarr; Reset</em> clears this device; <em>Account &rarr; Delete account &amp; data</em> erases your cloud copy too.</p>
  <h3 class="legal__h">Terms of Use</h3>
- <p class="legal__p">Wisal is a home for one family&rsquo;s honest life &mdash; not for unlawful content or harming others. The invite code is a key: share it only with people who belong in your home.</p>
- <p class="legal__p">Owners and admins can invite and manage members; every member is responsible for what they add. Children&rsquo;s profiles are managed by their guardians.</p>
+ <p class="legal__p">Wisal is a home for one family&rsquo;s honest life &mdash; not for unlawful content or for harming others. The invite code is a key: share it only with people who belong in your home.</p>
+ <p class="legal__p">Owners and admins can invite and manage members; every member is responsible for what they add. Children&rsquo;s profiles are managed by their guardians. Wisal is built for adults running a household.</p>
  <p class="legal__p">Wisal is provided with love and care, as-is &mdash; please keep backups of what matters most. Continued use means you agree to these terms.</p>
  <p class="legal__meta">Questions? Reach the maker of Wisal at <a class="legal__a" href="mailto:hamzamuhammad.trd@gmail.com">hamzamuhammad.trd@gmail.com</a>.</p>
- <a class="legal__link" href="/privacy" target="_blank" rel="noopener"><span class="legal__link__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="legal__link__tx"><span class="legal__link__t">Full Privacy Policy</span><span class="legal__link__s">What we store, who it goes to, how to erase it</span></span><svg class="ico legal__link__ch" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+ <a class="legal__link" href="/privacy.html" target="_blank" rel="noopener"><span class="legal__link__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="legal__link__tx"><span class="legal__link__t">Full Privacy Policy</span><span class="legal__link__s">What we store, who it goes to, how to erase it</span></span><svg class="ico legal__link__ch" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
  </div>
  </section>
 
@@ -5906,7 +5941,11 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
 
  /* ---------- context menu ---------- */
- function pjCloseMenu(){ var m=document.getElementById('pjCtx'); if(m&&m.parentNode) m.parentNode.removeChild(m); }
+ function pjCloseMenu(){
+  var m=document.getElementById('pjCtx'); if(!m) return;
+  m.id=''; m.classList.remove('is-open');
+  setTimeout(function(){ if(m.parentNode) m.parentNode.removeChild(m); },170);
+ }
  function pjMenuHTML(p,mode){
   var it='';
   if(mode==='prio'){
@@ -5951,21 +5990,41 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   it+='<button class="pj-menu__i is-danger" type="button" data-pjact="del" data-pjid="'+p.id+'">'+PJ_ICO.trash+'Delete</button>';
   return it;
  }
- function pjOpenMenu(id,anchor,mode){
-  var p=FD.getProject(id); if(!p) return;
-  pjCloseMenu();
-  var m=document.createElement('div');
-  m.className='pj-menu is-open'; m.id='pjCtx';
-  m.style.position='fixed'; m.style.zIndex='210'; m.style.minWidth='210px';
-  m.innerHTML=pjMenuHTML(p,mode||'main');
-  document.body.appendChild(m);
+ function pjPlaceMenu(m,anchor){
+  if(!m||!anchor) return;
   var r=anchor.getBoundingClientRect();
   var left=Math.min(r.right-210, window.innerWidth-222); if(left<12) left=12;
   m.style.left=left+'px';
-  var top=r.bottom+6, h=m.offsetHeight;
-  if(top+h>window.innerHeight-10) top=Math.max(10,r.top-h-6);
+  var top=r.bottom+8, h=m.offsetHeight;
+  if(top+h>window.innerHeight-10) top=Math.max(10,r.top-h-8);
   m.style.top=top+'px';
+ }
+ function pjOpenMenu(id,anchor,mode){
+  var p=FD.getProject(id); if(!p) return;
+  mode=mode||'main';
+  var cur=document.getElementById('pjCtx');
+  /* same project: swap the panel in place instead of tearing it down */
+  if(cur && cur.getAttribute('data-pjanchor')===id){
+   cur.classList.add('is-swap');
+   setTimeout(function(){
+    var c2=document.getElementById('pjCtx'); if(!c2) return;
+    c2.innerHTML=pjMenuHTML(p,mode);
+    pjPlaceMenu(c2,anchor);
+    c2.classList.remove('is-swap');
+   },130);
+   return;
+  }
+  pjCloseMenu();
+  var m=document.createElement('div');
+  m.className='pj-menu'; m.id='pjCtx';
+  m.style.position='fixed'; m.style.zIndex='210'; m.style.minWidth='210px';
+  m.innerHTML=pjMenuHTML(p,mode);
   m.setAttribute('data-pjanchor',id);
+  document.body.appendChild(m);
+  pjPlaceMenu(m,anchor);
+  if(window.requestAnimationFrame){
+   requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.classList.add('is-open'); }); });
+  } else { setTimeout(function(){ m.classList.add('is-open'); },16); }
  }
  function pjAction(act,id,val){
   var p=FD.getProject(id); if(!p) return;
