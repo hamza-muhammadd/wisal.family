@@ -3361,28 +3361,21 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 
 /* ================= MENUS: glass + smooth motion ================= */
 .pj-menu{
-  background:color-mix(in srgb,var(--surface) 76%,transparent);
-  border:1px solid color-mix(in srgb,var(--border) 85%,transparent);
-  backdrop-filter:saturate(190%) blur(22px);-webkit-backdrop-filter:saturate(190%) blur(22px);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 40%,transparent), 0 18px 50px -18px rgba(20,19,17,.5);
-  opacity:0;transform:translateY(-8px) scale(.96);transform-origin:top right;
-  transition:opacity .19s cubic-bezier(.22,.61,.36,1), transform .22s cubic-bezier(.22,.61,.36,1);
-  will-change:opacity,transform}
+  background:color-mix(in srgb,var(--surface) 96%,transparent);
+  border:1px solid color-mix(in srgb,var(--border) 90%,transparent);
+  backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 35%,transparent), 0 18px 50px -18px rgba(20,19,17,.5);
+  opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;
+  transition:opacity .18s cubic-bezier(.22,.61,.36,1), transform .2s cubic-bezier(.22,.61,.36,1)}
 [data-theme="dark"] .pj-menu{
-  background:color-mix(in srgb,var(--surface) 72%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 8%,transparent), 0 20px 55px -18px rgba(0,0,0,.8)}
+  background:color-mix(in srgb,var(--surface) 95%,transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent), 0 20px 55px -18px rgba(0,0,0,.8)}
 .pj-menu.is-open{opacity:1;transform:none}
 /* submenu swap: content fades out, new content fades in */
 .pj-menu.is-swap{opacity:.35;transform:scale(.985)}
 .pj-menu__i{transition:background .14s,color .14s,transform .14s}
 .pj-menu__i:active{transform:scale(.975)}
-.pj-menu.is-open .pj-menu__i{animation:pjMenuIn .26s cubic-bezier(.22,.61,.36,1) both}
-.pj-menu.is-open .pj-menu__i:nth-child(1){animation-delay:.01s}
-.pj-menu.is-open .pj-menu__i:nth-child(2){animation-delay:.03s}
-.pj-menu.is-open .pj-menu__i:nth-child(3){animation-delay:.05s}
-.pj-menu.is-open .pj-menu__i:nth-child(4){animation-delay:.07s}
-.pj-menu.is-open .pj-menu__i:nth-child(n+5){animation-delay:.09s}
-@keyframes pjMenuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.pj-menu__sep{opacity:.9}
 
 /* the settings sort dropdown uses the same shell, so it inherits the glass */
 .pj-sortwrap .pj-menu{transform-origin:top right}
@@ -3391,6 +3384,30 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .pj-card,.pj-focus{will-change:auto}
 @media (prefers-reduced-motion:reduce){
   .pj-menu,.pj-menu__i{transition:none!important;animation:none!important}
+}
+
+/* ---- phones: the menu becomes a bottom sheet (no jumping, no repaint flash) ---- */
+.pj-sheetscrim{position:fixed;inset:0;z-index:205;background:rgba(14,14,16,.5);
+  opacity:0;transition:opacity .24s cubic-bezier(.22,.61,.36,1)}
+.pj-sheetscrim.is-open{opacity:1}
+.pj-menu--sheet{
+  left:10px!important;right:10px!important;bottom:10px!important;top:auto!important;
+  width:auto;min-width:0!important;max-width:none;max-height:72vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  border-radius:24px;padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+  transform-origin:center bottom;transform:translateY(18px);
+  transition:opacity .22s cubic-bezier(.22,.61,.36,1), transform .28s cubic-bezier(.22,.61,.36,1)}
+.pj-menu--sheet.is-open{transform:none}
+.pj-menu--sheet.is-swap{opacity:.45;transform:none}
+.pj-menu--sheet::before{content:"";display:block;width:38px;height:4px;border-radius:99px;
+  background:var(--border-strong);margin:2px auto 10px;opacity:.8}
+.pj-menu--sheet .pj-menu__i{padding:14px 14px;font-size:.95rem;border-radius:14px}
+.pj-menu--sheet .pj-menu__i .ico{width:1.15rem;height:1.15rem}
+.pj-menu--sheet .pj-menu__hd{padding:10px 14px 6px;font-size:.7rem}
+.pj-menu--sheet .pj-menu__sep{margin:6px 12px}
+.pj-menu--sheet .pj-menu__av .pj-av,.pj-menu--sheet .pj-menu__av img{width:26px;height:26px}
+@media (prefers-reduced-motion:reduce){
+  .pj-sheetscrim,.pj-menu--sheet{transition:none!important}
 }
 
 </style>
@@ -5942,9 +5959,10 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 
  /* ---------- context menu ---------- */
  function pjCloseMenu(){
+  pjSheetScrim(false);
   var m=document.getElementById('pjCtx'); if(!m) return;
   m.id=''; m.classList.remove('is-open');
-  setTimeout(function(){ if(m.parentNode) m.parentNode.removeChild(m); },170);
+  setTimeout(function(){ if(m.parentNode) m.parentNode.removeChild(m); },220);
  }
  function pjMenuHTML(p,mode){
   var it='';
@@ -5990,14 +6008,31 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   it+='<button class="pj-menu__i is-danger" type="button" data-pjact="del" data-pjid="'+p.id+'">'+PJ_ICO.trash+'Delete</button>';
   return it;
  }
+ function pjSheetMode(){ return window.innerWidth<=720; }
  function pjPlaceMenu(m,anchor){
-  if(!m||!anchor) return;
+  if(!m) return;
+  if(pjSheetMode()){ m.style.left=''; m.style.top=''; m.style.minWidth=''; return; }
+  if(!anchor) return;
   var r=anchor.getBoundingClientRect();
   var left=Math.min(r.right-210, window.innerWidth-222); if(left<12) left=12;
   m.style.left=left+'px';
   var top=r.bottom+8, h=m.offsetHeight;
   if(top+h>window.innerHeight-10) top=Math.max(10,r.top-h-8);
   m.style.top=top+'px';
+ }
+ function pjSheetScrim(on){
+  var sc=document.getElementById('pjSheetScrim');
+  if(on){
+   if(sc) return;
+   sc=document.createElement('div');
+   sc.className='pj-sheetscrim'; sc.id='pjSheetScrim';
+   sc.setAttribute('data-pjmenuclose','1');
+   document.body.appendChild(sc);
+   setTimeout(function(){ sc.classList.add('is-open'); },10);
+  } else if(sc){
+   sc.id=''; sc.classList.remove('is-open');
+   setTimeout(function(){ if(sc.parentNode) sc.parentNode.removeChild(sc); },220);
+  }
  }
  function pjOpenMenu(id,anchor,mode){
   var p=FD.getProject(id); if(!p) return;
@@ -6016,8 +6051,10 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   }
   pjCloseMenu();
   var m=document.createElement('div');
-  m.className='pj-menu'; m.id='pjCtx';
-  m.style.position='fixed'; m.style.zIndex='210'; m.style.minWidth='210px';
+  m.className='pj-menu'+(pjSheetMode()?' pj-menu--sheet':''); m.id='pjCtx';
+  m.style.position='fixed'; m.style.zIndex='210';
+  if(!pjSheetMode()) m.style.minWidth='210px';
+  if(pjSheetMode()) pjSheetScrim(true);
   m.innerHTML=pjMenuHTML(p,mode);
   m.setAttribute('data-pjanchor',id);
   document.body.appendChild(m);
@@ -11892,6 +11929,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    if(_pja){ e.stopPropagation(); pjAction(_pja.getAttribute('data-pjact'),_pja.getAttribute('data-pjid'),_pja.getAttribute('data-pjval')); return; }
    var _pjx=e.target.closest('[data-pjclose]');
    if(_pjx){ pjCloseDrawer(); return; }
+   var _pjmc=e.target.closest('[data-pjmenuclose]'); if(_pjmc){ pjCloseMenu(); return; }
    var _pjas=e.target.closest('[data-pjassign]');
    if(_pjas){ e.stopPropagation(); pjOpenMenu(_pjas.getAttribute('data-pjassign'),_pjas,'mem'); return; }
    var _pjc=e.target.closest('[data-pjcard]');
