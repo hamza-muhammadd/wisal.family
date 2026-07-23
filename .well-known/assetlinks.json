@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "family.wisal.app",
+    "sha256_cert_fingerprints": ["52:C8:E5:85:54:3A:CE:DD:56:EF:D7:75:D0:3A:08:BE:22:58:BB:2F:7B:03:6F:81:B7:DF:6F:7B:31:7C:22:2D"]
+  }
+}]
