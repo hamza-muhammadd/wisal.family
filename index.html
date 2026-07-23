@@ -3282,6 +3282,84 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .aimsg{margin-bottom:18px}
 .aimsg__b{max-width:min(66ch,84%)}
 
+/* ---- privacy policy link in Settings ---- */
+.legal__a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
+.legal__link{display:flex;align-items:center;gap:12px;margin-top:16px;padding:13px 15px;border-radius:16px;
+  text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid color-mix(in srgb,var(--brand) 26%,var(--border));
+  box-shadow:var(--sh-1);transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s}
+@media (hover:hover){.legal__link:hover{transform:translateY(-2px);box-shadow:var(--sh-2);
+  border-color:color-mix(in srgb,var(--brand) 46%,var(--border))}}
+.legal__link:active{transform:scale(.985)}
+.legal__link__ic{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;color:var(--brand);
+  background:linear-gradient(160deg,color-mix(in srgb,var(--brand) 16%,var(--surface)),color-mix(in srgb,var(--brand) 8%,var(--surface)));
+  border:1px solid color-mix(in srgb,var(--brand) 20%,transparent)}
+.legal__link__ic .ico{width:1.15rem;height:1.15rem}
+.legal__link__tx{flex:1;min-width:0;display:block}
+.legal__link__t{display:block;font-size:.94rem;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.legal__link__s{display:block;font-size:.78rem;color:var(--text-3);margin-top:2px}
+.legal__link__ch{width:1rem;height:1rem;flex:none;color:var(--text-3)}
+
+/* ================= UPDATE TOAST + WHAT'S NEW ================= */
+.uptoast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(16px);z-index:320;
+  display:flex;align-items:center;gap:11px;max-width:min(520px,calc(100vw - 28px));
+  padding:11px 12px 11px 15px;border-radius:16px;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--border);
+  backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
+  box-shadow:0 10px 40px -14px rgba(24,23,20,.45);
+  opacity:0;transition:opacity .26s var(--ease),transform .26s var(--ease)}
+.uptoast.is-open{opacity:1;transform:translateX(-50%)}
+.uptoast__ic{width:30px;height:30px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--brand);
+  background:color-mix(in srgb,var(--brand) 13%,var(--surface))}
+.uptoast__ic .ico{width:1rem;height:1rem}
+.uptoast__tx{flex:1;min-width:0;font-size:.88rem;font-weight:600;line-height:1.35}
+.uptoast__b{flex:none;font:inherit;font-size:.84rem;font-weight:700;color:#fff;padding:8px 15px;border:0;
+  border-radius:11px;cursor:pointer;background:linear-gradient(160deg,var(--brand-2),var(--brand));
+  box-shadow:0 4px 13px -7px color-mix(in srgb,var(--brand) 65%,transparent)}
+.uptoast__b:active{transform:scale(.96)}
+.uptoast__x{flex:none;border:0;background:none;cursor:pointer;color:var(--text-3);padding:5px;border-radius:8px;line-height:0}
+.uptoast__x .ico{width:1rem;height:1rem}
+.uptoast__x:hover{color:var(--text);background:var(--surface-2)}
+@media (max-width:480px){
+  .uptoast{left:12px;right:12px;transform:translateY(16px);max-width:none;flex-wrap:wrap}
+  .uptoast.is-open{transform:none}
+  .uptoast__tx{flex:1 1 100%;order:1}
+  .uptoast__ic{order:0}.uptoast__x{order:0;margin-left:auto}
+  .uptoast__b{order:2;flex:1 1 100%;padding:10px}
+}
+
+.wnew{position:fixed;inset:0;z-index:330;display:grid;place-items:center;padding:20px;
+  opacity:0;transition:opacity .26s var(--ease)}
+.wnew.is-open{opacity:1}
+.wnew__scrim{position:absolute;inset:0;background:rgba(18,18,20,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.wnew__card{position:relative;width:100%;max-width:470px;max-height:86vh;display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--border);border-radius:26px;overflow:hidden;
+  box-shadow:0 24px 70px -22px rgba(0,0,0,.55);
+  transform:translateY(14px) scale(.98);transition:transform .3s var(--ease)}
+.wnew.is-open .wnew__card{transform:none}
+.wnew__hd{display:flex;align-items:center;gap:13px;padding:22px 24px 18px;
+  background:linear-gradient(165deg,color-mix(in srgb,var(--brand) 9%,var(--surface)),var(--surface))}
+.wnew__mark{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(150deg,var(--brand-2),var(--brand))}
+.wnew__mark svg{width:25px;height:25px}
+.wnew__hx{min-width:0;display:block}
+.wnew__t{display:block;font-size:1.14rem;font-weight:800;letter-spacing:-.025em;line-height:1.25}
+.wnew__d{display:block;font-size:.78rem;color:var(--text-3);margin-top:3px}
+.wnew__body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 24px 8px;-webkit-overflow-scrolling:touch}
+.wnew__i{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--border)}
+.wnew__i:first-child{border-top:0}
+.wnew__dot{width:7px;height:7px;flex:none;margin-top:8px;border-radius:50%;
+  background:linear-gradient(150deg,var(--brand-2),var(--brand))}
+.wnew__ix{min-width:0;display:block}
+.wnew__it{display:block;font-size:.94rem;font-weight:700;letter-spacing:-.01em;line-height:1.35}
+.wnew__is{display:block;font-size:.85rem;color:var(--text-2);line-height:1.55;margin-top:3px}
+.wnew__ft{flex:0 0 auto;padding:14px 24px 20px}
+.wnew__b{width:100%;font:inherit;font-size:.95rem;font-weight:700;color:#fff;padding:13px;border:0;
+  border-radius:14px;cursor:pointer;background:linear-gradient(160deg,var(--brand-2),var(--brand));
+  box-shadow:0 6px 18px -8px color-mix(in srgb,var(--brand) 70%,transparent)}
+.wnew__b:active{transform:scale(.985)}
+@media (prefers-reduced-motion:reduce){.uptoast,.wnew,.wnew__card{transition:none}}
+
 </style>
 </head>
 <body>
@@ -4060,7 +4138,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <section class="view" id="view-settings">
  <div class="set">
 
- <div class="setix reveal" id="setIndex"><div class="sxhero"><div class="sxhero__top"><span class="sxhero__mark"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9.6" cy="12" r="6.1"/><circle cx="14.4" cy="12" r="6.1"/></svg></span><span class="sxhero__id"><span class="sxhero__n" id="sxFam">Wisal</span><span class="sxhero__s" id="sxWho">Not signed in</span></span><span class="sxhero__plan" id="sxPlan">Free</span></div><div class="sxhero__stats"><div class="sxstat"><span class="sxstat__n" id="sxMembers">1</span><span class="sxstat__l">Members</span></div><div class="sxstat"><span class="sxstat__n" id="sxSync">Local</span><span class="sxstat__l">Sync</span></div><div class="sxstat"><span class="sxstat__n" id="sxBackup">Never</span><span class="sxstat__l">Backup</span></div><div class="sxstat"><span class="sxstat__n" id="sxStore">—</span><span class="sxstat__l">Storage</span></div></div><div class="sxhero__foot"><span class="sxdot" id="sxDot"></span><span id="sxState">Saved on this device</span><span class="sxhero__sp"></span><span class="sxhero__v" id="sxVer">v43</span></div></div><div class="sxqa-row"><button class="sxqa" type="button" data-setopen="household" style="--c:var(--m-family)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M9.5 11.5a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M3.5 19.5c0-3.2 2.7-5 6-5s6 1.8 6 5"/><path d="M16.2 6.3a3.2 3.2 0 0 1 0 6M20.5 19.5c0-2.6-1.5-4.2-3.8-4.7"/></svg></span><span class="sxqa__l">Invite</span></button><button class="sxqa" type="button" data-setopen="notifications" style="--c:var(--m-finance)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 3.2.8 4.6 1.5 5.4H4.5C5.2 14.6 6 13.2 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span><span class="sxqa__l">Alerts</span></button><button class="sxqa" type="button" data-setopen="appearance" style="--c:var(--m-journal)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.4 0 2.2-.9 2.2-2 0-1.3-1-1.8-1-2.8 0-.8.7-1.4 1.6-1.4h1.4A4.3 4.3 0 0 0 20.5 10c0-3.7-3.8-6.5-8.5-6.5Z"/><circle cx="8" cy="10" r="1.1"/><circle cx="12" cy="7.5" r="1.1"/><circle cx="16" cy="10" r="1.1"/></svg></span><span class="sxqa__l">Theme</span></button><button class="sxqa" type="button" data-setopen="legal" style="--c:var(--m-legacy)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="sxqa__l">Privacy</span></button><button class="sxqa" type="button" data-setopen="backup" style="--c:var(--m-learning)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5v10M8 10l4 4 4-4"/><path d="M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/></svg></span><span class="sxqa__l">Backup</span></button><button class="sxqa" type="button" data-setopen="spaces" style="--c:var(--m-planning)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2.2"/></svg></span><span class="sxqa__l">Spaces</span></button></div><label class="sxsearch"><span class="sxsearch__ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></span><input id="setSearch" type="text" placeholder="Search settings" autocomplete="off" aria-label="Search settings"><button class="sxsearch__x" type="button" data-setclr="1" aria-label="Clear"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></label><section class="sxgrp"><h2 class="sxgrp__h">Family</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="household" style="--c:var(--m-family)" data-q="household invite code &middot; members"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M9.5 11.5a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M3.5 19.5c0-3.2 2.7-5 6-5s6 1.8 6 5"/><path d="M16.2 6.3a3.2 3.2 0 0 1 0 6M20.5 19.5c0-2.6-1.5-4.2-3.8-4.7"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Household</span><span class="sxrow__s" id="sxs-household">Invite code &middot; members</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="family" style="--c:var(--m-wellbeing)" data-q="family name what we call your home"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20v-8.5L12 5l8 6.5V20"/><path d="M9.5 20v-5h5v5"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Family name</span><span class="sxrow__s">What we call your home</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Account</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="account" style="--c:var(--brand)" data-q="account sign in &middot; cloud sync"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Account</span><span class="sxrow__s" id="sxs-account">Sign in &middot; cloud sync</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Workspace</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="spaces" style="--c:var(--m-planning)" data-q="your spaces show only what you use"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2.2"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Your spaces</span><span class="sxrow__s" id="sxs-spaces">Show only what you use</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="notifications" style="--c:var(--m-finance)" data-q="notifications reminders &middot; money &middot; chat"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 3.2.8 4.6 1.5 5.4H4.5C5.2 14.6 6 13.2 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Notifications</span><span class="sxrow__s" id="sxs-notifications">Reminders &middot; money &middot; chat</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Appearance</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="appearance" style="--c:var(--m-journal)" data-q="theme light, dark &amp; system"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.4 0 2.2-.9 2.2-2 0-1.3-1-1.8-1-2.8 0-.8.7-1.4 1.6-1.4h1.4A4.3 4.3 0 0 0 20.5 10c0-3.7-3.8-6.5-8.5-6.5Z"/><circle cx="8" cy="10" r="1.1"/><circle cx="12" cy="7.5" r="1.1"/><circle cx="16" cy="10" r="1.1"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Theme</span><span class="sxrow__s">Light, dark &amp; system</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Privacy &amp; security</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="legal" style="--c:var(--m-legacy)" data-q="privacy &amp; terms how wisal protects your family"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Privacy &amp; Terms</span><span class="sxrow__s">How Wisal protects your family</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="backup" style="--c:var(--m-learning)" data-q="backup &amp; restore export &middot; import your data"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5v10M8 10l4 4 4-4"/><path d="M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Backup &amp; restore</span><span class="sxrow__s">Export &middot; import your data</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Support</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="install" style="--c:var(--m-ai)" data-q="install app add to your home screen"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5h14"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Install app</span><span class="sxrow__s" id="sxs-install">Add to your home screen</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="about" style="--c:var(--m-travel)" data-q="about wisal version &middot; storage"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.01"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">About Wisal</span><span class="sxrow__s">Version &middot; storage</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp sxgrp--danger"><h2 class="sxgrp__h">Danger zone</h2><div class="sxgrp__b"><button class="sxrow sxrow--danger" type="button" data-setopen="reset" style="--c:var(--danger)" data-q="reset this device erases everything stored here"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M6.5 7l1 12h9l1-12"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Reset this device</span><span class="sxrow__s">Erases everything stored here</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><p class="sxnone" id="sxNone" hidden>No settings match that search.</p></div>
+ <div class="setix reveal" id="setIndex"><div class="sxhero"><div class="sxhero__top"><span class="sxhero__mark"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9.6" cy="12" r="6.1"/><circle cx="14.4" cy="12" r="6.1"/></svg></span><span class="sxhero__id"><span class="sxhero__n" id="sxFam">Wisal</span><span class="sxhero__s" id="sxWho">Not signed in</span></span><span class="sxhero__plan" id="sxPlan">Free</span></div><div class="sxhero__stats"><div class="sxstat"><span class="sxstat__n" id="sxMembers">1</span><span class="sxstat__l">Members</span></div><div class="sxstat"><span class="sxstat__n" id="sxSync">Local</span><span class="sxstat__l">Sync</span></div><div class="sxstat"><span class="sxstat__n" id="sxBackup">Never</span><span class="sxstat__l">Backup</span></div><div class="sxstat"><span class="sxstat__n" id="sxStore">—</span><span class="sxstat__l">Storage</span></div></div><div class="sxhero__foot"><span class="sxdot" id="sxDot"></span><span id="sxState">Saved on this device</span><span class="sxhero__sp"></span><span class="sxhero__v" id="sxVer">v45</span></div></div><div class="sxqa-row"><button class="sxqa" type="button" data-setopen="household" style="--c:var(--m-family)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M9.5 11.5a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M3.5 19.5c0-3.2 2.7-5 6-5s6 1.8 6 5"/><path d="M16.2 6.3a3.2 3.2 0 0 1 0 6M20.5 19.5c0-2.6-1.5-4.2-3.8-4.7"/></svg></span><span class="sxqa__l">Invite</span></button><button class="sxqa" type="button" data-setopen="notifications" style="--c:var(--m-finance)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 3.2.8 4.6 1.5 5.4H4.5C5.2 14.6 6 13.2 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span><span class="sxqa__l">Alerts</span></button><button class="sxqa" type="button" data-setopen="appearance" style="--c:var(--m-journal)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.4 0 2.2-.9 2.2-2 0-1.3-1-1.8-1-2.8 0-.8.7-1.4 1.6-1.4h1.4A4.3 4.3 0 0 0 20.5 10c0-3.7-3.8-6.5-8.5-6.5Z"/><circle cx="8" cy="10" r="1.1"/><circle cx="12" cy="7.5" r="1.1"/><circle cx="16" cy="10" r="1.1"/></svg></span><span class="sxqa__l">Theme</span></button><button class="sxqa" type="button" data-setopen="legal" style="--c:var(--m-legacy)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="sxqa__l">Privacy</span></button><button class="sxqa" type="button" data-setopen="backup" style="--c:var(--m-learning)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5v10M8 10l4 4 4-4"/><path d="M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/></svg></span><span class="sxqa__l">Backup</span></button><button class="sxqa" type="button" data-setopen="spaces" style="--c:var(--m-planning)"><span class="sxqa__ic"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2.2"/></svg></span><span class="sxqa__l">Spaces</span></button></div><label class="sxsearch"><span class="sxsearch__ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></span><input id="setSearch" type="text" placeholder="Search settings" autocomplete="off" aria-label="Search settings"><button class="sxsearch__x" type="button" data-setclr="1" aria-label="Clear"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></label><section class="sxgrp"><h2 class="sxgrp__h">Family</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="household" style="--c:var(--m-family)" data-q="household invite code &middot; members"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M9.5 11.5a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M3.5 19.5c0-3.2 2.7-5 6-5s6 1.8 6 5"/><path d="M16.2 6.3a3.2 3.2 0 0 1 0 6M20.5 19.5c0-2.6-1.5-4.2-3.8-4.7"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Household</span><span class="sxrow__s" id="sxs-household">Invite code &middot; members</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="family" style="--c:var(--m-wellbeing)" data-q="family name what we call your home"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20v-8.5L12 5l8 6.5V20"/><path d="M9.5 20v-5h5v5"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Family name</span><span class="sxrow__s">What we call your home</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Account</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="account" style="--c:var(--brand)" data-q="account sign in &middot; cloud sync"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Account</span><span class="sxrow__s" id="sxs-account">Sign in &middot; cloud sync</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Workspace</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="spaces" style="--c:var(--m-planning)" data-q="your spaces show only what you use"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2.2"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Your spaces</span><span class="sxrow__s" id="sxs-spaces">Show only what you use</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="notifications" style="--c:var(--m-finance)" data-q="notifications reminders &middot; money &middot; chat"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 3.2.8 4.6 1.5 5.4H4.5C5.2 14.6 6 13.2 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Notifications</span><span class="sxrow__s" id="sxs-notifications">Reminders &middot; money &middot; chat</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Appearance</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="appearance" style="--c:var(--m-journal)" data-q="theme light, dark &amp; system"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.4 0 2.2-.9 2.2-2 0-1.3-1-1.8-1-2.8 0-.8.7-1.4 1.6-1.4h1.4A4.3 4.3 0 0 0 20.5 10c0-3.7-3.8-6.5-8.5-6.5Z"/><circle cx="8" cy="10" r="1.1"/><circle cx="12" cy="7.5" r="1.1"/><circle cx="16" cy="10" r="1.1"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Theme</span><span class="sxrow__s">Light, dark &amp; system</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Privacy &amp; security</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="legal" style="--c:var(--m-legacy)" data-q="privacy &amp; terms how wisal protects your family"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Privacy &amp; Terms</span><span class="sxrow__s">How Wisal protects your family</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="backup" style="--c:var(--m-learning)" data-q="backup &amp; restore export &middot; import your data"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5v10M8 10l4 4 4-4"/><path d="M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Backup &amp; restore</span><span class="sxrow__s">Export &middot; import your data</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp"><h2 class="sxgrp__h">Support</h2><div class="sxgrp__b"><button class="sxrow" type="button" data-setopen="install" style="--c:var(--m-ai)" data-q="install app add to your home screen"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5h14"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Install app</span><span class="sxrow__s" id="sxs-install">Add to your home screen</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button class="sxrow" type="button" data-setopen="about" style="--c:var(--m-travel)" data-q="about wisal version &middot; storage"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.01"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">About Wisal</span><span class="sxrow__s">Version &middot; storage</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><section class="sxgrp sxgrp--danger"><h2 class="sxgrp__h">Danger zone</h2><div class="sxgrp__b"><button class="sxrow sxrow--danger" type="button" data-setopen="reset" style="--c:var(--danger)" data-q="reset this device erases everything stored here"><span class="sxrow__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M6.5 7l1 12h9l1-12"/></svg></span><span class="sxrow__tx"><span class="sxrow__t">Reset this device</span><span class="sxrow__s">Erases everything stored here</span></span><svg class="ico sxrow__ch" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></section><p class="sxnone" id="sxNone" hidden>No settings match that search.</p></div>
 <div class="setback" id="setBack" hidden><button class="setback__btn" type="button" data-setback><svg class="ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Settings</button><span class="setback__t" id="setBackT"></span></div>
  <div class="set__grid" id="setGrid">
  <section class="set__card reveal" data-pane="appearance">
@@ -4145,7 +4223,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <p class="legal__p">Wisal is a home for one family&rsquo;s honest life &mdash; not for unlawful content or harming others. The invite code is a key: share it only with people who belong in your home.</p>
  <p class="legal__p">Owners and admins can invite and manage members; every member is responsible for what they add. Children&rsquo;s profiles are managed by their guardians.</p>
  <p class="legal__p">Wisal is provided with love and care, as-is &mdash; please keep backups of what matters most. Continued use means you agree to these terms.</p>
- <p class="legal__meta">Questions? Reach the maker of Wisal through wisal.family.</p>
+ <p class="legal__meta">Questions? Reach the maker of Wisal at <a class="legal__a" href="mailto:hamzamuhammad.trd@gmail.com">hamzamuhammad.trd@gmail.com</a>.</p>
+ <a class="legal__link" href="/privacy" target="_blank" rel="noopener"><span class="legal__link__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.5Z"/><path d="M9.3 12.2 11.3 14l3.6-3.8"/></svg></span><span class="legal__link__tx"><span class="legal__link__t">Full Privacy Policy</span><span class="legal__link__s">What we store, who it goes to, how to erase it</span></span><svg class="ico legal__link__ch" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
  </div>
  </section>
 
@@ -8097,6 +8176,103 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     if(box) box.classList.toggle('is-searching', !!q);
     var none=document.getElementById('sxNone'); if(none) none.hidden = any;
   }
+  /* ================= UPDATES: "new version" toast + "what's new" ================= */
+  /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
+  var APP_VERSION = '45';
+  var WHATS_NEW = {
+    title: 'What\u2019s new in Wisal',
+    date: 'July 2026',
+    items: [
+      ['Projects, rebuilt', 'A Current Focus card, projects grouped by area, search and sorting, and assignees you can tap to change.'],
+      ['A real weekly calendar', 'The Week view now shows every day with its events and tasks, and you can tick things off right there.'],
+      ['Tasks &amp; Overview refreshed', 'Cleaner sections, a daily progress ring, and everything easier to scan.'],
+      ['Wisal AI can now do far more', 'It sees every part of your household and can add to any of them \u2014 shopping, meals, workouts, journal, savings and more.'],
+      ['AI writes documents', 'Ask for a plan or a report and it writes a proper document on Wisal letterhead that you can save as PDF.'],
+      ['Settings, reorganised', 'Grouped sections, a workspace health card, and search.']
+    ]
+  };
+
+  function wnSeenKey(){ return 'fw.seenVersion'; }
+  function wnMarkSeen(){ try{ Store.set(wnSeenKey(), APP_VERSION); }catch(e){} }
+  function wnClose(){
+    var el=document.getElementById('wnew');
+    if(el){ el.classList.remove('is-open'); setTimeout(function(){ var e2=document.getElementById('wnew'); if(e2&&e2.parentNode) e2.parentNode.removeChild(e2); },260); }
+    try{ unlockScroll('wnew'); }catch(e){}
+    wnMarkSeen();
+  }
+  function wnOpen(){
+    if(document.getElementById('wnew')) return;
+    var el=document.createElement('div');
+    el.className='wnew'; el.id='wnew'; el.setAttribute('role','dialog');
+    el.innerHTML=
+      '<div class="wnew__scrim" data-wnclose="1"></div>'
+      + '<div class="wnew__card">'
+      +   '<div class="wnew__hd">'
+      +     '<span class="wnew__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9.6" cy="12" r="6.1"/><circle cx="14.4" cy="12" r="6.1"/></svg></span>'
+      +     '<span class="wnew__hx"><span class="wnew__t">'+WHATS_NEW.title+'</span>'
+      +     '<span class="wnew__d">Version '+APP_VERSION+' \u00b7 '+WHATS_NEW.date+'</span></span>'
+      +   '</div>'
+      +   '<div class="wnew__body">'
+      +     WHATS_NEW.items.map(function(it){
+            return '<div class="wnew__i"><span class="wnew__dot"></span><span class="wnew__ix">'
+              + '<span class="wnew__it">'+it[0]+'</span><span class="wnew__is">'+it[1]+'</span></span></div>';
+          }).join('')
+      +   '</div>'
+      +   '<div class="wnew__ft"><button class="wnew__b" type="button" data-wnclose="1">Continue</button></div>'
+      + '</div>';
+    document.body.appendChild(el);
+    try{ lockScroll('wnew'); }catch(e){}
+    setTimeout(function(){ el.classList.add('is-open'); },12);
+  }
+  function wnCheck(){
+    try{
+      var seen=Store.get(wnSeenKey(), null);
+      if(seen===APP_VERSION) return;
+      if(seen===null || seen===undefined){ wnMarkSeen(); return; }  /* first ever run: no popup */
+      setTimeout(wnOpen, 900);
+    }catch(e){}
+  }
+
+  /* ---- "a new version is ready" toast ---- */
+  var _upShown=false;
+  function upToast(){
+    if(_upShown || document.getElementById('uptoast')) return;
+    _upShown=true;
+    var el=document.createElement('div');
+    el.className='uptoast'; el.id='uptoast';
+    el.innerHTML='<span class="uptoast__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6"/><path d="M17 3.5V7h-3.5M7 20.5V17h3.5"/></svg></span>'
+      + '<span class="uptoast__tx">A new version of Wisal is ready</span>'
+      + '<button class="uptoast__b" type="button" data-upreload="1">Refresh</button>'
+      + '<button class="uptoast__x" type="button" data-upclose="1" aria-label="Dismiss">'
+      + '<svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+    document.body.appendChild(el);
+    setTimeout(function(){ el.classList.add('is-open'); },40);
+  }
+  function upClose(){
+    var el=document.getElementById('uptoast');
+    if(el){ el.classList.remove('is-open'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },260); }
+  }
+  function upWatch(reg){
+    try{
+      var had = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(had) upToast();
+      });
+      if(reg){
+        reg.addEventListener('updatefound', function(){
+          var nw=reg.installing;
+          if(!nw) return;
+          nw.addEventListener('statechange', function(){
+            if(nw.state==='installed' && navigator.serviceWorker.controller) upToast();
+          });
+        });
+        setInterval(function(){ try{ reg.update(); }catch(e){} }, 1800000); /* every 30 min */
+        document.addEventListener('visibilitychange', function(){
+          if(!document.hidden){ try{ reg.update(); }catch(e){} }
+        });
+      }
+    }catch(e){}
+  }
  function renderSetIndex(){
  renderSetHero();
  function s(id,t){ var el=document.getElementById(id); if(el) el.textContent=t; }
@@ -11344,6 +11520,9 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(e.target.closest('[data-aihistory]')){ aiOpenHistory(); return; }
  var _aic=e.target.closest('[data-aiconfirm]'); if(_aic){ aiExecuteActions(+_aic.getAttribute('data-aiconfirm')); return; }
  var _aid=e.target.closest('[data-aidismiss]'); if(_aid){ aiDismissActions(+_aid.getAttribute('data-aidismiss')); return; }
+ var _wnc=e.target.closest('[data-wnclose]'); if(_wnc){ wnClose(); return; }
+ var _upr=e.target.closest('[data-upreload]'); if(_upr){ location.reload(); return; }
+ var _upc=e.target.closest('[data-upclose]'); if(_upc){ upClose(); return; }
  var _wdx=e.target.closest('[data-wdocclose]'); if(_wdx){ wdocClose(); return; }
  var _wdp=e.target.closest('[data-wdocprint]'); if(_wdp){ wdocPrint(); return; }
  var _sclr=e.target.closest('[data-setclr]');
@@ -11863,6 +12042,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  window.addEventListener("load", function(){
  navigator.serviceWorker.register("sw.js").then(function(reg){
  window.__swReady = true;
+ try{ upWatch(reg); }catch(e){}
  }).catch(function(){ /* no sw.js deployed, app still works, just no offline cache */ });
  });
  }
@@ -11910,6 +12090,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  try{ applySpaceVisibility(); }catch(e){}
  try{ authInit(); }catch(e){}
  try{ bootOnboarding(); }catch(e){}
+ try{ wnCheck(); }catch(e){}
  try{ renderNotifications(); }catch(e){}
  setInterval(function(){ try{ renderNotifications(); }catch(e){} }, 300000);
  setInterval(renderGreeting, 60000);
