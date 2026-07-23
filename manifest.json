@@ -12,7 +12,7 @@
   ],
   "orientation": "portrait-primary",
   "background_color": "#131314",
-  
+  "theme_color": "#131314",
   "categories": [
     "lifestyle",
     "productivity",
