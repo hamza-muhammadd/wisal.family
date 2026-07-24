@@ -3421,6 +3421,32 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   .pj-dots:hover{color:var(--text)}
 }
 
+/* ============ HIERARCHY: phases ============ */
+.pj-ph{flex:none;font-size:.64rem;font-weight:700;letter-spacing:.02em;color:var(--cc);
+  background:color-mix(in srgb,var(--cc) 12%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--cc) 26%,transparent);
+  border-radius:999px;padding:2px 8px;white-space:nowrap}
+.pj-in{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-3);margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-in .ico{width:.82rem;height:.82rem;flex:none;color:var(--cc)}
+
+.pj-phl{display:flex;flex-direction:column;gap:7px}
+.pj-phr{display:flex;align-items:center;gap:11px;width:100%;text-align:left;font-family:inherit;cursor:pointer;
+  padding:11px 13px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);
+  transition:transform .16s var(--ease),border-color .16s,background .16s}
+@media (hover:hover) and (pointer:fine){
+  .pj-phr:hover{background:var(--surface);border-color:color-mix(in srgb,var(--cc) 36%,var(--border))}
+}
+.pj-phr:active{transform:scale(.985)}
+.pj-phr__n{width:26px;height:26px;flex:none;border-radius:9px;display:grid;place-items:center;color:var(--cc);
+  background:color-mix(in srgb,var(--cc) 13%,var(--surface))}
+.pj-phr__n .ico{width:.92rem;height:.92rem;stroke-width:2.4}
+.pj-phr__dot{width:7px;height:7px;border-radius:50%;background:var(--cc)}
+.pj-phr__m{flex:1;min-width:0;display:block}
+.pj-phr__t{display:block;font-size:.9rem;font-weight:650;letter-spacing:-.01em;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-phr__c{flex:none;font-size:.76rem;font-weight:700;color:var(--text-3);white-space:nowrap}
+
 </style>
 </head>
 <body>
@@ -5730,10 +5756,121 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   box:'<svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="4" rx="1.5"/><path d="M5 9v9a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18V9"/></svg>',
   bolt:'<svg class="ico" viewBox="0 0 24 24"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z"/></svg>',
   back:'<svg class="ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+  up:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 15V9a2 2 0 0 1 2-2h9"/><path d="M14 4.5 17.5 7 14 9.5"/></svg>',
   party:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 20l4.5-11 6.5 6.5L4 20Z"/><path d="M14 4.5c1.5 0 2.5 1 2.5 2.5M18.5 8c1 0 1.8.7 1.8 1.8M13 9l1-1M17 12l1.5-.5M19.5 15l.5-1.5"/></svg>',
   userplus:'<svg class="ico" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.2"/><path d="M4 19c0-3 2.7-4.7 6-4.7 1.1 0 2.1.2 3 .6"/><path d="M17.5 14.5v5M15 17h5"/></svg>',
   abc:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 18l4-11 4 11M5.2 14.5h5.6M14 8h5M14 8l5 8h-5"/></svg>'
  };
+  /* ============ HIERARCHY: Vision → Area → Project → Sub-project → Task → Subtask ============
+     One field does the heavy lifting: project.parentId.
+     A project with a parent is a "phase". Depth is capped at two levels on purpose —
+     deeper nesting looks clever and feels lost.                                            */
+
+  /* ---- option lists for the project form ---- */
+ function pjParentOpts(selfId){
+  var out=['Top level \u2014 a project of its own'];
+  pjAllProjects().forEach(function(x){
+   if(x.id===selfId || x.status==='archived') return;
+   if(!pjCanParent(selfId||'__new__', x.id)) return;
+   out.push('Phase of: '+(x.name||'Untitled'));
+  });
+  return out;
+ }
+ function pjParentValue(pj){
+  var par=pjParent(pj);
+  return par ? ('Phase of: '+(par.name||'Untitled')) : 'Top level \u2014 a project of its own';
+ }
+ function pjParentIdFromLabel(label,selfId){
+  label=String(label||'');
+  if(label.indexOf('Phase of: ')!==0) return '';
+  var nm=label.slice(10), hit='';
+  pjAllProjects().some(function(x){
+   if(x.id!==selfId && (x.name||'Untitled')===nm && pjCanParent(selfId,x.id)){ hit=x.id; return true; }
+   return false;
+  });
+  return hit;
+ }
+ function pjGoalOpts(){
+  var out=['No goal'];
+  (FD.data.goals||[]).forEach(function(g){ if(g.title) out.push(g.title); });
+  return out;
+ }
+ function pjGoalValue(pj){ var g=pjGoal(pj); return (g&&g.title)?g.title:'No goal'; }
+ function pjGoalIdFromLabel(label){
+  label=String(label||'');
+  if(!label || label==='No goal') return '';
+  var id='';
+  (FD.data.goals||[]).some(function(g){ if(g.title===label){ id=g.id; return true; } return false; });
+  return id;
+ }
+ function pjAllProjects(){ return (FD.data.planning&&FD.data.planning.projects)||[]; }
+
+  /* direct children, in manual order */
+  function pjChildren(id){
+    if(!id) return [];
+    return pjAllProjects().filter(function(x){ return x.parentId===id; })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+  function pjParent(p){
+    if(!p||!p.parentId) return null;
+    return FD.getProject(p.parentId);
+  }
+  function pjIsSub(p){ return !!(p && p.parentId && FD.getProject(p.parentId)); }
+  function pjIsParent(p){ return !!(p && pjChildren(p.id).length); }
+
+  /* may `childId` sit under `parentId`? guards self-reference, cycles and depth */
+  function pjCanParent(childId, parentId){
+    if(!parentId) return true;                 /* moving to top level is always fine */
+    if(childId===parentId) return false;       /* cannot own itself */
+    var par=FD.getProject(parentId);
+    if(!par) return false;
+    if(par.parentId) return false;             /* parent is itself a phase → would be 3 levels */
+    if(pjChildren(childId).length) return false; /* child has phases of its own → would be 3 levels */
+    /* walk up from the proposed parent; if we meet the child, it is a cycle */
+    var seen={}, cur=par, hops=0;
+    while(cur && cur.parentId && hops<50){
+      if(cur.parentId===childId) return false;
+      if(seen[cur.id]) break;
+      seen[cur.id]=1; cur=FD.getProject(cur.parentId); hops++;
+    }
+    return true;
+  }
+  function pjSetParent(childId, parentId){
+    var c=FD.getProject(childId); if(!c) return false;
+    if(!pjCanParent(childId, parentId||'')) return false;
+    c.parentId=parentId||'';
+    FD.save();
+    return true;
+  }
+
+  /* tasks belonging to a project, optionally including its phases */
+  function pjOwnTasks(id){
+    return ((FD.data.planning&&FD.data.planning.tasks)||[]).filter(function(t){ return t.projectId===id; });
+  }
+  function pjTreeTasks(id){
+    var out=pjOwnTasks(id);
+    pjChildren(id).forEach(function(k){ out=out.concat(pjOwnTasks(k.id)); });
+    return out;
+  }
+  function pjTreeStats(id){
+    var all=pjTreeTasks(id), done=0;
+    all.forEach(function(t){ if(t.done) done++; });
+    return {total:all.length, done:done};
+  }
+
+  /* the vision (family goal) a project serves */
+  function pjGoal(p){
+    if(!p||!p.goalId) return null;
+    var g=null;
+    (FD.data.goals||[]).some(function(x){ if(x.id===p.goalId){ g=x; return true; } return false; });
+    return g;
+  }
+
+  /* a project's own deadline, falling back to the earliest open task */
+  function pjDeadline(p, inf){
+    if(p && p.due) return p.due;
+    return (inf && inf.due) || '';
+  }
  function pjCat(p){ return PJ_CATS.indexOf(p.cat)>-1?p.cat:'family'; }
  function pjCC(c){ return 'var(--pjc-'+c+')'; }
  function pjLab(c){ return c.charAt(0).toUpperCase()+c.slice(1); }
@@ -5746,7 +5883,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   return {over:false,txt:'Due '+lbl};
  }
  function pjInfo(p){
-  var st=projectStats(p.id);
+  var st=pjTreeStats(p.id);
+  var ownSt=projectStats(p.id);
   var all=FD.data.planning.tasks.filter(function(t){ return t.projectId===p.id; });
   var open=all.filter(function(t){ return !t.done; }).sort(plSort);
   var due=''; open.forEach(function(t){ if(t.due&&(!due||t.due<due)) due=t.due; });
@@ -5755,6 +5893,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   var asg=(Array.isArray(p.members)?p.members.slice():[]);
   return {st:st, pct:st.total?Math.round(st.done/st.total*100):0, next:open.length?open[0]:null,
    due:due, members:(asg.length?asg:mem), assigned:asg, derived:mem, open:open, all:all,
+   own:ownSt, kids:pjChildren(p.id), isSub:pjIsSub(p),
    complete:(p.status==='completed')||(st.total>0&&st.done===st.total)};
  }
  function pjBucket(p){ return p.status==='archived'?'archived':(pjInfo(p).complete?'completed':'active'); }
@@ -5789,12 +5928,15 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     (p.prio==='high'?'<span class="pj-prio pj-prio--hi">'+PJ_ICO.flag+'High</span>':'<span class="pj-prio pj-prio--lo">'+PJ_ICO.low+'Low</span>');
   return '<article class="'+cls+'" data-cat="'+c+'" style="--cc:'+pjCC(c)+'" data-pjcard="'+p.id+'" draggable="true">'
    + '<div class="pj-card__t"><span class="pj-card__ic">'+PJ_ICO[c]+'</span><span class="pj-card__cat">'+pjLab(c)+'</span>'
+   + (inf.kids.length?'<span class="pj-ph">'+inf.kids.length+' phase'+(inf.kids.length>1?'s':'')+'</span>':'')
    + (p.pinned?'<span class="pj-card__pin" title="Pinned">'+PJ_ICO.pin+'</span>':'')
    + '<span class="pj-card__sp"></span>'
    + '<button class="pj-avbtn pj-card__avs" type="button" data-pjassign="'+p.id+'" aria-label="Assign members" title="Assign members">'
    + (inf.members.length?pjAvatars(inf.members):'<span class="pj-assign0">'+PJ_ICO.userplus+'</span>')+'</button>'
    + '<button class="pj-dots" data-pjmenu="'+p.id+'" aria-label="More options">'+PJ_ICO.dots+'</button></div>'
-   + '<div class="pj-card__n">'+esc(p.name||'Project')+'</div><div class="pj-card__gr"></div>'
+   + '<div class="pj-card__n">'+esc(p.name||'Project')+'</div>'
+   + (inf.isSub?'<div class="pj-in">'+PJ_ICO.up+'in '+esc((pjParent(p)||{}).name||'')+'</div>':'')
+   + '<div class="pj-card__gr"></div>'
    + '<div class="pj-bar"><span style="width:'+inf.pct+'%"></span><i></i></div>'
    + '<div class="pj-card__m"><span class="pj-card__tk">'+inf.st.done+'/'+inf.st.total+' tasks</span><span class="pj-card__msp"></span>'+prio+right+'</div>'
    + '</article>';
@@ -5883,8 +6025,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     '<button class="btn btn--primary" data-modal="project">'+PL_ICO.plus+'New project</button>');
    return pjGrid(gc);
   }
-  var active=all.filter(function(p){ return pjBucket(p)==='active'; });
-  var done=pjSortList(all.filter(function(p){ return pjBucket(p)==='completed'; }));
+  var active=all.filter(function(p){ return pjBucket(p)==='active' && !pjIsSub(p); });
+  var done=pjSortList(all.filter(function(p){ return pjBucket(p)==='completed' && !pjIsSub(p); }));
   var arch=pjSortList(all.filter(function(p){ return pjBucket(p)==='archived'; }));
   if(!active.length){
    var body=hEmpty(PJ_ICO.party,'All caught up! \ud83c\udf89','Every active project is complete, mashallah. Take a breath \u2014 or start the next one.',
@@ -6009,6 +6151,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   it+='<button class="pj-menu__i" type="button" data-pjact="pin" data-pjid="'+p.id+'">'+PJ_ICO.pin+(p.pinned?'Unpin from focus':'Pin to focus')+'</button>';
   it+='<button class="pj-menu__i" type="button" data-pjact="menu" data-pjid="'+p.id+'" data-pjval="mem">'+PJ_ICO.userplus+'Assign members<span class="pj-menu__sp"></span>'+PJ_ICO.arrow+'</button>';
   it+='<button class="pj-menu__i" type="button" data-pjact="rename" data-pjid="'+p.id+'">'+J_ICO.pen+'Rename &amp; edit</button>';
+  if(!pjIsSub(p)) it+='<button class="pj-menu__i" type="button" data-pjact="addphase" data-pjid="'+p.id+'">'+PL_ICO.plus+'Add a phase</button>';
   it+='<button class="pj-menu__i" type="button" data-pjact="dup" data-pjid="'+p.id+'">'+PJ_ICO.copy+'Duplicate</button>';
   it+='<div class="pj-menu__sep"></div>';
   it+='<button class="pj-menu__i" type="button" data-pjact="menu" data-pjid="'+p.id+'" data-pjval="prio">'+PJ_ICO.bolt+'Change priority<span class="pj-menu__sp"></span>'+PJ_ICO.arrow+'</button>';
@@ -6101,6 +6244,15 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    else { FD.data.planning.projects.forEach(function(x){ x.pinned=false; }); p.pinned=true; if(p.status!=='active') p.status='active'; FD.save(); flash('Pinned to Current focus'); }
   }
   else if(act==='rename'){ pjCloseMenu(); openModal('editProject',{projectId:id}); return; }
+  else if(act==='addphase'){
+   pjCloseMenu();
+   FD.addProject({name:'New phase',note:'',cat:pjCat(p),prio:'normal',status:'active',pinned:false,order:(pjChildren(id).length||0),members:[],parentId:id,goalId:p.goalId||'',due:''});
+   var _l=FD.data.planning.projects, _n=_l[_l.length-1];
+   flash('Phase added');
+   renderPlanProjects();
+   if(_n) setTimeout(function(){ openModal('editProject',{projectId:_n.id}); },80);
+   return;
+  }
   else if(act==='dup'){
    FD.addProject({name:(p.name||'Project')+' (copy)',note:p.note||'',cat:pjCat(p),prio:p.prio||'normal',status:'active',pinned:false,order:(p.order||0)+1});
    flash('Project duplicated');
@@ -6119,7 +6271,12 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   }
   else if(act==='del'){
    pjCloseMenu();
-   if(!window.confirm('Delete \u201c'+(p.name||'this project')+'\u201d? Its tasks will stay, just without the project label.')) return;
+   var _kids=pjChildren(id);
+   var _msg=_kids.length
+    ? ('Delete \u201c'+(p.name||'this project')+'\u201d? Its '+_kids.length+' phase'+(_kids.length>1?'s':'')+' will become projects of their own, and its tasks will stay.')
+    : ('Delete \u201c'+(p.name||'this project')+'\u201d? Its tasks will stay, just without the project label.');
+   if(!window.confirm(_msg)) return;
+   _kids.forEach(function(k){ k.parentId=''; });
    FD.removeProject(id);
    if(pjDrawerId===id) pjCloseDrawer();
    flash('Project deleted');
@@ -6164,6 +6321,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   var doneT=inf.all.filter(function(t){ return t.done; });
   var meta='<div class="pj-fmeta" style="gap:14px">';
   if(du) meta+='<span class="pj-fm'+(du.over?' is-over':'')+'">'+PJ_ICO.cal+du.txt+'</span>';
+  var _g=pjGoal(p);
+  if(_g) meta+='<span class="pj-fm">'+PJ_ICO.bolt+esc(_g.title||'')+'</span>';
   if(p.prio==='high') meta+='<span class="pj-prio pj-prio--hi">'+PJ_ICO.flag+'High priority</span>';
   if(p.prio==='low') meta+='<span class="pj-prio pj-prio--lo">'+PJ_ICO.low+'Low priority</span>';
   meta+='<button class="pj-fm pj-avbtn" type="button" data-pjassign="'+p.id+'">'+PJ_ICO.users
@@ -6182,6 +6341,18 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    + '<button class="pj-dr__b" type="button" data-pjact="arch" data-pjid="'+p.id+'">'+PJ_ICO.box+(p.status==='archived'?'Restore':'Archive')+'</button>'
    + '<button class="pj-dr__b pj-dr__b--del" type="button" data-pjact="del" data-pjid="'+p.id+'">'+PJ_ICO.trash+'Delete</button>'
    + '</div><div class="pj-dr__body">'
+   + (inf.kids.length?('<div class="pj-dr__sec">Phases \u00b7 '+inf.kids.length+'</div><div class="pj-phl">'
+      + inf.kids.map(function(k){
+         var ks=pjTreeStats(k.id), kp=ks.total?Math.round(ks.done/ks.total*100):0, kc=pjCat(k);
+         return '<button class="pj-phr" type="button" style="--cc:'+pjCC(kc)+'" data-pjcard="'+k.id+'">'
+          + '<span class="pj-phr__n">'+(kp>=100?PJ_ICO.check:'<span class="pj-phr__dot"></span>')+'</span>'
+          + '<span class="pj-phr__m"><span class="pj-phr__t">'+esc(k.name||'Phase')+'</span>'
+          + '<span class="pj-bar" style="margin:6px 0 0"><span style="width:'+kp+'%"></span></span></span>'
+          + '<span class="pj-phr__c">'+ks.done+'/'+ks.total+'</span></button>';
+        }).join('')
+      + '</div>'):'')
+   + (inf.isSub?'<div class="pj-dr__sec">Part of</div><button class="pj-phr" type="button" style="--cc:'+pjCC(pjCat(pjParent(p)||p))+'" data-pjcard="'+p.parentId+'">'
+      + '<span class="pj-phr__n">'+PJ_ICO.up+'</span><span class="pj-phr__m"><span class="pj-phr__t">'+esc((pjParent(p)||{}).name||'')+'</span></span></button>':'')
    + '<div class="pj-dr__sec">Open tasks \u00b7 '+inf.open.length+'</div>'
    + (inf.open.length?'<div class="hmlist">'+inf.open.map(taskRowSlim).join('')+'</div>'
       :'<div class="docempty">'+(inf.st.total?'All tasks done, project complete! \ud83c\udf89':'No tasks yet \u2014 add the first one above.')+'</div>')
@@ -8828,7 +8999,26 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  d.planning.tasks.forEach(function(x){ if(typeof x.title!=='string') x.title=''; if(typeof x.due!=='string') x.due=''; if(typeof x.member!=='string') x.member=''; if(typeof x.projectId!=='string') x.projectId=''; if(typeof x.note!=='string') x.note=''; x.priority=(x.priority==='high'||x.priority==='low')?x.priority:'normal'; x.done=!!x.done; });
  d.planning.tasks.forEach(function(x){ if(Array.isArray(x.subs)) x.subs=x.subs.filter(function(s){return s&&typeof s.t==='string'&&s.t.trim();}); });
  if(!Array.isArray(d.planning.projects)) d.planning.projects=[];
- d.planning.projects.forEach(function(x){ if(typeof x.name!=='string') x.name=''; if(typeof x.note!=='string') x.note=''; if(['personal','work','health','finance','family','education','travel'].indexOf(x.cat)===-1) x.cat='family'; x.prio=(x.prio==='high'||x.prio==='low')?x.prio:'normal'; x.pinned=!!x.pinned; if(x.status!=='completed'&&x.status!=='archived') x.status='active'; if(typeof x.order!=='number') x.order=0; if(!Array.isArray(x.members)) x.members=[]; x.members=x.members.filter(function(m){ return typeof m==='string' && m; }); });
+ d.planning.projects.forEach(function(x){ if(typeof x.name!=='string') x.name=''; if(typeof x.note!=='string') x.note=''; if(['personal','work','health','finance','family','education','travel'].indexOf(x.cat)===-1) x.cat='family'; x.prio=(x.prio==='high'||x.prio==='low')?x.prio:'normal'; x.pinned=!!x.pinned; if(x.status!=='completed'&&x.status!=='archived') x.status='active'; if(typeof x.order!=='number') x.order=0; if(!Array.isArray(x.members)) x.members=[]; x.members=x.members.filter(function(m){ return typeof m==='string' && m; }); if(typeof x.parentId!=='string') x.parentId=''; if(typeof x.goalId!=='string') x.goalId=''; if(typeof x.due!=='string') x.due=''; });
+ /* heal the hierarchy: drop dead parents, self-links and anything deeper than two levels */
+ (function(){
+  var byId={}; d.planning.projects.forEach(function(x){ byId[x.id]=x; });
+  d.planning.projects.forEach(function(x){
+   if(!x.parentId) return;
+   if(x.parentId===x.id){ x.parentId=''; return; }
+   var par=byId[x.parentId];
+   if(!par){ x.parentId=''; return; }        /* parent was deleted */
+   if(par.parentId){ x.parentId=''; return; } /* would be a third level */
+  });
+  /* break any cycle that somehow survived */
+  d.planning.projects.forEach(function(x){
+   var seen={}, cur=x, hops=0;
+   while(cur && cur.parentId && hops<50){
+    if(seen[cur.id]){ x.parentId=''; break; }
+    seen[cur.id]=1; cur=byId[cur.parentId]; hops++;
+   }
+  });
+ })();
  if(!d.relationship||typeof d.relationship!=='object') d.relationship={};
  if(!d.ai||typeof d.ai!=='object') d.ai={thread:[],history:[]};
  if(!Array.isArray(d.ai.thread)) d.ai.thread=[];
@@ -9548,8 +9738,17 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  {name:'name',label:'Project',type:'text',ph:'e.g. Eid preparations',value:pj.name||''},
  {name:'cat',label:'Category',type:'select',opts:['Personal','Work','Health','Finance','Family','Education','Travel'],value:(pj.cat?(pj.cat.charAt(0).toUpperCase()+pj.cat.slice(1)):'Family')},
  {name:'prio',label:'Priority',type:'select',opts:['High','Normal','Low'],value:(pj.prio?(pj.prio.charAt(0).toUpperCase()+pj.prio.slice(1)):'Normal')},
+ {name:'parent',label:'Part of',type:'select',opts:pjParentOpts(ctx.projectId||''),value:pjParentValue(pj)},
+ {name:'vision',label:'Serves which family goal?',type:'select',opts:pjGoalOpts(),value:pjGoalValue(pj)},
+ {name:'due',label:'Target date (optional)',type:'date',value:pj.due||''},
  {name:'note',label:'Note (optional)',type:'textarea',ph:'What does done look like?',value:pj.note||''}
- ],save:function(v){ if(!(v.name&&v.name.trim())) return 'Please name the project.'; var patch={name:v.name.trim(),note:(v.note||'').trim()}; patch.cat=String(v.cat||'Family').toLowerCase(); patch.prio=String(v.prio||'Normal').toLowerCase(); if(isPJ) FD.updateProject(ctx.projectId,patch); else { patch.status='active'; patch.pinned=false; patch.order=0; FD.addProject(patch); } }};
+ ],save:function(v){ if(!(v.name&&v.name.trim())) return 'Please name the project.'; var patch={name:v.name.trim(),note:(v.note||'').trim()}; patch.cat=String(v.cat||'Family').toLowerCase(); patch.prio=String(v.prio||'Normal').toLowerCase(); patch.due=String(v.due||''); patch.goalId=pjGoalIdFromLabel(v.vision); var _pid;
+  if(isPJ){ FD.updateProject(ctx.projectId,patch); _pid=ctx.projectId; }
+  else { patch.status='active'; patch.pinned=false; patch.order=0; patch.parentId=''; FD.addProject(patch);
+   var _l=FD.data.planning.projects; _pid=_l.length?_l[_l.length-1].id:''; }
+  var _want=pjParentIdFromLabel(v.parent,_pid), _cur=((FD.getProject(_pid)||{}).parentId)||'';
+  if(_want!==_cur && !pjSetParent(_pid,_want)) return 'That would nest too deep \u2014 a phase cannot have phases of its own.';
+ }};
  }
  if(type==='nmeal'||type==='editNmeal'){ var nm=(type==='editNmeal')?(FD.getNMeal(ctx.nmealId)||{}):{}; var isNM=(type==='editNmeal');
  return {title:isNM?'Edit meal':'Log a meal',submit:isNM?'Save':'Log it',done:isNM?'Updated':'Meal logged',fields:[
@@ -10831,6 +11030,14 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   var AI_ACT={
     /* --- planning / household --- */
     goal:            function(a){ FD.addGoal({ title:aiStr(a.title)||'Goal', owner:aiStr(a.owner) }); },
+    phase:           function(a){
+      var par=null, nm=aiStr(a.project);
+      pjAllProjects().some(function(x){ if((x.name||'')===nm && !x.parentId){ par=x; return true; } return false; });
+      if(!par) return;
+      FD.addProject({ name:aiStr(a.name)||'Phase', note:aiStr(a.note), cat:pjCat(par), prio:aiStr(a.prio)||'normal',
+        status:'active', pinned:false, order:pjChildren(par.id).length, members:[], parentId:par.id,
+        goalId:par.goalId||'', due:aiStr(a.due) });
+    },
     announcement:    function(a){ FD.addAnnouncement({ text:aiStr(a.text), author:aiStr(a.author) }); },
     responsibility:  function(a){ FD.addResponsibility({ title:aiStr(a.title)||'Responsibility', assignee:aiStr(a.assignee), frequency:aiStr(a.frequency)||'Weekly', note:aiStr(a.note) }); },
     document:        function(a){ FD.addDocument({ title:aiStr(a.title)||'Document', category:aiStr(a.category)||'Other', owner:aiStr(a.owner), expiry:aiStr(a.expiry), note:aiStr(a.note), attachments:[] }); },
@@ -10887,7 +11094,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     wisdom:          function(a){ FD.addWisdom({ text:aiStr(a.text), from:aiStr(a.from), when:aiStr(a.when) }); }
   };
   var AI_ACT_LABEL={
-    goal:'Family goal', announcement:'Announcement', responsibility:'Responsibility', document:'Document',
+    goal:'Family goal', phase:'Project phase', announcement:'Announcement', responsibility:'Responsibility', document:'Document',
     planned:'Planned payment', debt:'Debt record', saving:'Savings goal',
     maint:'Maintenance job', supply:'Supply item',
     shopping:'Shopping item', recipe:'Recipe', mealplan:'Planned meal',
@@ -11151,6 +11358,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
       + "[[ACTION:{\"type\":\"clear_project\",\"name\":\"exact project name\",\"mode\":\"complete|delete\"}]]\n"
       + "--- Household ---\n"
       + "[[ACTION:{\"type\":\"goal\",\"title\":\"...\",\"owner\":\"name or empty\"}]]\n"
+      + "[[ACTION:{\"type\":\"phase\",\"project\":\"exact parent project name\",\"name\":\"Phase 1 \\u2014 ...\",\"due\":\"YYYY-MM-DD\"}]]\n"
       + "[[ACTION:{\"type\":\"announcement\",\"text\":\"...\",\"author\":\"name or empty\"}]]\n"
       + "[[ACTION:{\"type\":\"responsibility\",\"title\":\"...\",\"assignee\":\"name\",\"frequency\":\"Daily|Weekly|Monthly\",\"note\":\"...\"}]]\n"
       + "[[ACTION:{\"type\":\"document\",\"title\":\"...\",\"category\":\"...\",\"owner\":\"name\",\"expiry\":\"YYYY-MM-DD\",\"note\":\"...\"}]]\n"
