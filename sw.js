@@ -3,7 +3,7 @@
    Strategy: network-first for the page (so you always get the latest when online),
    cache-first for fonts, and a cached fallback when offline. */
 
-var CACHE = 'wisal-v2.00';
+var CACHE = 'wisal-v45';
 var SHELL = ['./', './index.html'];
 
 self.addEventListener('install', function(e){
