@@ -6244,15 +6244,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    else { FD.data.planning.projects.forEach(function(x){ x.pinned=false; }); p.pinned=true; if(p.status!=='active') p.status='active'; FD.save(); flash('Pinned to Current focus'); }
   }
   else if(act==='rename'){ pjCloseMenu(); openModal('editProject',{projectId:id}); return; }
-  else if(act==='addphase'){
-   pjCloseMenu();
-   FD.addProject({name:'New phase',note:'',cat:pjCat(p),prio:'normal',status:'active',pinned:false,order:(pjChildren(id).length||0),members:[],parentId:id,goalId:p.goalId||'',due:''});
-   var _l=FD.data.planning.projects, _n=_l[_l.length-1];
-   flash('Phase added');
-   renderPlanProjects();
-   if(_n) setTimeout(function(){ openModal('editProject',{projectId:_n.id}); },80);
-   return;
-  }
+  else if(act==='addphase'){ pjCloseMenu(); openModal('addPhase',{parentId:id}); return; }
   else if(act==='dup'){
    FD.addProject({name:(p.name||'Project')+' (copy)',note:p.note||'',cat:pjCat(p),prio:p.prio||'normal',status:'active',pinned:false,order:(p.order||0)+1});
    flash('Project duplicated');
@@ -6336,6 +6328,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    + meta+'</div>'
    + '<div class="pj-dr__acts">'
    + '<button class="pj-dr__b pj-dr__b--pri" type="button" data-pltadd="'+p.id+'">'+PL_ICO.plus+'Add task</button>'
+   + (inf.isSub?'':'<button class="pj-dr__b" type="button" data-pjact="addphase" data-pjid="'+p.id+'">'+PL_ICO.plus+'Add phase</button>')
    + '<button class="pj-dr__b" type="button" data-pjact="rename" data-pjid="'+p.id+'">'+J_ICO.pen+'Edit</button>'
    + '<button class="pj-dr__b" type="button" data-pjact="pin" data-pjid="'+p.id+'">'+PJ_ICO.pin+(p.pinned?'Unpin':'Pin')+'</button>'
    + '<button class="pj-dr__b" type="button" data-pjact="arch" data-pjid="'+p.id+'">'+PJ_ICO.box+(p.status==='archived'?'Restore':'Archive')+'</button>'
@@ -9733,16 +9726,34 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  {name:'note',label:'Note (optional)',type:'text',ph:'Any detail to remember?',value:tk.note||''}
  ],save:function(v){var _subs=(function(){function ok(s){return s&&typeof s.t==='string'&&s.t.trim();} var raw=v.subs; if(Array.isArray(raw)) return raw.filter(ok).map(function(s){return {t:s.t.trim(),done:!!s.done};}); try{var p=JSON.parse(raw||'[]'); if(Array.isArray(p)) return p.filter(ok).map(function(s){return {t:s.t.trim(),done:!!s.done};});}catch(e){} return String(raw||'').split('\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l){return {t:l,done:false};});})(); if(!(v.title&&v.title.trim())) return 'Please name the task.'; var pid=''; if(v.project&&v.project!=='No project'&&v.project!=='Not set'){ var hit=null; FD.data.planning.projects.some(function(p){ if(p.name===v.project){ hit=p; return true; } return false; }); pid=hit?hit.id:''; } var patch={subs:_subs,subs:_subs,title:v.title.trim(),due:v.due||'',member:(v.member&&v.member!=='Not set')?v.member:'',priority:(v.priority||'Normal').toLowerCase(),projectId:pid,note:(v.note||'').trim()}; if(isTK) FD.updateTask(ctx.taskId,patch); else { patch.done=false; FD.addTask(patch); } }};
  }
+ if(type==='addPhase'){
+  var par=FD.getProject(ctx.parentId)||{};
+  return {title:'Add a phase', submit:'Add phase', done:'Phase added', fields:[
+   {name:'name',label:'Phase of \u201c'+(par.name||'project')+'\u201d',type:'text',ph:'e.g. Phase 1 \u2014 Foundation',value:''},
+   {name:'prio',label:'Priority',type:'select',opts:['High','Normal','Low'],value:'Normal'},
+   {name:'due',label:'Target date (optional)',type:'date',value:''},
+   {name:'note',label:'Note (optional)',type:'textarea',ph:'What does this phase deliver?',value:''}
+  ],save:function(v){
+   if(!(v.name&&v.name.trim())) return 'Please name the phase.';
+   var pp=FD.getProject(ctx.parentId);
+   if(!pp) return 'That project no longer exists.';
+   if(pp.parentId) return 'A phase cannot have phases of its own.';
+   FD.addProject({ name:v.name.trim(), note:(v.note||'').trim(), cat:pjCat(pp),
+    prio:String(v.prio||'Normal').toLowerCase(), due:String(v.due||''),
+    status:'active', pinned:false, order:pjChildren(pp.id).length, members:[],
+    parentId:pp.id, goalId:pp.goalId||'' });
+  }};
+ }
  if(type==='project'||type==='editProject'){ var pj=(type==='editProject')?(FD.getProject(ctx.projectId)||{}):{}; var isPJ=(type==='editProject');
  return {title:isPJ?'Edit project':'Add project',submit:isPJ?'Save':'Add project',done:isPJ?'Updated':'Project added',fields:[
  {name:'name',label:'Project',type:'text',ph:'e.g. Eid preparations',value:pj.name||''},
  {name:'cat',label:'Category',type:'select',opts:['Personal','Work','Health','Finance','Family','Education','Travel'],value:(pj.cat?(pj.cat.charAt(0).toUpperCase()+pj.cat.slice(1)):'Family')},
  {name:'prio',label:'Priority',type:'select',opts:['High','Normal','Low'],value:(pj.prio?(pj.prio.charAt(0).toUpperCase()+pj.prio.slice(1)):'Normal')},
- {name:'parent',label:'Part of',type:'select',opts:pjParentOpts(ctx.projectId||''),value:pjParentValue(pj)},
+ ].concat(isPJ?[{name:'parent',label:'Part of',type:'select',opts:pjParentOpts(ctx.projectId||''),value:pjParentValue(pj)}]:[]).concat([
  {name:'vision',label:'Serves which family goal?',type:'select',opts:pjGoalOpts(),value:pjGoalValue(pj)},
  {name:'due',label:'Target date (optional)',type:'date',value:pj.due||''},
  {name:'note',label:'Note (optional)',type:'textarea',ph:'What does done look like?',value:pj.note||''}
- ],save:function(v){ if(!(v.name&&v.name.trim())) return 'Please name the project.'; var patch={name:v.name.trim(),note:(v.note||'').trim()}; patch.cat=String(v.cat||'Family').toLowerCase(); patch.prio=String(v.prio||'Normal').toLowerCase(); patch.due=String(v.due||''); patch.goalId=pjGoalIdFromLabel(v.vision); var _pid;
+ ]),save:function(v){ if(!(v.name&&v.name.trim())) return 'Please name the project.'; var patch={name:v.name.trim(),note:(v.note||'').trim()}; patch.cat=String(v.cat||'Family').toLowerCase(); patch.prio=String(v.prio||'Normal').toLowerCase(); patch.due=String(v.due||''); patch.goalId=pjGoalIdFromLabel(v.vision); var _pid;
   if(isPJ){ FD.updateProject(ctx.projectId,patch); _pid=ctx.projectId; }
   else { patch.status='active'; patch.pinned=false; patch.order=0; patch.parentId=''; FD.addProject(patch);
    var _l=FD.data.planning.projects; _pid=_l.length?_l[_l.length-1].id:''; }
