@@ -3447,6 +3447,22 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pj-phr__c{flex:none;font-size:.76rem;font-weight:700;color:var(--text-3);white-space:nowrap}
 
+/* press-and-hold feedback */
+.pj-card.is-holding,.pj-focus.is-holding,.pj-phr.is-holding{
+  transform:scale(.972);
+  transition:transform .42s cubic-bezier(.22,.61,.36,1)}
+@media (prefers-reduced-motion:reduce){
+  .pj-card.is-holding,.pj-focus.is-holding,.pj-phr.is-holding{transform:none}
+}
+
+/* ---- long press ---- */
+.is-holding{transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
+.pj-card.is-holding,.pj-focus.is-holding{transform:scale(.975)}
+.hmrow.is-holding,.pj-phr.is-holding,.plw-t.is-holding{
+  transform:scale(.985);background:var(--surface-2)}
+.pj-menu__hd{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.is-holding{transform:none!important}}
+
 </style>
 </head>
 <body>
@@ -6111,6 +6127,50 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
 
  /* ---------- context menu ---------- */
+ /* ---- press and hold a project to get its actions (Delete lives there) ---- */
+ var pjLPTimer=null, pjLPFired=false, pjLPx=0, pjLPy=0, pjLPEl=null;
+ function pjLPCancel(){
+  if(pjLPTimer){ clearTimeout(pjLPTimer); pjLPTimer=null; }
+  if(pjLPEl){ pjLPEl.classList.remove('is-holding'); pjLPEl=null; }
+ }
+ function pjLPStart(el, x, y){
+  pjLPCancel();
+  pjLPFired=false; pjLPx=x; pjLPy=y; pjLPEl=el;
+  el.classList.add('is-holding');
+  pjLPTimer=setTimeout(function(){
+   pjLPTimer=null;
+   var id=el.getAttribute('data-pjcard');
+   if(!id) return;
+   pjLPFired=true;
+   el.classList.remove('is-holding');
+   try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+   pjOpenMenu(id, el, 'main');
+  }, 480);
+ }
+ document.addEventListener('touchstart', function(e){
+  if(!e.target||!e.target.closest) return;
+  if(e.target.closest('[data-pjmenu],[data-pjassign],.pj-menu,button')) return;
+  var card=e.target.closest('[data-pjcard]');
+  if(!card) return;
+  var t=e.touches&&e.touches[0]; if(!t) return;
+  pjLPStart(card, t.clientX, t.clientY);
+ }, {passive:true});
+ document.addEventListener('touchmove', function(e){
+  if(!pjLPTimer) return;
+  var t=e.touches&&e.touches[0]; if(!t) return;
+  if(Math.abs(t.clientX-pjLPx)>10 || Math.abs(t.clientY-pjLPy)>10) pjLPCancel();
+ }, {passive:true});
+ document.addEventListener('touchend', pjLPCancel, {passive:true});
+ document.addEventListener('touchcancel', pjLPCancel, {passive:true});
+ /* desktop: right-click does the same */
+ document.addEventListener('contextmenu', function(e){
+  if(!e.target||!e.target.closest) return;
+  var card=e.target.closest('[data-pjcard]');
+  if(!card) return;
+  var id=card.getAttribute('data-pjcard'); if(!id) return;
+  e.preventDefault();
+  pjOpenMenu(id, card, 'main');
+ });
  function pjCloseMenu(){
   pjSheetScrim(false);
   var m=document.getElementById('pjCtx'); if(!m) return;
@@ -6280,6 +6340,149 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
 
  /* ---------- detail drawer ---------- */
+  /* ================= LONG PRESS =================
+     Hold a card or a row to reach its actions. The hard part is not the timer —
+     it is making sure a scroll never counts as a press, and that the tap which
+     follows the release does not also fire.                                     */
+  var LP = {
+    ms: 480,          /* how long is a "hold" */
+    slop: 12,         /* how far a finger may drift before it counts as a scroll */
+    timer: null, x: 0, y: 0, el: null, fired: false, armed: false
+  };
+
+  function lpBuzz(){
+    try{ if(navigator.vibrate) navigator.vibrate(14); }catch(e){}
+  }
+
+  /* what did the user press, and what should holding it do? */
+  function lpTargetOf(node){
+    if(!node || !node.closest) return null;
+    /* innermost things first, so a subtask never resolves to its task */
+    var sb = node.closest('[data-tsub]');                    /* a subtask */
+    if(sb) return {kind:'sub', id:sb.getAttribute('data-tsub'), el:sb};
+    var row = node.closest('.hmrow');                        /* a task row */
+    if(row){
+      var t = row.querySelector('[data-pltopen]');
+      if(t) return {kind:'task', id:t.getAttribute('data-pltopen'), el:row};
+    }
+    var wt = node.closest('.plw-t');                         /* a task in the week calendar */
+    if(wt){
+      var t2 = wt.querySelector('[data-pltopen]');
+      if(t2) return {kind:'task', id:t2.getAttribute('data-pltopen'), el:wt};
+    }
+    var tt = node.closest('[data-pltopen]');                 /* any bare task title */
+    if(tt) return {kind:'task', id:tt.getAttribute('data-pltopen'), el:tt};
+    var ph = node.closest('.pj-phr[data-pjcard]');           /* a phase row in the drawer */
+    if(ph) return {kind:'project', id:ph.getAttribute('data-pjcard'), el:ph};
+    var card = node.closest('[data-pjcard]');                /* a project card */
+    if(card) return {kind:'project', id:card.getAttribute('data-pjcard'), el:card};
+    return null;
+  }
+
+  function lpCancel(){
+    if(LP.timer){ clearTimeout(LP.timer); LP.timer=null; }
+    if(LP.el) LP.el.classList.remove('is-holding');
+    LP.el=null; LP.armed=false;
+  }
+
+  function lpFire(target){
+    LP.fired = true;
+    lpBuzz();
+    if(LP.el) LP.el.classList.remove('is-holding');
+    if(target.kind==='project') pjOpenMenu(target.id, target.el, 'main');
+    else if(target.kind==='sub') lpSubMenu(target.id, target.el);
+    else lpTaskMenu(target.id, target.el);
+  }
+
+  function lpStart(e){
+    if(e.touches && e.touches.length>1) return;             /* pinch, not a press */
+    if(e.button!==undefined && e.button!==0) return;        /* right-click has its own menu */
+    var pt = e.touches ? e.touches[0] : e;
+    var t = lpTargetOf(e.target);
+    if(!t) return;
+    /* a control still does its own job on a quick tap; only a long hold opens a menu */
+    if(e.target.closest && e.target.closest('input,textarea,select')) return;
+    LP.x=pt.clientX; LP.y=pt.clientY; LP.el=t.el; LP.fired=false; LP.armed=true;
+    t.el.classList.add('is-holding');
+    LP.timer = setTimeout(function(){ LP.timer=null; if(LP.armed) lpFire(t); }, LP.ms);
+  }
+
+  function lpMove(e){
+    if(!LP.armed) return;
+    var pt = e.touches ? e.touches[0] : e;
+    if(Math.abs(pt.clientX-LP.x) > LP.slop || Math.abs(pt.clientY-LP.y) > LP.slop) lpCancel();
+  }
+
+  function lpEnd(){ lpCancel(); }
+
+  document.addEventListener('touchstart', lpStart, {passive:true});
+  document.addEventListener('touchmove',  lpMove,  {passive:true});
+  document.addEventListener('touchend',   lpEnd,   {passive:true});
+  document.addEventListener('touchcancel',lpEnd,   {passive:true});
+  document.addEventListener('mousedown',  lpStart);
+  document.addEventListener('mousemove',  lpMove);
+  document.addEventListener('mouseup',    lpEnd);
+  window.addEventListener('scroll', lpCancel, true);
+  /* swallow the tap that follows a hold, so nothing opens behind the menu */
+  document.addEventListener('click', function(e){
+    if(LP.fired){ LP.fired=false; e.stopPropagation(); e.preventDefault(); }
+  }, true);
+  /* long-press on desktop should not also raise the browser menu */
+  document.addEventListener('contextmenu', function(e){
+    var t=lpTargetOf(e.target);
+    if(!t) return;
+    e.preventDefault();
+    lpCancel();
+    LP.fired=true;
+    if(t.kind==='project') pjOpenMenu(t.id, t.el, 'main');
+    else if(t.kind==='sub') lpSubMenu(t.id, t.el);
+    else lpTaskMenu(t.id, t.el);
+  });
+
+  /* ---- the menu a held subtask gets ---- */
+  function lpSubMenu(ref, anchor){
+    var pr=String(ref||'').split('::'), tk=FD.getTask(pr[0]), ix=+pr[1];
+    if(!tk || !tk.subs || !tk.subs[ix]) return;
+    var sb=tk.subs[ix];
+    pjCloseMenu();
+    var m=document.createElement('div');
+    m.className='pj-menu'; m.id='pjCtx';
+    m.style.position='fixed'; m.style.zIndex='210'; m.style.minWidth='200px';
+    m.innerHTML =
+        '<div class="pj-menu__hd">'+esc(String(sb.t||'Subtask').slice(0,32))+'</div>'
+      + '<button class="pj-menu__i" type="button" data-tsub="'+esc(ref)+'">'+PJ_ICO.check+(sb.done?'Mark not done':'Mark done')+'</button>'
+      + '<button class="pj-menu__i" type="button" data-pltedit="'+tk.id+'">'+J_ICO.pen+'Edit the task</button>'
+      + '<div class="pj-menu__sep"></div>'
+      + '<button class="pj-menu__i is-danger" type="button" data-subdel="'+esc(ref)+'">'+PJ_ICO.trash+'Delete subtask</button>';
+    m.setAttribute('data-pjanchor','sub:'+ref);
+    document.body.appendChild(m);
+    pjPlaceMenu(m, anchor);
+    if(window.requestAnimationFrame){
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.classList.add('is-open'); }); });
+    } else { setTimeout(function(){ m.classList.add('is-open'); },16); }
+  }
+  /* ---- the small menu a held task gets ---- */
+  function lpTaskMenu(id, anchor){
+    var t=null;
+    ((FD.data.planning&&FD.data.planning.tasks)||[]).some(function(x){ if(x.id===id){ t=x; return true; } return false; });
+    if(!t) return;
+    pjCloseMenu();
+    var m=document.createElement('div');
+    m.className='pj-menu'; m.id='pjCtx';
+    m.style.position='fixed'; m.style.zIndex='210'; m.style.minWidth='210px';
+    m.innerHTML =
+        '<div class="pj-menu__hd">'+esc((t.title||'Task').slice(0,34))+'</div>'
+      + '<button class="pj-menu__i" type="button" data-pltdone="'+t.id+'">'+PJ_ICO.check+(t.done?'Mark not done':'Mark done')+'</button>'
+      + '<button class="pj-menu__i" type="button" data-pltedit="'+t.id+'">'+J_ICO.pen+'Edit</button>'
+      + '<div class="pj-menu__sep"></div>'
+      + '<button class="pj-menu__i is-danger" type="button" data-pltdel="'+t.id+'">'+PJ_ICO.trash+'Delete</button>';
+    m.setAttribute('data-pjanchor','task:'+t.id);
+    document.body.appendChild(m);
+    pjPlaceMenu(m, anchor);
+    if(window.requestAnimationFrame){
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.classList.add('is-open'); }); });
+    } else { setTimeout(function(){ m.classList.add('is-open'); },16); }
+  }
  function pjCloseDrawer(){
   if(pjDrawerId) unlockScroll('drawer');
   pjDrawerId='';
@@ -11758,6 +11961,20 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var rxb=e.target.closest('[data-rx]'); if(rxb){ var chx=FD.getChannel(currentChannelId); if(chx){ chx.messages.forEach(function(x){ if(x.id===rxb.getAttribute('data-mid')) chReact(x, rxb.getAttribute('data-rx')); }); } var eb=document.getElementById('chEmo'); if(eb) eb.remove(); return; }
  var sx=e.target.closest('[data-setopen]'); if(sx){ openSetPane(sx.getAttribute('data-setopen')); return; }
  if(e.target.closest('[data-setback]')){ closeSetPane(); return; }
+ var _sdl=e.target.closest('[data-subdel]');
+ if(_sdl){
+  var _sp=_sdl.getAttribute('data-subdel').split('::'), _st=FD.getTask(_sp[0]), _si=+_sp[1];
+  if(_st&&_st.subs&&_st.subs[_si]){
+   var _nm=_st.subs[_si].t||'this step';
+   if(window.confirm('Delete \u201c'+_nm+'\u201d?')){
+    _st.subs.splice(_si,1); FD.save();
+    try{ pjCloseMenu(); }catch(e3){}
+    try{ flash('Subtask deleted'); }catch(e4){}
+    try{ refreshAll('planning'); }catch(e2){}
+   } else { try{ pjCloseMenu(); }catch(e5){} }
+  }
+  return;
+ }
  var tsb=e.target.closest('[data-tsub]'); if(tsb){ var _pr=tsb.getAttribute('data-tsub').split('::'); var _tk=FD.getTask(_pr[0]); if(_tk&&_tk.subs&&_tk.subs[+_pr[1]]){ _tk.subs[+_pr[1]].done=!_tk.subs[+_pr[1]].done; FD.save(); try{ refreshAll('planning'); }catch(e2){} } return; }
  if(e.target.closest('[data-notif-ask]')){ notifAsk(); return; }
  if(e.target.closest('[data-notif-test]')){ notifShow('This is Wisal','If you can see this, your notifications are working.','wisal-test','dashboard'); try{ chBeep(); }catch(e){} return; }
@@ -12163,7 +12380,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    var _pjas=e.target.closest('[data-pjassign]');
    if(_pjas){ e.stopPropagation(); pjOpenMenu(_pjas.getAttribute('data-pjassign'),_pjas,'mem'); return; }
    var _pjc=e.target.closest('[data-pjcard]');
-   if(_pjc){ pjOpenDrawer(_pjc.getAttribute('data-pjcard')); return; }
+   if(_pjc){ if(pjLPFired){ pjLPFired=false; return; } pjOpenDrawer(_pjc.getAttribute('data-pjcard')); return; }
  var plwk = e.target.closest('[data-plweek]');
  if(plwk){ var _pw=plwk.getAttribute('data-plweek'); if(_pw==='prev') plWeekOff--; else if(_pw==='next') plWeekOff++; else plWeekOff=0; renderPlanWeek(); return; }
  var rls = e.target.closest('[data-rlset]');
