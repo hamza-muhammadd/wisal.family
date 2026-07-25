@@ -397,7 +397,7 @@ body::before{
 .quick{box-shadow:inset 0 1px 0 var(--glass-brd), var(--sh-1)}
 .domain,.sub-ready{box-shadow:inset 0 1px 0 var(--glass-brd), var(--sh-2)}
 .mod__ready,.set__card,.subnav{box-shadow:inset 0 1px 0 var(--glass-brd), var(--sh-1)}
-.set__card--danger{border-color:color-mix(in srgb,var(--danger) 30%,var(--border))}
+
 
 /* graceful fallback where backdrop-filter is unsupported, stay readable */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
@@ -2740,7 +2740,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .pj-dr__sec:not(:first-child){margin-top:20px}
 @media (max-width:640px){
   .pj-drawer{width:100%;top:auto;height:88vh;border-left:none;border-top:1px solid var(--border);border-radius:24px 24px 0 0;transform:translateY(100%)}
-  .pj-drawer.is-open{transform:none}
+  
   .pj-focus{grid-template-columns:1fr;gap:18px;padding:22px}
   .pj-ring{margin:0 auto}
   .pj-focus__cta{flex-direction:row;align-items:center;justify-content:space-between;width:100%}
@@ -2940,7 +2940,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 /* ---- messages ---- */
 .aimsg{display:flex;gap:10px;margin-bottom:16px;animation:aiRise .42s var(--ease) both}
 @keyframes aiRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.aimsg--me{justify-content:flex-end}
+
 .aimsg__b{max-width:min(74ch,86%);font-size:.94rem;line-height:1.62;padding:12px 16px;border-radius:20px;word-break:break-word}
 .aimsg--me .aimsg__b{color:#fff;background:linear-gradient(160deg,color-mix(in srgb,var(--ai-a) 92%,#fff),var(--ai-b));
   border-bottom-right-radius:7px;box-shadow:0 4px 16px -8px var(--ai-glow)}
@@ -3273,7 +3273,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .aiprompt{min-width:0}
 @media (max-width:560px){
-  .aiprompts{grid-template-columns:1fr}
+  
   .aihead,.aitopbar--slim,.aiscroll,.aicomposer{padding-left:15px;padding-right:15px}
 }
 
@@ -3463,6 +3463,22 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .pj-menu__hd{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.is-holding{transform:none!important}}
 
+.hg__head{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 12px}
+.hg__date{font-size:.8rem;color:var(--text-3)}
+.hg__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+@media(max-width:640px){.hg__grid{grid-template-columns:repeat(2,1fr)}}
+.hg__card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:16px 15px 14px;border-radius:18px;border:1px solid var(--glass-hair);background:color-mix(in srgb,var(--hg) 6%,var(--surface));cursor:pointer;text-align:left;transition:transform .15s var(--ease),box-shadow .2s,border-color .2s;overflow:hidden}
+.hg__card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--hg);opacity:.85}
+.hg__card:hover{transform:translateY(-2px);box-shadow:0 8px 24px -12px color-mix(in srgb,var(--hg) 55%,transparent);border-color:color-mix(in srgb,var(--hg) 32%,transparent)}
+.hg__card:active{transform:translateY(0)}
+.hg__ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--hg) 14%,transparent);color:var(--hg);margin-bottom:8px}
+.hg__ic .ico{width:19px;height:19px}
+.hg__big{font-family:var(--display,inherit);font-size:1.55rem;font-weight:750;line-height:1.05;letter-spacing:-.02em;color:var(--text)}
+.hg__lbl{font-size:.82rem;font-weight:600;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.hg__sub{font-size:.72rem;color:var(--text-3);margin-top:1px}
+.hg__card--alert::before{background:var(--danger)}
+.hg__card--alert .hg__big{color:var(--danger)}
+.hg__card--alert .hg__ic{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
 </style>
 </head>
 <body>
@@ -3487,7 +3503,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <span class="nav__label">Home</span>
  </button>
 
- <button class="nav__item" data-view="dashboard" style="--c:var(--m-dashboard)" title="My Day">
+ <button class="nav__item nav__item--hidden-day" hidden data-view="dashboard" style="--c:var(--m-dashboard)" title="My Day">
  <svg class="ico" viewBox="0 0 24 24"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 3.5V6M5.2 8.2 6.8 9.8M18.8 8.2 17.2 9.8M2.5 14h2M19.5 14h2"/></svg>
  <span class="nav__label">My Day</span>
  </button>
@@ -3657,6 +3673,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <div id="gsCard"></div>
 
  <div id="homeToday" class="reveal" style="animation-delay:.05s"></div>
+ <div id="homeGlance" class="reveal" style="animation-delay:.1s"></div>
 
  <div class="dash__quick reveal" style="animation-delay:.08s">
  <button class="quick" data-view="family">
@@ -4476,7 +4493,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  function closeDrawer(){ app.classList.remove('is-drawer-open'); backdrop.hidden=true; }
 
  /* ---- Routing ---- */
- var TITLES = { home:'Home', dashboard:'My Day', ai:'Wisal AI', family:'Family Management', relationship:'Relationship', planning:'Planning', memory:'Memory Vault', vault:'Secure Vault', health:'Health & Medical', fitness:'Fitness', nutrition:'Nutrition', cooking:'Cooking', homemgmt:'Home Management', finance:'Finance', learning:'Learning', journal:'Journal & Memories', travel:'Travel', wellbeing:'Wellbeing & Growth', legacy:'Legacy & Akhirah', settings:'Settings' };
+ var TITLES = { home:'Home', dashboard:'Home', ai:'Wisal AI', family:'Family Management', relationship:'Relationship', planning:'Planning', memory:'Memory Vault', vault:'Secure Vault', health:'Health & Medical', fitness:'Fitness', nutrition:'Nutrition', cooking:'Cooking', homemgmt:'Home Management', finance:'Finance', learning:'Learning', journal:'Journal & Memories', travel:'Travel', wellbeing:'Wellbeing & Growth', legacy:'Legacy & Akhirah', settings:'Settings' };
  var VIEWS = Object.keys(TITLES);
  function applyNavGroups(){ var st=Store.get('fw.nav.groups',{})||{}; $$('.nav__group').forEach(function(g){ var k=g.getAttribute('data-group'); g.classList.toggle('is-grpcollapsed', st[k]===true); }); }
  function toggleNavGroup(k){ var st=Store.get('fw.nav.groups',{})||{}; st[k]=!st[k]; Store.set('fw.nav.groups',st); var g=document.querySelector('.nav__group[data-group="'+k+'"]'); if(g) g.classList.toggle('is-grpcollapsed', st[k]===true); }
@@ -4484,6 +4501,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  function markActiveGroup(view){ var item=document.querySelector('.nav__item[data-view="'+view+'"]'); var grp=item?item.closest('.nav__group'):null; $$('.nav__group').forEach(function(g){ g.classList.toggle('is-activegroup', g===grp); }); }
  var currentView='home';
  function navigate(view, push){
+    if(view==='dashboard') view='home';  // My Day merged into Home
  if(VIEWS.indexOf(view)===-1) view='home';
  currentView=view;
  $$('.view').forEach(function(v){ v.classList.toggle('active', v.id==='view-'+view); });
@@ -7747,7 +7765,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
 
  /* ===================== GLOBAL SEARCH (Ctrl+K) ===================== */
- var SRCH_LABEL={home:'Home',dashboard:'My Day',family:'Family',health:'Health',finance:'Finance',learning:'Learning',journal:'Journal',travel:'Travel',relationship:'Relationship',planning:'Planning',memory:'Memory Vault',fitness:'Fitness',nutrition:'Nutrition',cooking:'Cooking',homemgmt:'Home Care',wellbeing:'Wellbeing',legacy:'Legacy',settings:'Settings',ai:'Wisal AI'};
+ var SRCH_LABEL={home:'Home',dashboard:'Home',family:'Family',health:'Health',finance:'Finance',learning:'Learning',journal:'Journal',travel:'Travel',relationship:'Relationship',planning:'Planning',memory:'Memory Vault',fitness:'Fitness',nutrition:'Nutrition',cooking:'Cooking',homemgmt:'Home Care',wellbeing:'Wellbeing',legacy:'Legacy',settings:'Settings',ai:'Wisal AI'};
  var SRCH_ACC={home:'--brand',dashboard:'--m-dashboard',settings:'--brand',ai:'--m-ai',family:'--m-family',health:'--m-health',finance:'--m-finance',learning:'--m-learning',journal:'--m-journal',travel:'--m-travel',relationship:'--m-relationship',planning:'--m-planning',memory:'--m-memory',fitness:'--m-fitness',nutrition:'--m-nutrition',cooking:'--m-cooking',homemgmt:'--m-homemgmt',wellbeing:'--m-wellbeing',legacy:'--m-legacy'};
  var SRCH_ORDER=['family','planning','health','finance','journal','cooking','homemgmt','travel','learning','fitness','nutrition','memory','wellbeing','legacy','relationship'];
  function srchLabelOf(o){ var f=['title','name','text','destination','word','item'],i; for(i=0;i<f.length;i++){ if(o && typeof o[f[i]]==='string' && o[f[i]].trim()) return o[f[i]].trim(); } return ''; }
@@ -9060,7 +9078,68 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(!chips.length) chips.push({c:'--brand',v:'dashboard',t:'All clear today'});
  el.innerHTML=chips.slice(0,3).map(function(ch){ return '<button type="button" class="pulsechip" data-view="'+ch.v+'" style="--c:var('+ch.c+')"><span class="pulsechip__d"></span>'+esc(ch.t)+'</button>'; }).join('');
  }
- function renderHome(){
+  function renderHomeGlance(){
+    var host=$('#homeGlance'); if(!host) return;
+    var D=FD.data, t=todayStr(), ym=t.slice(0,7), sym=curSymbol();
+    // --- Money this month ---
+    var spent=0, income=0;
+    (D.finance.transactions||[]).forEach(function(x){ if(String(x.date||'').slice(0,7)===ym){ var a=Number(x.amount)||0; if(x.type==='income') income+=a; else spent+=a; } });
+    // --- Tasks (daily work) ---
+    var tk=(D.planning&&D.planning.tasks)||[], open=0, overdue=0, dueToday=0;
+    tk.forEach(function(x){ if(x.done) return; open++; var n=daysUntil(x.due); if(n===null) return; if(n<0) overdue++; else if(n===0) dueToday++; });
+    // --- Chores today ---
+    var chores=(D.homemgmt&&D.homemgmt.chores)||[], choresOpen=chores.filter(function(c){return !c.done;}).length;
+    // --- Upcoming (events incl appointments, next 7 days) ---
+    var evs=(D.events||[]).filter(function(e){ var ds=String(e.date||'').slice(0,10); return ds>=t; }).sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
+    var nextEv=evs[0];
+    // --- Appointments ---
+    var appts=(D.events||[]).filter(function(e){ return e.kind==='appointment' && String(e.date||'').slice(0,10)>=t; }).length;
+    // --- Members ---
+    var mem=(D.members||[]).length;
+
+    function card(cls,accent,icon,big,label,sub,go){
+      return '<button class="hg__card '+cls+'" data-goto="'+go+'" style="--hg:'+accent+'">'
+        +'<span class="hg__ic">'+icon+'</span>'
+        +'<span class="hg__big">'+big+'</span>'
+        +'<span class="hg__lbl">'+label+'</span>'
+        +(sub?'<span class="hg__sub">'+sub+'</span>':'')
+      +'</button>';
+    }
+    var ic={
+      money:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3v18M8 7h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6"/></svg>',
+      task:'<svg class="ico" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+      cal:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>',
+      health:'<svg class="ico" viewBox="0 0 24 24"><path d="M20.8 5.6a5.5 5.5 0 0 0-8.8-1.4l-.0 .0-.0-.0A5.5 5.5 0 0 0 3.2 12L12 20.5 20.8 12a5.5 5.5 0 0 0 0-6.4z"/></svg>',
+      chore:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 7h18M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+      family:'<svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0M15 20a5 5 0 0 1 6-4.5"/></svg>'
+    };
+
+    // Money card: show net or spent
+    var moneyBig=sym+Math.round(spent).toLocaleString();
+    var moneySub=income>0?('+'+sym+Math.round(income).toLocaleString()+' in'):'this month';
+    // Tasks card
+    var taskBig, taskLbl, taskSub, taskCls='';
+    if(overdue){ taskBig=String(overdue); taskLbl=overdue>1?'tasks overdue':'task overdue'; taskSub=open+' open total'; taskCls='hg__card--alert'; }
+    else if(dueToday){ taskBig=String(dueToday); taskLbl='due today'; taskSub=open+' open total'; }
+    else { taskBig=String(open); taskLbl=open===1?'open task':'open tasks'; taskSub='all on track'; }
+    // Upcoming card
+    var upBig, upLbl, upSub;
+    if(nextEv){ var dn=daysUntil(nextEv.date); upBig=(dn===0?'Today':(dn===1?'1 day':(dn>1?dn+' days':'Soon'))); upLbl='next: '+esc((nextEv.title||'event').slice(0,18)); upSub=evs.length+' upcoming'; }
+    else { upBig='0'; upLbl='upcoming'; upSub='nothing scheduled'; }
+
+    var cards=''
+      + card('','var(--m-finance,#3a926b)',ic.money,moneyBig,'spent',moneySub,'finance')
+      + card(taskCls,'var(--m-planning,#6d6af0)',ic.task,taskBig,taskLbl,taskSub,'planning')
+      + card('','var(--m-dashboard,#c9873f)',ic.cal,upBig,upLbl,upSub,'travel')
+      + card('','var(--m-health,#c85b6b)',ic.health,String(appts),appts===1?'appointment':'appointments',appts?'upcoming':'none scheduled','health')
+      + card('','var(--m-homemgmt,#8a72a8)',ic.chore,String(choresOpen),choresOpen===1?'chore left':'chores left',choresOpen?'to do':'all done','homemgmt')
+      + card('','var(--m-family,#4a90d0)',ic.family,String(mem),mem===1?'member':'members','360\u00b0 profiles','family');
+
+    host.innerHTML='<div class="hg__head"><span class="eyebrow">At a glance</span><span class="hg__date">'+new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'</span></div>'
+      +'<div class="hg__grid">'+cards+'</div>';
+  }
+  function renderHome(){
+ try{ renderHomeGlance(); }catch(e){}
  var host=$('#homeToday');
  if(host){
  var list=[]; try{ list=buildNotifications(); }catch(e){}
@@ -9072,11 +9151,11 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  return '<button class="htoday__row" data-goto="'+esc(a.go||a.sp)+'"><span class="htoday__dot"'+(a.sev==='urgent'?' style="background:var(--danger)"':'')+'></span><span class="htoday__rt">'+esc(a.t)+'</span><svg class="ico htoday__rc" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>';
  }).join('');
  h='<div class="htoday htoday--alert"><div class="htoday__head"><div class="htoday__lead"><span class="htoday__k">Today</span><span class="htoday__h">'+prio.length+(prio.length>1?' things need you':' thing needs you')+'</span></div>'
- +'<button class="htoday__cta" data-view="dashboard">Open My Day <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>'
+ +'</div>'
  +'<div class="htoday__list">'+items+'</div></div>';
  } else if(soon.length){
  h='<div class="htoday"><div class="htoday__head"><div class="htoday__lead"><span class="htoday__k">Today</span><span class="htoday__h">You\u2019re on track</span><span class="htoday__s">'+soon.length+' thing'+(soon.length>1?'s':'')+' coming up</span></div>'
- +'<button class="htoday__cta" data-view="dashboard">Open My Day <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div></div>';
+ +'</div></div>';
  } else {
  h='<div class="htoday htoday--calm"><span class="htoday__check"><svg class="ico" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><div class="htoday__lead"><span class="htoday__h">You\u2019re all caught up</span><span class="htoday__s">Nothing urgent today. Enjoy the calm.</span></div><button class="htoday__cta htoday__cta--ghost" data-view="dashboard">My Day</button></div>';
  }
