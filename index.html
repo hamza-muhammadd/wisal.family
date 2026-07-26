@@ -1,5 +1,4 @@
-<!doctype
-    try{ aiLoadThread(); }catch(e){} html>
+<!doctype html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
@@ -2162,7 +2161,7 @@ html:has(.modal.open){overflow:hidden}
 .sppick__foot{display:flex;justify-content:space-between;gap:10px;padding:12px 20px 18px;border-top:1px solid var(--glass-hair)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.sppick__panel{background:var(--surface)}}
 /* ===== Account / auth ===== */
-.auth{position:fixed;inset:0;z-index:97;display:none}
+.auth{position:fixed;inset:0;z-index:200;display:none;background:var(--bg)}.auth.is-on{display:flex;align-items:center;justify-content:center}
 .auth.is-on{display:block}
 .auth__scrim{position:absolute;inset:0;background:rgba(12,12,14,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .auth__panel{position:absolute;left:0;right:0;margin:0 auto;top:max(40px,9vh);width:min(400px,calc(100vw - 24px));display:flex;flex-direction:column;gap:12px;padding:26px 24px 22px;border-radius:var(--r-xl);background:var(--glass);-webkit-backdrop-filter:blur(var(--blur)) saturate(180%);backdrop-filter:blur(var(--blur)) saturate(180%);border:1px solid var(--glass-hair);box-shadow:inset 0 1px 0 var(--glass-brd),var(--sh-3);animation:notiopen .22s var(--ease) both}
@@ -3463,7 +3462,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .pj-menu__hd{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.is-holding{transform:none!important}}
 
-.hg__head{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 12px}
+.hg__head{display:flex;align-items:baseline;justify-content:space-between;margin:2px 0 12px}
 .hg__date{font-size:.8rem;color:var(--text-3)}
 .hg__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
 @media(max-width:640px){.hg__grid{grid-template-columns:repeat(2,1fr)}}
@@ -3479,10 +3478,149 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .hg__card--alert::before{background:var(--danger)}
 .hg__card--alert .hg__big{color:var(--danger)}
 .hg__card--alert .hg__ic{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+/* ==================== ONBOARDING (polished) ==================== */
+.onb{position:fixed;inset:0;z-index:120;background:radial-gradient(120% 80% at 50% -10%,color-mix(in srgb,var(--brand) 14%,var(--bg)),var(--bg) 60%);display:flex;align-items:stretch;justify-content:center;opacity:0;transition:opacity .35s var(--ease)}
+.onb.is-on{opacity:1}
+.onb[hidden]{display:none}
+.onb__inner{position:relative;width:100%;max-width:520px;display:flex;flex-direction:column;padding:max(18px,env(safe-area-inset-top)) 24px max(26px,env(safe-area-inset-bottom))}
+/* soft ambient glow behind everything */
+.onb__inner::before{content:'';position:absolute;top:-8%;left:50%;transform:translateX(-50%);width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--brand) 22%,transparent),transparent 70%);filter:blur(30px);pointer-events:none;opacity:.7;z-index:0}
+.onb__top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0 4px;flex:0 0 auto}
+.onb__count{font-family:var(--mono,inherit);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--text-3)}
+.onb__bar{position:relative;z-index:1;height:5px;border-radius:999px;background:color-mix(in srgb,var(--text-3) 20%,transparent);overflow:hidden;margin:6px 0 4px;flex:0 0 auto}
+.onb__barfill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 12px color-mix(in srgb,var(--brand) 60%,transparent)}
+.onb__stage{position:relative;z-index:1;flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.onbc{display:flex;flex-direction:column;padding:20px 2px;animation:onbIn .45s cubic-bezier(.16,1,.3,1)}
+@keyframes onbIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.onbc--hero,.onbc--load{align-items:center;text-align:center;justify-content:center;min-height:62vh}
+/* hero mark with animated ring */
+.onb__mark{position:relative;width:88px;height:88px;border-radius:26px;display:grid;place-items:center;background:linear-gradient(140deg,var(--brand),var(--brand-2));margin-bottom:28px;box-shadow:0 20px 48px -14px color-mix(in srgb,var(--brand) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.25);animation:onbPop .6s cubic-bezier(.16,1,.3,1)}
+@keyframes onbPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.onb__mark::after{content:'';position:absolute;inset:-8px;border-radius:32px;border:1.5px solid color-mix(in srgb,var(--brand) 30%,transparent);animation:onbRing 2.6s ease-in-out infinite}
+@keyframes onbRing{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.08);opacity:.2}}
+.onb__mark svg{width:46px;height:46px;fill:none;stroke:#fff;stroke-width:3}
+.onb__h{font-family:var(--display,inherit);font-size:2.15rem;font-weight:760;letter-spacing:-.025em;line-height:1.08;margin-bottom:14px;color:var(--text)}
+.onb__p{font-size:1.02rem;line-height:1.62;color:var(--text-2);max-width:400px;margin-bottom:30px}
+.onb__go{width:100%;max-width:340px;padding:16px;font-size:1.02rem;font-weight:680;border-radius:16px;box-shadow:0 10px 26px -10px color-mix(in srgb,var(--brand) 60%,transparent);transition:transform .15s var(--ease),box-shadow .2s}
+.onb__go:hover{transform:translateY(-2px);box-shadow:0 16px 34px -12px color-mix(in srgb,var(--brand) 70%,transparent)}
+.onb__go:active{transform:translateY(0)}
+.onb__skip{margin-top:16px;background:none;border:0;color:var(--text-3);font:inherit;font-size:.86rem;cursor:pointer;padding:8px;transition:color .15s}
+.onb__skip:hover{color:var(--text-2)}
+/* questions */
+.onb__q{font-family:var(--display,inherit);font-size:1.62rem;font-weight:720;letter-spacing:-.015em;line-height:1.18;margin-bottom:9px;color:var(--text)}
+.onb__qs{font-size:.94rem;color:var(--text-3);line-height:1.5;margin-bottom:26px}
+.onb__pills{display:flex;flex-wrap:wrap;gap:11px}
+.onb__pill{position:relative;font:inherit;font-size:.95rem;font-weight:560;padding:14px 19px;border-radius:15px;border:1.5px solid var(--glass-hair);background:var(--surface);color:var(--text-2);cursor:pointer;transition:all .18s cubic-bezier(.16,1,.3,1);box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.onb__pill:hover{border-color:color-mix(in srgb,var(--brand) 45%,transparent);color:var(--text);transform:translateY(-1px);box-shadow:0 6px 16px -8px color-mix(in srgb,var(--brand) 40%,transparent)}
+.onb__pill.is-on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 11%,var(--surface));color:var(--brand);font-weight:670;box-shadow:0 6px 18px -8px color-mix(in srgb,var(--brand) 45%,transparent)}
+.onb__pill.is-on::after{content:'\2713';margin-left:8px;font-weight:800;font-size:.85em}
+/* inputs */
+.onb__ta{width:100%;min-height:104px;font:inherit;font-size:.98rem;line-height:1.55;padding:15px 17px;border-radius:15px;border:1.5px solid var(--glass-hair);background:var(--surface);color:var(--text);resize:vertical;transition:border-color .15s,box-shadow .15s}
+.onb__ta:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 14%,transparent)}
+.onb__in{width:100%;font:inherit;font-size:.98rem;padding:14px 17px;border-radius:15px;border:1.5px solid var(--glass-hair);background:var(--surface);color:var(--text);margin-top:8px;transition:border-color .15s,box-shadow .15s}
+.onb__in:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 14%,transparent)}
+.onb__nav{display:flex;align-items:center;gap:12px;margin-top:32px}
+.onb__nav .btn{flex:1;padding:15px;font-size:1rem;font-weight:660;border-radius:15px}
+.onb__back{background:none;border:0;color:var(--text-3);font:inherit;font-size:.94rem;font-weight:560;cursor:pointer;padding:14px 10px;transition:color .15s;flex:0 0 auto}
+.onb__back:hover{color:var(--text)}
+.btn.is-dim{opacity:.45;pointer-events:none}
+/* loading orb */
+.onb__orb{position:relative;width:92px;height:92px;margin-bottom:28px}
+.onb__orb span{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--brand);animation:onbSpin 1.1s linear infinite}
+.onb__orb span:nth-child(2){inset:12px;border-top-color:var(--brand-2);animation-duration:1.5s;animation-direction:reverse}
+.onb__orb span:nth-child(3){inset:24px;border-top-color:color-mix(in srgb,var(--brand) 50%,#fff);animation-duration:.9s}
+@keyframes onbSpin{to{transform:rotate(360deg)}}
+/* plan screen */
+.onbc--plan{padding-top:8px}
+.onb__planhead{margin-bottom:16px}
+.onb__eyebrow{display:inline-block;font-family:var(--mono,inherit);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-bottom:8px;padding:5px 11px;border-radius:999px;background:color-mix(in srgb,var(--brand) 12%,transparent)}
+.onb__summary{font-size:1.08rem;line-height:1.62;color:var(--text);margin:8px 0 20px}
+.onb__chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.onb__chip{font-size:.82rem;font-weight:620;padding:7px 14px;border-radius:999px;background:color-mix(in srgb,var(--brand) 12%,var(--surface));color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent)}
+.onb__block{margin-bottom:22px}
+.onb__blockh{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:13px}
+.onb__blockh::before{content:'';width:20px;height:2px;border-radius:2px;background:var(--brand)}
+.onb__step{display:flex;align-items:flex-start;gap:13px;padding:13px 0;font-size:.98rem;line-height:1.45;color:var(--text-2);border-top:1px solid var(--glass-hair)}
+.onb__step:first-of-type{border-top:0}
+.onb__stepn{flex:none;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 16%,transparent),color-mix(in srgb,var(--brand-2) 12%,transparent));color:var(--brand);font-size:.85rem;font-weight:750}
+.onb__added{display:flex;align-items:center;gap:11px;padding:12px 15px;margin-bottom:9px;border-radius:13px;background:color-mix(in srgb,var(--brand) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 18%,var(--glass-hair));font-size:.92rem;color:var(--text);animation:onbIn .4s var(--ease) backwards}
+.onb__added:nth-child(2){animation-delay:.06s}.onb__added:nth-child(3){animation-delay:.12s}.onb__added:nth-child(4){animation-delay:.18s}
+.onb__added .ico{width:18px;height:18px;color:#fff;flex:none;background:var(--brand);border-radius:50%;padding:3px}
+/* ==================== PAYWALL — Wisal Plus (Phase 2) ==================== */
+.onbc--pay{padding-top:6px;padding-bottom:8px}
+.onbpw__head{margin-bottom:6px}
+.onbpw__sub{font-size:.98rem;line-height:1.55;color:var(--text-2);margin-top:9px;max-width:420px}
+/* billing toggle */
+.onbpw__toggle{display:inline-flex;align-self:flex-start;gap:3px;padding:4px;margin:18px 0 20px;background:var(--surface-2);border:1px solid var(--glass-hair);border-radius:999px}
+.onbpw__seg{border:0;background:transparent;font:inherit;font-size:.86rem;font-weight:620;color:var(--text-2);padding:9px 16px;border-radius:999px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s;white-space:nowrap}
+.onbpw__seg.is-on{background:var(--surface);color:var(--text);box-shadow:var(--sh-1)}
+.onbpw__save{display:inline-block;margin-left:7px;font-size:.62rem;font-weight:800;letter-spacing:.02em;color:var(--brand);background:color-mix(in srgb,var(--brand) 14%,transparent);padding:2px 7px;border-radius:999px;vertical-align:middle}
+/* plan cards */
+.onbpw__cards{display:flex;flex-direction:column;gap:14px}
+.onbpw__card{position:relative;border-radius:var(--r-lg);padding:20px}
+.onbpw__card--plus{background:linear-gradient(162deg,color-mix(in srgb,var(--brand) 9%,var(--surface)),var(--surface));border:1.5px solid color-mix(in srgb,var(--brand) 55%,transparent);box-shadow:var(--sh-3)}
+.onbpw__card--free{background:var(--surface);border:1.5px solid var(--glass-hair);box-shadow:var(--sh-1)}
+.onbpw__badge{position:absolute;top:-11px;right:18px;display:inline-flex;align-items:center;gap:5px;font-family:var(--mono,inherit);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand-2));padding:5px 11px;border-radius:999px;box-shadow:0 6px 16px -6px color-mix(in srgb,var(--brand) 70%,transparent)}
+.onbpw__badge svg{width:11px;height:11px;fill:currentColor;stroke:none}
+.onbpw__nm{display:flex;align-items:center;gap:8px;font-family:var(--display,inherit);font-size:1.28rem;font-weight:740;letter-spacing:-.015em;color:var(--text)}
+.onbpw__nm .mk{width:18px;height:18px;flex:none;fill:none;stroke:var(--brand);stroke-width:1.9}
+.onbpw__tag{font-size:.86rem;color:var(--text-3);margin-top:3px}
+.onbpw__price{display:flex;align-items:baseline;gap:5px;margin:15px 0 3px}
+.onbpw__cur{font-family:var(--display,inherit);font-size:1.15rem;font-weight:640;color:var(--text);align-self:flex-start;margin-top:5px}
+.onbpw__amt{font-family:var(--display,inherit);font-size:2.4rem;font-weight:780;letter-spacing:-.02em;line-height:1;color:var(--text)}
+.onbpw__card--plus .onbpw__amt,.onbpw__card--plus .onbpw__cur{color:var(--brand)}
+.onbpw__per{font-size:.86rem;color:var(--text-3);align-self:flex-end;margin-bottom:5px}
+.onbpw__note{font-size:.78rem;color:var(--text-3);min-height:14px}
+.onbpw__feats{list-style:none;margin:15px 0 18px;padding:0;display:flex;flex-direction:column;gap:10px}
+.onbpw__feats li{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;line-height:1.4;color:var(--text-2)}
+.onbpw__feats li b{color:var(--text);font-weight:660}
+.onbpw__tick{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;padding:3px;background:color-mix(in srgb,var(--brand) 15%,transparent)}
+.onbpw__tick svg{width:100%;height:100%;fill:none;stroke:var(--brand);stroke-width:2.4}
+.onbpw__card--free .onbpw__tick{background:color-mix(in srgb,var(--text-3) 16%,transparent)}
+.onbpw__card--free .onbpw__tick svg{stroke:var(--text-2)}
+/* CTAs (scoped to beat .btn specificity) */
+.onbc--pay .onbpw__cta{display:flex;width:100%;justify-content:center;align-items:center;gap:8px;padding:15px;font-size:1rem;font-weight:680;border-radius:14px;margin-top:2px}
+.onbc--pay .btn--primary.onbpw__cta{box-shadow:0 10px 24px -12px color-mix(in srgb,var(--brand) 65%,transparent);transition:transform .15s var(--ease),box-shadow .2s}
+.onbc--pay .btn--primary.onbpw__cta:hover{transform:translateY(-1px)}
+.onbc--pay .btn--primary.onbpw__cta:active{transform:translateY(0)}
+.onbpw__cta--ghost{background:transparent;border:1.5px solid var(--border-strong);color:var(--text);cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}
+.onbpw__cta--ghost:hover{border-color:var(--text-3);background:var(--surface-2)}
+.onbpw__cta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+/* payment marks + fine print */
+.onbpw__pay{margin-top:20px;text-align:center}
+.onbpw__paylabel{font-family:var(--mono,inherit);font-size:.64rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.onbpw__marks{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px}
+.onbpw__mark{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:620;color:var(--text-2);padding:7px 12px;border:1px solid var(--glass-hair);border-radius:11px;background:var(--surface)}
+.onbpw__mark .dot{width:7px;height:7px;border-radius:50%}
+.onbpw__mark svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7}
+.onbpw__fine{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:14px;font-size:.76rem;color:var(--text-3)}
+.onbpw__fine svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.5}
+.onbpw__later{display:block;margin:16px auto 0;background:none;border:0;font:inherit;font-size:.86rem;color:var(--text-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer;transition:color .15s}
+.onbpw__later:hover{color:var(--text-2)}
+/* payment method sheet */
+.onbpw__sheethead{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+.onbpw__backb{display:inline-flex;align-items:center;gap:6px;background:none;border:0;font:inherit;font-size:.9rem;font-weight:600;color:var(--text-2);cursor:pointer;padding:6px 2px;transition:color .15s}
+.onbpw__backb:hover{color:var(--text)}
+.onbpw__backb svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2}
+.onbpw__summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 17px;margin:10px 0 18px;border-radius:var(--r-md);background:color-mix(in srgb,var(--brand) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 22%,transparent)}
+.onbpw__summary .lbl{font-size:.95rem;font-weight:660;color:var(--text)}
+.onbpw__summary .amt{font-family:var(--display,inherit);font-size:1.35rem;font-weight:760;color:var(--brand)}
+.onbpw__methods{display:flex;flex-direction:column;gap:11px;margin-bottom:20px}
+.onbpw__method{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:15px;border:1.5px solid var(--glass-hair);background:var(--surface);cursor:pointer;text-align:left;font:inherit;transition:border-color .18s,box-shadow .18s,transform .18s}
+.onbpw__method:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--brand) 40%,transparent)}
+.onbpw__method.is-on{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 12%,transparent)}
+.onbpw__mlogo{width:40px;height:40px;flex:none;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:.95rem;color:#fff}
+.onbpw__mmeta{flex:1;min-width:0}
+.onbpw__mname{display:block;font-size:.98rem;font-weight:680;color:var(--text)}
+.onbpw__mdesc{display:block;font-size:.8rem;color:var(--text-3);margin-top:1px}
+.onbpw__mradio{width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--border-strong);position:relative;transition:border-color .18s}
+.onbpw__method.is-on .onbpw__mradio{border-color:var(--brand)}
+.onbpw__method.is-on .onbpw__mradio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--brand)}
+.onbpw__notewrap{font-size:.84rem;line-height:1.5;color:var(--warn-strong);background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 28%,transparent);border-radius:12px;padding:12px 14px;margin-bottom:16px}
 </style>
 </head>
 <body>
-<div class="app" id="app">
+<div class="app" id="app" style="display:none">
  <div class="backdrop" id="backdrop" hidden data-action="close-drawer"></div>
 
  <!-- ===================== SIDEBAR ===================== -->
@@ -4406,7 +4544,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 </div>
 
 <div class="auth" id="auth" hidden>
- <div class="auth__scrim" data-auth-close></div>
+ <div class="auth__scrim"></div>
  <div class="auth__panel" role="dialog" aria-modal="true" aria-label="Wisal account">
  <div class="auth__brand"><svg class="auth__mark" viewBox="0 0 48 48"><circle cx="19" cy="24" r="10.5"/><circle cx="29" cy="24" r="10.5"/></svg><span class="auth__name">Wisal</span></div>
  <h2 class="auth__t" id="authTitle">Welcome back</h2>
@@ -4416,7 +4554,14 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <div class="autherr" id="authErr" hidden></div>
  <button class="btn btn--primary auth__go" id="authGo" type="button">Sign in</button>
  <button class="auth__swap" id="authSwap" type="button" data-auth-toggle>New to Wisal? <b>Create an account</b></button>
- <button class="auth__off" id="authOffline" type="button" data-auth-offline>Use Wisal offline on this device &rarr;</button>
+ </div>
+</div>
+
+<div class="onb" id="onb" hidden>
+ <div class="onb__inner">
+  <div class="onb__top" id="onbTop" style="visibility:hidden"><span class="onb__count" id="onbCount"></span><button class="onb__skip" id="onbTopSkip" data-onbskip style="margin:0">Skip</button></div>
+  <div class="onb__bar"><div class="onb__barfill" id="onbBarFill"></div></div>
+  <div class="onb__stage" id="onbStage"></div>
  </div>
 </div>
 
@@ -7907,9 +8052,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var AUTH={user:null}, _authMode='in', _authFirstRun=false;
  /* remember who you are across reloads, so the UI never has to wait for the network */
  (function restoreIdentity(){
- try{ var uid=Store.get('fw.auth.uid',''), em=Store.get('fw.auth.email','');
- if(uid) AUTH.user={id:uid,email:em||''};
- }catch(e){}
+ AUTH.user=null;
  })();
  function authRemember(u){
  try{
@@ -7936,6 +8079,335 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(s) s.innerHTML=(m==='in')?'New to Wisal? <b>Create an account</b>':'Already have an account? <b>Sign in</b>';
  authErr('');
  }
+  /* ==================== ONBOARDING (Phase 1) ==================== */
+  var ONB_KEY='fw.onboarded';
+  var onbState={ step:0, family:'', size:'', challenges:[], focus:[], goal:'', name:'', plan:null };
+  function onbDone(){ try{ return Store.get(ONB_KEY,false)===true; }catch(e){ return false; } }
+  function onbMaybeStart(){
+    // start only once, on a fresh account with no data yet
+    try{
+      if(onbDone()) return false;
+      if(FD.data.members && FD.data.members.length) { Store.set(ONB_KEY,true); return false; }
+      openOnb(); return true;
+    }catch(e){ return false; }
+  }
+  function openOnb(){ var el=$('#onb'); if(!el) return; onbState={ step:0, family:'', size:'', challenges:[], focus:[], goal:'', name:'', plan:null }; el.hidden=false; el.classList.add('is-on'); onbRender(); }
+  function closeOnb(){ var el=$('#onb'); if(el){ el.classList.remove('is-on'); el.hidden=true; } Store.set(ONB_KEY,true); }
+
+  var ONB_CHALLENGES=[
+    ['time','Never enough time'],['money','Money feels messy'],['health','Health & appointments'],
+    ['organize','Staying organised'],['relationship','Time for my relationship'],['mental','Stress & peace of mind'],
+    ['kids','Managing the kids'],['goals','Reaching my goals'],['home','Running the household'],['faith','Faith & good deeds']
+  ];
+  var ONB_FOCUS=[
+    ['planning','Planning & tasks'],['finance','Money & budgets'],['health','Health'],
+    ['family','Family'],['wellbeing','Wellbeing'],['nutrition','Meals & nutrition'],
+    ['fitness','Fitness'],['relationship','Relationship'],['learning','Learning'],['legacy','Faith & legacy']
+  ];
+
+  function onbSteps(){ return 6; }
+  function onbSetBar(){
+    var f=$('#onbBarFill'); if(f){ f.style.width=Math.min(100,Math.round((onbState.step/(onbSteps()-1))*100))+'%'; }
+    var top=$('#onbTop'), cnt=$('#onbCount');
+    if(top){ top.style.visibility=(onbState.step>=1 && onbState.step<=4)?'visible':'hidden'; }
+    if(cnt){ cnt.textContent='Step '+onbState.step+' of 4'; }
+  }
+
+  function onbRender(){
+    var st=$('#onbStage'); if(!st) return; onbSetBar();
+    var s=onbState.step, html='';
+    if(s===0){
+      html='<div class="onbc onbc--hero">'
+        +'<div class="onb__mark"><svg viewBox="0 0 48 48"><circle cx="19" cy="24" r="10.5"/><circle cx="29" cy="24" r="10.5"/></svg></div>'
+        +'<h1 class="onb__h">Welcome to Wisal</h1>'
+        +'<p class="onb__eyebrow" style="margin-bottom:16px">Your family\u2019s calm, in one place</p>'
+        +'<p class="onb__p">In a minute or two, I\u2019ll understand what your family needs \u2014 then build you a personal plan to make life calmer and free up your time.</p>'
+        +'<button class="btn btn--primary onb__go" data-onbnext>Let\u2019s begin</button>'
+        +'<button class="onb__skip" data-onbskip>Skip for now</button>'
+      +'</div>';
+    } else if(s===1){
+      var opts=[['just_me','Just me'],['couple','Me & my partner'],['young_family','Young family with kids'],['grown_family','Bigger / grown family'],['extended','Extended family']];
+      html=onbQ('Who is Wisal for?','So I can shape everything around your household.',
+        opts.map(function(o){ return onbPill('family',o[0],o[1],onbState.family===o[0]); }).join(''), onbState.family);
+    } else if(s===2){
+      html=onbQ('What feels hardest right now?','Pick as many as you like \u2014 be honest, this stays private.',
+        ONB_CHALLENGES.map(function(o){ return onbPill('challenges',o[0],o[1],onbState.challenges.indexOf(o[0])>=0); }).join(''), onbState.challenges.length);
+    } else if(s===3){
+      html=onbQ('Where should we focus first?','Choose the areas you most want Wisal\u2019s help with.',
+        ONB_FOCUS.map(function(o){ return onbPill('focus',o[0],o[1],onbState.focus.indexOf(o[0])>=0); }).join(''), onbState.focus.length);
+    } else if(s===4){
+      html='<div class="onbc">'
+        +'<h2 class="onb__q">One thing that would make life easier?</h2>'
+        +'<p class="onb__qs">In your own words \u2014 the AI will use this to shape your plan. (Optional)</p>'
+        +'<textarea class="onb__ta" id="onbGoalInput" placeholder="e.g. Keep track of the kids\u2019 appointments and our monthly budget without the stress\u2026">'+esc(onbState.goal)+'</textarea>'
+        +'<div class="onb__q" style="font-size:1rem;margin-top:18px">What should I call you?</div>'
+        +'<input class="onb__in" id="onbNameInput" placeholder="Your name" value="'+esc(onbState.name)+'">'
+        +'<div class="onb__nav"><button class="onb__back" data-onbback>Back</button><button class="btn btn--primary" data-onbnext>Continue</button></div>'
+      +'</div>';
+    } else if(s===5){
+      // building / plan screen
+      if(onbState.plan==='__loading__'){
+        html='<div class="onbc onbc--load">'
+          +'<div class="onb__orb"><span></span><span></span><span></span></div>'
+          +'<h2 class="onb__h">Building your plan\u2026</h2>'
+          +'<p class="onb__p" id="onbLoadMsg">Reading what matters to your family\u2026</p>'
+        +'</div>';
+        onbCycleLoadMsg();
+      } else if(onbState.plan && typeof onbState.plan==='object'){
+        var p=onbState.plan;
+        var foc=(p.focus||[]).map(function(f){ return '<span class="onb__chip">'+esc(f)+'</span>'; }).join('');
+        var steps=(p.steps||[]).map(function(x,i){ return '<div class="onb__step"><span class="onb__stepn">'+(i+1)+'</span><span>'+esc(x)+'</span></div>'; }).join('');
+        var added=(p.added||[]).map(function(x){ return '<div class="onb__added"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>'+esc(x)+'</div>'; }).join('');
+        html='<div class="onbc onbc--plan">'
+          +'<div class="onb__planhead"><span class="onb__eyebrow">Your personal plan</span><h1 class="onb__h">'+(onbState.name?('For '+esc(onbState.name)):'Here\u2019s your plan')+'</h1></div>'
+          +'<p class="onb__summary">'+esc(p.summary||'')+'</p>'
+          +(foc?'<div class="onb__chips">'+foc+'</div>':'')
+          +(steps?'<div class="onb__block"><div class="onb__blockh">Where to start</div>'+steps+'</div>':'')
+          +(added?'<div class="onb__block"><div class="onb__blockh">I\u2019ve set these up for you</div>'+added+'</div>':'')
+          +'<button class="btn btn--primary onb__go" data-onbtopay>Start using Wisal</button>'
+        +'</div>';
+      } else {
+        html='<div class="onbc"><p class="onb__p">Something went wrong. Let\u2019s just get you started.</p><button class="btn btn--primary" data-onbfinish>Enter Wisal</button></div>';
+      }
+    }
+    else if(s===6){ html=onbPayView(); }
+    st.innerHTML=html;
+    if(s===4){ setTimeout(function(){ var t=$('#onbGoalInput'); if(t) t.focus(); },50); }
+  }
+  function onbQ(title,sub,pills,hasAns){
+    return '<div class="onbc">'
+      +'<h2 class="onb__q">'+esc(title)+'</h2>'
+      +'<p class="onb__qs">'+esc(sub)+'</p>'
+      +'<div class="onb__pills">'+pills+'</div>'
+      +'<div class="onb__nav"><button class="onb__back" data-onbback>Back</button><button class="btn btn--primary'+(hasAns?'':' is-dim')+'" data-onbnext>Continue</button></div>'
+    +'</div>';
+  }
+  function onbPill(group,val,label,on){
+    return '<button type="button" class="onb__pill'+(on?' is-on':'')+'" data-onbpick="'+group+'" data-onbval="'+val+'">'+esc(label)+'</button>';
+  }
+  var _onbLoadTimer=null, _onbLoadIdx=0;
+  function onbCycleLoadMsg(){
+    var msgs=['Reading what matters to your family\u2026','Matching the right Wisal spaces\u2026','Shaping a plan that fits you\u2026','Setting up your first steps\u2026'];
+    _onbLoadIdx=0; clearInterval(_onbLoadTimer);
+    _onbLoadTimer=setInterval(function(){ _onbLoadIdx=(_onbLoadIdx+1)%msgs.length; var m=$('#onbLoadMsg'); if(m) m.textContent=msgs[_onbLoadIdx]; },1600);
+  }
+  function onbPick(group,val){
+    if(group==='family'){ onbState.family=val; }
+    else { var arr=onbState[group]; var i=arr.indexOf(val); if(i>=0) arr.splice(i,1); else arr.push(val); }
+    onbRender();
+  }
+  function onbNext(){
+    var s=onbState.step;
+    if(s===4){ var t=$('#onbGoalInput'); if(t) onbState.goal=t.value; var n=$('#onbNameInput'); if(n) onbState.name=n.value.trim(); }
+    if(s>=onbSteps()-2){ onbState.step=5; onbRender(); onbBuildPlan(); return; }
+    onbState.step++; onbRender();
+  }
+  function onbBack(){ if(onbState.step>0){ onbState.step--; onbRender(); } }
+
+  function onbFallbackPlan(){
+    // used if the AI call fails, so the user always gets a plan
+    var focusLabels=onbState.focus.map(function(k){ for(var i=0;i<ONB_FOCUS.length;i++){ if(ONB_FOCUS[i][0]===k) return ONB_FOCUS[i][1]; } return k; });
+    if(!focusLabels.length) focusLabels=['Planning & tasks','Family','Wellbeing'];
+    return { summary:'Here\u2019s a simple starting plan built around what you told me. Take it one step at a time \u2014 Wisal will handle the rest.',
+      focus:focusLabels.slice(0,4),
+      steps:['Add your family members so everything connects to the right person.','Log this week\u2019s tasks \u2014 or just ask the AI to add them for you.','Open Home each morning to see your day in 3 seconds.'],
+      addStarters:true };
+  }
+  function onbApplyPlan(plan){
+    // create the starter content the plan describes
+    var added=[];
+    try{
+      if(plan.addStarters!==false){
+        // a couple of gentle starter tasks based on focus
+        var f=onbState.focus;
+        if(f.indexOf('finance')>=0){ FD.addTask({title:'Set this month\u2019s budget',done:false,due:'',priority:'Normal',subs:[]}); added.push('A task: set this month\u2019s budget'); }
+        if(f.indexOf('health')>=0){ FD.addTask({title:'Add family health details & any appointments',done:false,due:'',priority:'Normal',subs:[]}); added.push('A task: add health details'); }
+        if(f.indexOf('planning')>=0 || !f.length){ FD.addTask({title:'Plan the week ahead',done:false,due:'',priority:'Normal',subs:[]}); added.push('A task: plan the week ahead'); }
+        if(f.indexOf('wellbeing')>=0){ try{ FD.addGoal({title:'Take 10 quiet minutes for myself, daily',area:'wellbeing',done:false}); added.push('A wellbeing goal'); }catch(e){} }
+        if(onbState.goal){ FD.addTask({title:onbState.goal.slice(0,80),done:false,due:'',priority:'High',subs:[]}); added.push('Your own goal, as a task'); }
+      }
+    }catch(e){}
+    plan.added=added;
+    return plan;
+  }
+  function onbBuildPlan(){
+    onbState.plan='__loading__'; onbRender();
+    var challLabels=onbState.challenges.map(function(k){ for(var i=0;i<ONB_CHALLENGES.length;i++){ if(ONB_CHALLENGES[i][0]===k) return ONB_CHALLENGES[i][1]; } return k; });
+    var focusLabels=onbState.focus.map(function(k){ for(var i=0;i<ONB_FOCUS.length;i++){ if(ONB_FOCUS[i][0]===k) return ONB_FOCUS[i][1]; } return k; });
+    var prompt='You are Wisal, a warm family assistant. A new user just onboarded. Based on their answers, write a short, encouraging, personalised starter plan.\n'
+      +'Household: '+(onbState.family||'unknown')+'\n'
+      +'Their biggest challenges: '+(challLabels.join(', ')||'not specified')+'\n'
+      +'Areas they want help with: '+(focusLabels.join(', ')||'not specified')+'\n'
+      +'In their own words: '+(onbState.goal||'(none)')+'\n'
+      +'Their name: '+(onbState.name||'(not given)')+'\n\n'
+      +'Reply ONLY with valid JSON, no markdown, no extra text, in this exact shape:\n'
+      +'{"summary":"2-3 warm sentences naming their main need and how Wisal will help","focus":["3-4 short focus area labels"],"steps":["3 short, concrete first steps"]}';
+    var contents=[{role:'user',parts:[{text:prompt}]}];
+    var payload={ system:'You reply only with valid minified JSON. No markdown fences, no prose outside the JSON.', contents:contents, generationConfig:{maxOutputTokens:600,temperature:0.6} };
+
+    function finish(planObj){
+      clearInterval(_onbLoadTimer);
+      var plan = planObj || onbFallbackPlan();
+      plan = onbApplyPlan(plan);
+      onbState.plan = plan;
+      try{ refreshAll(); }catch(e){}
+      onbRender();
+    }
+    function parsePlan(txt){
+      try{ var clean=String(txt).replace(/```json/gi,'').replace(/```/g,'').trim(); var a=clean.indexOf('{'), b=clean.lastIndexOf('}'); if(a>=0&&b>a) clean=clean.slice(a,b+1); var o=JSON.parse(clean); if(o&&(o.summary||o.steps)) return o; }catch(e){}
+      return null;
+    }
+    function fire(token){
+      var headers={ 'Content-Type':'application/json', 'apikey':SUPA_KEY };
+      if(token){ headers['Authorization']='Bearer '+token; }
+      var key=aiGetKey();
+      var url, hdr, body;
+      if(key){ url='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent'; hdr={ 'Content-Type':'application/json','x-goog-api-key':key }; body={ system_instruction:{parts:[{text:payload.system}]}, contents:contents, generationConfig:payload.generationConfig }; }
+      else { url=AI_PROXY_URL; hdr=headers; body=payload; }
+      fetch(url,{ method:'POST', headers:hdr, body:JSON.stringify(body) })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var txt='';
+          if(data && data.text){ txt=data.text; }
+          else if(data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts){ txt=data.candidates[0].content.parts.map(function(p){return p.text||'';}).join(''); }
+          finish(parsePlan(txt));
+        })
+        .catch(function(){ finish(null); });
+    }
+    try{ if(sb && sb.auth && sb.auth.getSession){ sb.auth.getSession().then(function(r){ var s=r&&r.data&&r.data.session; fire(s?s.access_token:''); }).catch(function(){ fire(''); }); } else { fire(''); } }catch(e){ fire(''); }
+  }
+  function onbFinish(){
+    try{ if(!Store.get('fw.plan.tier',null)) Store.set('fw.plan.tier','free'); }catch(e){}
+    closeOnb();
+    try{ navigate('home'); }catch(e){}
+    try{ refreshAll(); }catch(e){}
+    if(typeof flash==='function') flash('Your plan is ready. Welcome to Wisal!');
+  }
+
+  /* ==================== PAYWALL — Wisal Plus (Phase 2) ==================== */
+  /* Prices in BDT (\u09F3). Edit here in ONE place; the yearly saving badge is auto-derived. */
+  var WISAL_PRICE={
+    month:{ amt:149, per:'/month', cycleLabel:'Billed monthly' },
+    year: { amt:990, per:'/year',  cycleLabel:'\u2248 \u09F3 83/mo \u00b7 billed yearly' },
+    saveP:45
+  };
+  var onbPay={ cycle:'month', method:null, view:'plans', busy:false, note:'' };
+
+  function onbToPaywall(){ onbPay={ cycle:'month', method:null, view:'plans', busy:false, note:'' }; onbState.step=6; onbRender(); }
+  function onbSetCycle(c){ if(c!=='month'&&c!=='year') return; onbPay.cycle=c; onbRender(); }
+  function onbPlusStart(){ onbPay.view='pay'; if(!onbPay.method) onbPay.method='bkash'; onbPay.note=''; onbRender(); }
+  function onbPayBack(){ onbPay.view='plans'; onbPay.note=''; onbRender(); }
+  function onbPayMethod(m){ onbPay.method=m; onbPay.note=''; onbRender(); }
+
+  function onbPayView(){
+    if(onbPay.view==='pay') return onbPaySheet();
+    var m=WISAL_PRICE[onbPay.cycle];
+    var tick='<span class="onbpw__tick"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+    var mk='<svg class="mk" viewBox="0 0 24 24"><circle cx="9.6" cy="12" r="6.1"/><circle cx="14.4" cy="12" r="6.1"/></svg>';
+    return '<div class="onbc onbc--pay">'
+      +'<div class="onbpw__head">'
+        +'<span class="onb__eyebrow">Almost there</span>'
+        +'<h1 class="onb__h" style="font-size:1.9rem;margin-bottom:0">Make Wisal yours</h1>'
+        +'<p class="onbpw__sub">Start free and keep everything you just set up. Move to Plus whenever you want the AI with no limits.</p>'
+      +'</div>'
+      +'<div class="onbpw__toggle" role="group" aria-label="Billing period">'
+        +'<button type="button" class="onbpw__seg'+(onbPay.cycle==='month'?' is-on':'')+'" data-onbcycle="month" aria-pressed="'+(onbPay.cycle==='month')+'">Monthly</button>'
+        +'<button type="button" class="onbpw__seg'+(onbPay.cycle==='year'?' is-on':'')+'" data-onbcycle="year" aria-pressed="'+(onbPay.cycle==='year')+'">Yearly<span class="onbpw__save">Save '+WISAL_PRICE.saveP+'%</span></button>'
+      +'</div>'
+      +'<div class="onbpw__cards">'
+        +'<section class="onbpw__card onbpw__card--plus" aria-label="Wisal Plus">'
+          +'<span class="onbpw__badge"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.4L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.6-.6z"/></svg>Recommended</span>'
+          +'<div class="onbpw__nm">'+mk+'Wisal Plus</div>'
+          +'<div class="onbpw__tag">All of Wisal, no limits.</div>'
+          +'<div class="onbpw__price"><span class="onbpw__cur">\u09F3</span><span class="onbpw__amt">'+m.amt+'</span><span class="onbpw__per">'+m.per+'</span></div>'
+          +'<div class="onbpw__note">'+m.cycleLabel+' \u00b7 cancel anytime</div>'
+          +'<ul class="onbpw__feats">'
+            +'<li>'+tick+'<span><b>Unlimited AI</b> \u2014 no monthly cap</span></li>'
+            +'<li>'+tick+'<span>Bring your own Gemini key</span></li>'
+            +'<li>'+tick+'<span><b>Weekly family insights</b> &amp; reports</span></li>'
+            +'<li>'+tick+'<span>Unlimited members &amp; projects</span></li>'
+            +'<li>'+tick+'<span>Priority support</span></li>'
+          +'</ul>'
+          +'<button type="button" class="btn btn--primary onbpw__cta" data-onbplus>Start Wisal Plus<svg viewBox="0 0 20 20"><path d="M4 10h11M11 5l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        +'</section>'
+        +'<section class="onbpw__card onbpw__card--free" aria-label="Wisal Free">'
+          +'<div class="onbpw__nm">Wisal Free</div>'
+          +'<div class="onbpw__tag">Everything a family needs to begin.</div>'
+          +'<div class="onbpw__price"><span class="onbpw__cur">\u09F3</span><span class="onbpw__amt">0</span><span class="onbpw__per">always</span></div>'
+          +'<div class="onbpw__note">No card needed.</div>'
+          +'<ul class="onbpw__feats">'
+            +'<li>'+tick+'<span>Shared family dashboard</span></li>'
+            +'<li>'+tick+'<span>Tasks, events &amp; expenses</span></li>'
+            +'<li>'+tick+'<span><b>30 AI actions</b> a month</span></li>'
+            +'<li>'+tick+'<span>Up to 2 members</span></li>'
+          +'</ul>'
+          +'<button type="button" class="onbpw__cta onbpw__cta--ghost" data-onbfinish>Continue with Free</button>'
+        +'</section>'
+      +'</div>'
+      +'<div class="onbpw__pay">'
+        +'<div class="onbpw__paylabel">Secure checkout</div>'
+        +'<div class="onbpw__marks">'
+          +'<span class="onbpw__mark"><span class="dot" style="background:#e2136e"></span>bKash</span>'
+          +'<span class="onbpw__mark"><span class="dot" style="background:#ec1c24"></span>Nagad</span>'
+          +'<span class="onbpw__mark"><svg viewBox="0 0 20 20"><rect x="2" y="4.5" width="16" height="11" rx="2"/><path d="M2 8.5h16"/></svg>Cards</span>'
+        +'</div>'
+      +'</div>'
+      +'<div class="onbpw__fine"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>Payments by SSLCommerz \u00b7 cancel anytime</div>'
+      +'<button type="button" class="onbpw__later" data-onbfinish>Maybe later</button>'
+    +'</div>';
+  }
+
+  function onbPaySheet(){
+    var m=WISAL_PRICE[onbPay.cycle];
+    var methods=[
+      ['bkash','bKash','Pay from your bKash wallet','#e2136e','b'],
+      ['nagad','Nagad','Pay from your Nagad wallet','#ec1c24','N'],
+      ['card','Card','Visa, Mastercard &amp; local banks','var(--brand)','']
+    ];
+    var rows=methods.map(function(x){
+      var on=onbPay.method===x[0];
+      var logo = x[0]==='card'
+        ? '<span class="onbpw__mlogo" style="background:'+x[3]+'"><svg viewBox="0 0 20 20" style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.7"><rect x="2" y="4.5" width="16" height="11" rx="2"/><path d="M2 8.5h16"/></svg></span>'
+        : '<span class="onbpw__mlogo" style="background:'+x[3]+'">'+x[4]+'</span>';
+      return '<button type="button" class="onbpw__method'+(on?' is-on':'')+'" data-onbpay="'+x[0]+'">'
+        +logo
+        +'<span class="onbpw__mmeta"><span class="onbpw__mname">'+x[1]+'</span><span class="onbpw__mdesc">'+x[2]+'</span></span>'
+        +'<span class="onbpw__mradio"></span>'
+      +'</button>';
+    }).join('');
+    return '<div class="onbc onbc--pay">'
+      +'<div class="onbpw__sheethead"><button type="button" class="onbpw__backb" data-onbpayback><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Plans</button></div>'
+      +'<span class="onb__eyebrow">Wisal Plus</span>'
+      +'<h1 class="onb__h" style="font-size:1.7rem;margin-bottom:4px">How would you like to pay?</h1>'
+      +'<div class="onbpw__summary"><span class="lbl">Wisal Plus \u00b7 '+(onbPay.cycle==='year'?'yearly':'monthly')+'</span><span class="amt">\u09F3'+m.amt+'</span></div>'
+      +(onbPay.note?'<div class="onbpw__notewrap">'+esc(onbPay.note)+'</div>':'')
+      +'<div class="onbpw__methods">'+rows+'</div>'
+      +'<button type="button" class="btn btn--primary onbpw__cta" data-onbcheckout'+(onbPay.busy?' disabled':'')+'>'+(onbPay.busy?'Opening secure checkout\u2026':'Continue to secure checkout')+'</button>'
+      +'<div class="onbpw__fine" style="margin-top:14px"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>You\u2019ll confirm on the secure SSLCommerz page</div>'
+    +'</div>';
+  }
+
+  function onbCheckout(){
+    if(!onbPay.method){ onbPay.note='Please choose bKash, Nagad or a card first.'; onbRender(); return; }
+    onbPay.busy=true; onbPay.note=''; onbRender();
+    var amt=WISAL_PRICE[onbPay.cycle].amt;
+    var body={ tier:'plus', cycle:onbPay.cycle, amount:amt, currency:'BDT', method:onbPay.method, email:(AUTH.user&&AUTH.user.email)||'', user_id:(AUTH.user&&AUTH.user.id)||'' };
+    var go=function(tok){
+      fetch(WISAL_PAY_URL,{ method:'POST', headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+(tok||'') }, body:JSON.stringify(body) })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if(d && d.url){ try{ Store.set('fw.plan.pending', body); }catch(e){} location.href=d.url; return; }
+          throw new Error('no-url');
+        })
+        .catch(function(){
+          onbPay.busy=false;
+          onbPay.note='Secure checkout isn\u2019t connected yet. Start on Free for now \u2014 you can upgrade any time from Settings once payments go live.';
+          onbRender();
+        });
+    };
+    try{ if(sb&&sb.auth&&sb.auth.getSession){ sb.auth.getSession().then(function(r){ var s=r&&r.data&&r.data.session; go(s?s.access_token:''); }).catch(function(){ go(''); }); } else { go(''); } }catch(e){ go(''); }
+  }
+
  function openAuth(firstRun){
  _authFirstRun=!!firstRun;
  var a=document.getElementById('auth'); if(!a) return;
@@ -7948,7 +8420,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
  function authAfterResolve(){
  if(_authFirstRun){ _authFirstRun=false;
- try{ if(!Store.get('fw.spaces.chosen',false) && !FD.data.members.length) openSpPick(true); }catch(e){}
+ try{ if(!onbDone() && !FD.data.members.length){ onbMaybeStart(); } else if(!Store.get('fw.spaces.chosen',false) && !FD.data.members.length){ openSpPick(true); } }catch(e){}
  }
  }
  function closeAuth(asOffline){
@@ -7973,14 +8445,18 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var n=document.getElementById('authNote'); if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in.';
  authSetMode('in'); return;
  }
- AUTH.user=user||AUTH.user;
- authRemember(AUTH.user);
- Store.set('fw.auth.mode','cloud');
- renderAccountCard(); renderHouseholdCard();
- try{ cloudPull(); }catch(e){}
+ var _newUid=(user&&user.id)||'';
+   var _prevUid=Store.get('fw.auth.uid','');
+   if(_newUid && _prevUid && _newUid!==_prevUid){ try{ wipeLocalData(); }catch(e){} }
+   AUTH.user=user||AUTH.user;
+   authRemember(AUTH.user);
+   Store.set('fw.auth.mode','cloud');
+   renderAccountCard(); renderHouseholdCard();
+   try{ cloudPull(); }catch(e){}
  try{ _chLoaded=false; _chSub=null; if(currentView==='ai') chGate(); }catch(e){}
- if(typeof flash==='function') flash('Signed in, welcome!');
- closeAuth(false);
+ try{ hideAuthGate(); }catch(e){}
+   try{ if(!onbDone() && !FD.data.members.length){ onbMaybeStart(); } else if(!Store.get('fw.spaces.chosen',false) && !FD.data.members.length){ openSpPick(true); } }catch(e){}
+   if(typeof flash==='function') flash('Signed in, welcome!');
  }).catch(function(){ authBusy(false); authErr('Network error, please try again.'); });
  }
  function acctDelete(){
@@ -7995,16 +8471,29 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  .then(function(){ return sb.from('family_data')['delete']().eq('user_id',me); }, function(){ return sb.from('family_data')['delete']().eq('user_id',me); })
  .then(fin, fin);
  }
- function doSignOut(){
- if(!confirm('Sign out?\n\nYour family data stays on this device for offline viewing, your cloud copy is safe. To wipe this device too, use Settings \u2192 Reset afterwards.')) return;
- if(sb){ try{ sb.auth.signOut(); }catch(e){} }
- AUTH.user=null; authRemember(null); Store.set('fw.auth.mode','local'); Store.set('fw.sync.ts','');
- Store.set('fw.sync.row',''); Store.set('fw.sync.code','');
- _chMsgs=[]; _chLoaded=false; _chSub=null;
- renderAccountCard(); renderHouseholdCard(); try{ if(currentView==='ai') chGate(); }catch(e){}
- if(typeof flash==='function') flash('Signed out');
+ function wipeLocalData(){
+   // Securely clear this device of the current account's family data + sync state.
+   // Used on account-switch (before loading a different user) and on sign-out wipe.
+   try{ Store.set(FD.KEY, null); }catch(e){}
+   try{
+     ['fw.sync.ts','fw.sync.row','fw.sync.code','fw.sync.rescue','fw.family','fw.family.data'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+   }catch(e){}
+   try{ _chMsgs=[]; _chLoaded=false; _chSub=null; }catch(e){}
+   try{ FD.load(); }catch(e){}   // re-init a fresh, empty dataset
  }
- function renderAccountCard(){
+ function doSignOut(){
+   if(!confirm('Sign out?\n\nYour cloud copy stays safe. Choose OK to sign out.')) return;
+   var wipe=confirm('For your privacy: clear this account\u2019s data from THIS device?\n\nOK = clear it (recommended on shared devices).\nCancel = keep it on this device for offline viewing.');
+   if(sb){ try{ sb.auth.signOut(); }catch(e){} }
+   AUTH.user=null; authRemember(null); Store.set('fw.auth.mode','local');
+   if(wipe){ try{ wipeLocalData(); }catch(e){} }
+   else { Store.set('fw.sync.ts',''); Store.set('fw.sync.row',''); Store.set('fw.sync.code',''); _chMsgs=[]; _chLoaded=false; _chSub=null; }
+   renderAccountCard(); renderHouseholdCard(); try{ if(currentView==='ai') chGate(); }catch(e){}
+   try{ refreshAll(); }catch(e){}
+   try{ showAuthGate(); }catch(e){}
+   if(typeof flash==='function') flash(wipe?'Signed out, this device cleared':'Signed out');
+ }
+  function renderAccountCard(){
  var el=document.getElementById('accountBody'); if(!el) return;
  if(AUTH.user){
  el.innerHTML='<p class="set__p"><strong>Signed in</strong> as '+esc(AUTH.user.email||'')+'.</p>'
@@ -8020,17 +8509,31 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  try{ renderSetIndex(); }catch(e){}
  }
  function authInit(){
- if(!sb){ renderAccountCard(); renderHouseholdCard(); return; }
- try{
- sb.auth.getSession().then(function(r){ var s=r&&r.data&&r.data.session; if(s&&s.user){ AUTH.user=s.user; authRemember(s.user); Store.set('fw.auth.mode','cloud'); try{ cloudPull(); }catch(e){} } else if(Store.get('fw.auth.mode',null)!=='cloud'){ AUTH.user=null; authRemember(null); } renderAccountCard(); renderHouseholdCard(); chRefreshView(); }).catch(function(){ renderAccountCard(); renderHouseholdCard(); chRefreshView(); });
- sb.auth.onAuthStateChange(function(ev,session){ if(session&&session.user){ AUTH.user=session.user; authRemember(session.user); } else if(ev==='SIGNED_OUT'){ AUTH.user=null; authRemember(null); } renderAccountCard(); renderHouseholdCard(); _chLoaded=false; _chSub=null; chRefreshView(); });
+   try{ showAuthGate(); }catch(e){}   // gate appears instantly; hidden only once a valid session is confirmed
+   if(!sb){ renderAccountCard(); renderHouseholdCard(); return; }
+   try{
+     sb.auth.getSession().then(function(r){ var s=r&&r.data&&r.data.session; if(s&&s.user){ AUTH.user=s.user; authRemember(s.user); Store.set('fw.auth.mode','cloud'); try{ hideAuthGate(); }catch(e){} try{ cloudPull(); }catch(e){} } else { AUTH.user=null; authRemember(null); try{ wipeLocalData(); }catch(e){} try{ showAuthGate(); }catch(e){} } renderAccountCard(); renderHouseholdCard(); chRefreshView(); }).catch(function(){ try{ showAuthGate(); }catch(e){} renderAccountCard(); renderHouseholdCard(); chRefreshView(); });
+ sb.auth.onAuthStateChange(function(ev,session){ if(session&&session.user){ AUTH.user=session.user; authRemember(session.user); try{ hideAuthGate(); }catch(e){} } else if(ev==='SIGNED_OUT'){ AUTH.user=null; authRemember(null); try{ wipeLocalData(); }catch(e){} try{ showAuthGate(); }catch(e){} } renderAccountCard(); renderHouseholdCard(); _chLoaded=false; _chSub=null; chRefreshView(); });
  }catch(e){ renderAccountCard(); renderHouseholdCard(); }
  }
+ function showAuthGate(){
+   var a=document.getElementById('auth'); var app=document.getElementById('app');
+   if(app) app.style.display='none';           // hide the whole app behind the gate
+   if(a){ a.hidden=false; a.classList.add('is-on'); }
+   try{ authSetMode('in'); }catch(e){}
+   var t=document.getElementById('authTitle'); if(t) t.textContent='Welcome to Wisal';
+   var n=document.getElementById('authNote'); if(n) n.textContent='Sign in or create your account to continue.';
+   setTimeout(function(){ var i=document.getElementById('authEmail'); if(i&&i.focus){ try{ i.focus(); }catch(e){} } },60);
+ }
+ function hideAuthGate(){
+   var a=document.getElementById('auth'); var app=document.getElementById('app');
+   if(a){ a.classList.remove('is-on'); a.hidden=true; }
+   if(app) app.style.display='';
+ }
  function bootOnboarding(){
- var mode=Store.get('fw.auth.mode',null);
- if(FD.data.members.length){ if(!mode) Store.set('fw.auth.mode','local'); return; }
- if(!mode){ openAuth(true); return; }
- if(!Store.get('fw.spaces.chosen',false)) openSpPick(true);
+   // The hard auth gate (in the getSession boot) decides access. If no Supabase client
+   // is present at all, fall back to showing the gate so nothing private renders.
+   if(!sb){ try{ showAuthGate(); }catch(e){} return; }
  }
  (function(){ var p=document.getElementById('authPass'); if(p&&p.addEventListener) p.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); doAuth(); } }); })();
 
@@ -8102,14 +8605,14 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
  function cloudPull(){
  if(!cloudEnabled()||_pulling) return; _pulling=true; syncStatus('syncing\u2026');
- sb.from('family_data').select('user_id,data,updated_at,invite_code').limit(5)
+ sb.from('family_data').select('user_id,data,updated_at,invite_code').eq('user_id',AUTH.user.id)
  .then(function(r){
  _pulling=false;
  if(r.error){ syncStatus('error, will retry'); return; }
  var rows=r.data||[], me=AUTH.user.id;
- var shared=null, own=null;
- rows.forEach(function(x){ if(x.user_id===me) own=x; else if(!shared) shared=x; });
- var row=shared||own;
+ var own=null;
+ rows.forEach(function(x){ if(x.user_id===me) own=x; });
+ var row=own;
  var prevKey=Store.get('fw.sync.row','');
  var key=row? row.user_id : '';
  Store.set('fw.sync.row', key);
@@ -11724,6 +12227,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   function aiSetKey(k){ try{ Store.set(AI_APIKEY, String(k||'').trim()); }catch(e){} }
   function aiHasKey(){ return !!aiGetKey(); }
   var AI_PROXY_URL = SUPA_URL + '/functions/v1/wisal-ai';
+  var WISAL_PAY_URL = SUPA_URL + '/functions/v1/wisal-pay'; /* Phase 2: SSLCommerz session creator — deploy this Edge Function to go live */
   function aiBuildContents(){
     var hist = aiThread.filter(function(m){ return m.content && m.content!=='__NEEDKEY__' && m.content!=='__BADKEY__'; }).slice(-12);
     return hist.map(function(m){ return { role:(m.role==='assistant'?'model':'user'), parts:[{text:m.content}] }; });
@@ -12066,11 +12570,9 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var _clm=e.target.closest('[data-claim-me]'); if(_clm){ var _cm=FD.getMember? FD.getMember(_clm.getAttribute('data-claim-me')):null; if(_cm&&AUTH.user){ _cm.email=String(AUTH.user.email||'').toLowerCase(); if(!_cm.role) _cm.role=hhIsGuest()?'member':'owner'; FD.save(); refreshAll('family'); flash('Linked, this profile is you now'); } return; }
  if(e.target.closest('#authGo')){ doAuth(); return; }
  if(e.target.closest('[data-auth-toggle]')){ authSetMode(_authMode==='in'?'up':'in'); return; }
- if(e.target.closest('[data-auth-offline]')){ closeAuth(true); return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
  if(e.target.closest('[data-auth-signout]')){ doSignOut(); return; }
- if(e.target.closest('[data-auth-close]')){ closeAuth(_authFirstRun); return; }
  var spk=e.target.closest('[data-spk]'); if(spk){ if(!_spSel) _spSel={}; var _k=spk.getAttribute('data-spk'); _spSel[_k]=!(_spSel[_k]!==false); spk.classList.toggle('is-on', _spSel[_k]!==false); return; }
  if(e.target.closest('#sppickSave')){ saveSpPick(); return; }
  if(e.target.closest('[data-sppick-all]')){ SP_KEYS.forEach(function(k){ _spSel[k]=true; }); var _g=document.getElementById('sppickGrid'); if(_g) _g.innerHTML=sppickChips(); return; }
@@ -12140,6 +12642,17 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var _vdel=e.target.closest('[data-vaultdel]'); if(_vdel){ if(window.confirm('Delete this item from the vault? This cannot be undone.')){ FD.removeVaultEntry(_vdel.getAttribute('data-vaultdel')); renderVault(); } return; }
  var _vrev=e.target.closest('[data-vaultreveal]'); if(_vrev){ _vrev.classList.toggle('is-shown'); return; }
  if(e.target.closest('[data-aihistory]')){ aiOpenHistory(); return; }
+ if(e.target.closest('[data-onbnext]')){ onbNext(); return; }
+ if(e.target.closest('[data-onbback]')){ onbBack(); return; }
+ if(e.target.closest('[data-onbskip]')){ closeOnb(); try{ if(!Store.get('fw.spaces.chosen',false)&&!FD.data.members.length) openSpPick(true); }catch(e){} return; }
+ if(e.target.closest('[data-onbfinish]')){ onbFinish(); return; }
+ if(e.target.closest('[data-onbtopay]')){ onbToPaywall(); return; }
+ var _obc=e.target.closest('[data-onbcycle]'); if(_obc){ onbSetCycle(_obc.getAttribute('data-onbcycle')); return; }
+ if(e.target.closest('[data-onbplus]')){ onbPlusStart(); return; }
+ if(e.target.closest('[data-onbpayback]')){ onbPayBack(); return; }
+ var _obm=e.target.closest('[data-onbpay]'); if(_obm){ onbPayMethod(_obm.getAttribute('data-onbpay')); return; }
+ if(e.target.closest('[data-onbcheckout]')){ onbCheckout(); return; }
+ var _onbp=e.target.closest('[data-onbpick]'); if(_onbp){ onbPick(_onbp.getAttribute('data-onbpick'), _onbp.getAttribute('data-onbval')); return; }
  var _aic=e.target.closest('[data-aiconfirm]'); if(_aic){ aiExecuteActions(+_aic.getAttribute('data-aiconfirm')); return; }
  var _aid=e.target.closest('[data-aidismiss]'); if(_aid){ aiDismissActions(+_aid.getAttribute('data-aidismiss')); return; }
  var _wnc=e.target.closest('[data-wnclose]'); if(_wnc){ wnClose(); return; }
