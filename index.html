@@ -4563,6 +4563,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <div class="autherr" id="authErr" hidden></div>
  <button class="btn btn--primary auth__go" id="authGo" type="button">Sign in</button>
  <button class="auth__swap" id="authSwap" type="button" data-auth-toggle>New to Wisal? <b>Create an account</b></button>
+ <button class="auth__swap" id="authResend" type="button" data-auth-resend hidden>Didn't get it? <b>Resend email</b></button>
  </div>
 </div>
 
@@ -8062,7 +8063,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var AUTH={user:null}, _authMode='in', _authFirstRun=false;
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -8440,6 +8441,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(note) note.textContent= sb ? 'One account, your whole family\u2019s OS. Cloud sync arrives in the very next update.' : 'You\u2019re offline right now, connect to the internet to create or use an account.';
  a.hidden=false; a.classList.add('is-on'); window.__panelOpenedAt=Date.now();
  try{ tsRender(); }catch(e){}
+ try{ authShowResend(false); }catch(e){}
  setTimeout(function(){ var i=document.getElementById('authEmail'); if(i&&i.focus){ try{ i.focus(); }catch(e){} } },40);
  }
  function authAfterResolve(){
@@ -8452,6 +8454,20 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(asOffline){ Store.set('fw.auth.mode','local'); renderAccountCard(); if(typeof flash==='function') flash('Using Wisal on this device'); }
  authAfterResolve();
  }
+ function authShowResend(on){ var b=document.getElementById('authResend'); if(b) b.hidden=!on; }
+ function authResend(){
+   if(!sb){ authErr('No connection.'); return; }
+   var e=document.getElementById('authEmail'); var email=((e&&e.value)||'').trim();
+   if(!email || email.indexOf('@')<1){ authErr('Enter your email first.'); return; }
+   var captchaToken=tsToken();
+   if(!captchaToken){ authErr('Please complete the CAPTCHA, then tap Resend.'); return; }
+   authErr(''); var b=document.getElementById('authResend'); if(b) b.disabled=true;
+   sb.auth.resend({ type:'signup', email:email, options:{ captchaToken:captchaToken, emailRedirectTo:location.origin } }).then(function(res){
+     if(b) b.disabled=false; tsReset();
+     if(res && res.error){ authErr(authFriendly(res.error)); return; }
+     var n=document.getElementById('authNote'); if(n) n.textContent='Sent again to '+email+' \u2014 check your inbox and spam. If nothing arrives, email confirmation is likely off or unconfigured in Supabase.';
+   }).catch(function(){ if(b) b.disabled=false; tsReset(); authErr('Could not resend, please try again.'); });
+ }
  function doAuth(){
  if(!sb){ authErr('No connection, connect to the internet and try again, or continue offline below.'); return; }
  var e=document.getElementById('authEmail'), p=document.getElementById('authPass');
@@ -8461,15 +8477,15 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var captchaToken=tsToken();
  if(!captchaToken){ authErr('Please complete the CAPTCHA.'); return; }
  authErr(''); authBusy(true);
- var call=(_authMode==='in') ? sb.auth.signInWithPassword({email:email,password:pass,options:{captchaToken:captchaToken}}) : sb.auth.signUp({email:email,password:pass,options:{captchaToken:captchaToken}});
+ var call=(_authMode==='in') ? sb.auth.signInWithPassword({email:email,password:pass,options:{captchaToken:captchaToken}}) : sb.auth.signUp({email:email,password:pass,options:{captchaToken:captchaToken,emailRedirectTo:location.origin}});
  call.then(function(res){
  authBusy(false);
  if(res.error){ authErr(authFriendly(res.error)); tsReset(); return; }
  var user=(res.data&&res.data.user)||null, sess=res.data&&res.data.session;
  if(_authMode==='up' && !sess){
  var t=document.getElementById('authTitle'); if(t) t.textContent='Check your email';
- var n=document.getElementById('authNote'); if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in.';
- tsReset(); authSetMode('in'); return;
+ var n=document.getElementById('authNote'); if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in \u2014 check your spam folder too.';
+ tsReset(); authSetMode('in'); authShowResend(true); return;
  }
  var _newUid=(user&&user.id)||'';
    var _prevUid=Store.get('fw.auth.uid','');
@@ -8479,6 +8495,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    Store.set('fw.auth.mode','cloud');
    renderAccountCard(); renderHouseholdCard();
    try{ cloudPull(); }catch(e){}
+   try{ wisalSyncPlan(); }catch(e){}
  try{ _chLoaded=false; _chSub=null; if(currentView==='ai') chGate(); }catch(e){}
  try{ hideAuthGate(); }catch(e){}
    try{ if(!onbDone() && !FD.data.members.length){ onbMaybeStart(); } else if(!Store.get('fw.spaces.chosen',false) && !FD.data.members.length){ openSpPick(true); } }catch(e){}
@@ -8555,6 +8572,28 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    var a=document.getElementById('auth'); var app=document.getElementById('app');
    if(a){ a.classList.remove('is-on'); a.hidden=true; }
    if(app) app.style.display='';
+ }
+ /* ==================== Subscription (Wisal Plus) ==================== */
+ /* Source of truth = the Supabase "subscriptions" table (written by the wisal-pay-ipn function). */
+ function isPlus(){ try{ return Store.get('fw.plan.tier','free')==='plus'; }catch(e){ return false; } }
+ function wisalSetTier(t){ try{ Store.set('fw.plan.tier', t==='plus'?'plus':'free'); }catch(e){} }
+ function wisalSyncPlan(){
+   if(!sb || !sb.auth) return;
+   try{ sb.auth.getSession().then(function(r){
+     var s=r&&r.data&&r.data.session; if(!s||!s.user) return;
+     sb.from('subscriptions').select('tier,status,current_period_end').eq('user_id',s.user.id).maybeSingle()
+       .then(function(res){ var row=res&&res.data; if(!row) return;
+         var active = row.status==='active' && (!row.current_period_end || new Date(row.current_period_end).getTime()>Date.now());
+         wisalSetTier(active && row.tier==='plus' ? 'plus' : 'free');
+       }).catch(function(){});
+   }).catch(function(){}); }catch(e){}
+ }
+ function wisalHandlePaymentReturn(){
+   try{ var q=new URLSearchParams(location.search), r=q.get('wisal_pay');
+     if(r==='success'){ wisalSetTier('plus'); try{ Store.set('fw.plan.pending',null); }catch(e){} if(typeof flash==='function') flash('Welcome to Wisal Plus \u2014 thank you!'); try{ wisalSyncPlan(); }catch(e){} }
+     else if(r==='fail'||r==='cancel'){ if(typeof flash==='function') flash('Payment not completed \u2014 you\u2019re still on Free.'); }
+     if(r){ try{ history.replaceState({},'',location.pathname); }catch(e){} }
+   }catch(e){}
  }
  function bootOnboarding(){
    // The hard auth gate (in the getSession boot) decides access. If no Supabase client
@@ -12595,7 +12634,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(e.target.closest('[data-invite-mem]')){ if(typeof canManage==='function' && !canManage()){ flash('Only the owner or an admin can invite'); return; } openModal('member',{invite:1}); return; }
  var _clm=e.target.closest('[data-claim-me]'); if(_clm){ var _cm=FD.getMember? FD.getMember(_clm.getAttribute('data-claim-me')):null; if(_cm&&AUTH.user){ _cm.email=String(AUTH.user.email||'').toLowerCase(); if(!_cm.role) _cm.role=hhIsGuest()?'member':'owner'; FD.save(); refreshAll('family'); flash('Linked, this profile is you now'); } return; }
  if(e.target.closest('#authGo')){ doAuth(); return; }
- if(e.target.closest('[data-auth-toggle]')){ authSetMode(_authMode==='in'?'up':'in'); return; }
+ if(e.target.closest('[data-auth-toggle]')){ authSetMode(_authMode==='in'?'up':'in'); try{ authShowResend(false); }catch(e){} return; }
+ if(e.target.closest('[data-auth-resend]')){ authResend(); return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
  if(e.target.closest('[data-auth-signout]')){ doSignOut(); return; }
@@ -13252,6 +13292,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  try{ applySpaceVisibility(); }catch(e){}
  try{ authInit(); }catch(e){}
  try{ bootOnboarding(); }catch(e){}
+ try{ wisalHandlePaymentReturn(); }catch(e){}
+ try{ wisalSyncPlan(); }catch(e){}
  try{ wnCheck(); }catch(e){}
  try{ renderNotifications(); }catch(e){}
  setInterval(function(){ try{ renderNotifications(); }catch(e){} }, 300000);
