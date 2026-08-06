@@ -1,46 +1,37 @@
 {
-  "name": "Wisal",
+  "name": "Wisal — Family Life OS",
   "short_name": "Wisal",
-  "description": "Your whole household \u2014 family, health, finance, journal, cooking and more \u2014 in one calm, private life operating system.",
-  "id": "/",
+  "description": "One calm place for your family's plans, health, money and memories.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": [
-    "standalone",
-    "minimal-ui"
-  ],
-  "orientation": "portrait-primary",
-  "background_color": "#131314",
-  "theme_color": "#131314",
-  "categories": [
-    "lifestyle",
-    "productivity",
-    "health"
-  ],
+  "orientation": "portrait",
+  "background_color": "#F3F5FA",
+  "theme_color": "#F3F5FA",
   "lang": "en",
   "dir": "ltr",
+  "categories": ["lifestyle", "productivity"],
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192-maskable.png",
+      "src": "/icons/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512-maskable.png",
+      "src": "/icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
