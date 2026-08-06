@@ -10,7 +10,10 @@
   "theme_color": "#F3F5FA",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["lifestyle", "productivity"],
+  "categories": [
+    "lifestyle",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/icon-192.png",
