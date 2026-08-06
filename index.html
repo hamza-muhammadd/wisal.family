@@ -3659,6 +3659,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
    margin-block:auto centres short content but lets tall content scroll from the very top. */
 .onb__stage{justify-content:flex-start}
 .onbc{margin-block:auto;width:100%}
+.onb__stage.is-quiet .onbc,.onb__stage.is-quiet .onb__added,.onb__stage.is-quiet .onb__mark{animation:none!important}
 .onb__inner{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
 @media(max-width:430px){
  .onb__inner{padding-left:max(17px,env(safe-area-inset-left));padding-right:max(17px,env(safe-area-inset-right))}
@@ -8223,8 +8224,11 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     if(cnt){ cnt.textContent='Step '+onbState.step+' of 4'; }
   }
 
+  var _onbLastStep=-1;
   function onbRender(){
     var st=$('#onbStage'); if(!st) return; onbSetBar();
+    var _same = (_onbLastStep === onbState.step), _keep = _same ? st.scrollTop : 0;
+    st.classList.toggle('is-quiet', _same);
     var s=onbState.step, html='';
     if(s===0){
       html='<div class="onbc onbc--hero">'
@@ -8282,6 +8286,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     }
     else if(s===6){ html=onbPayView(); }
     st.innerHTML=html;
+    if(_same) st.scrollTop=_keep;
+    _onbLastStep=onbState.step;
     if(s===4){ setTimeout(function(){ var t=$('#onbGoalInput'); if(t) t.focus(); },50); }
   }
   function onbQ(title,sub,pills,hasAns){
@@ -8304,7 +8310,17 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   function onbPick(group,val){
     if(group==='family'){ onbState.family=val; }
     else { var arr=onbState[group]; var i=arr.indexOf(val); if(i>=0) arr.splice(i,1); else arr.push(val); }
-    onbRender();
+    /* Repaint only the pills that changed. Redrawing the whole stage made every
+       tap replay the entry animation, which read as a flicker. */
+    var st=document.getElementById('onbStage');
+    var pills = st ? st.querySelectorAll('[data-onbpick="'+group+'"]') : null;
+    if(!pills || !pills.length){ onbRender(); return; }
+    for(var k=0;k<pills.length;k++){
+      var v=pills[k].getAttribute('data-onbval');
+      var on=(group==='family') ? (onbState.family===v) : (onbState[group].indexOf(v)>=0);
+      pills[k].classList.toggle('is-on', on);
+      pills[k].setAttribute('aria-pressed', on?'true':'false');
+    }
   }
   function onbNext(){
     var s=onbState.step;
@@ -8404,10 +8420,32 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   var onbPay={ cycle:'month', method:null, view:'plans', busy:false, note:'' };
 
   function onbToPaywall(){ onbPay={ cycle:'month', method:null, view:'plans', busy:false, note:'' }; onbState.step=6; onbRender(); }
-  function onbSetCycle(c){ if(c!=='month'&&c!=='year') return; onbPay.cycle=c; onbRender(); }
+  function onbSetCycle(c){
+    if(c!=='month'&&c!=='year') return;
+    onbPay.cycle=c;
+    var st=document.getElementById('onbStage'), m=WISAL_PRICE[c];
+    var amt = st && st.querySelector('.onbpw__amt');
+    if(!amt){ onbRender(); return; }
+    amt.textContent=m.amt;
+    var per=st.querySelector('.onbpw__per'); if(per) per.textContent=m.per;
+    var note=st.querySelector('.onbpw__note'); if(note) note.textContent=m.cycleLabel+' \u00b7 cancel anytime';
+    var segs=st.querySelectorAll('[data-onbcycle]');
+    for(var k=0;k<segs.length;k++){
+      var on=segs[k].getAttribute('data-onbcycle')===c;
+      segs[k].classList.toggle('is-on', on);
+      segs[k].setAttribute('aria-pressed', on?'true':'false');
+    }
+  }
   function onbPlusStart(){ onbPay.view='pay'; if(!onbPay.method) onbPay.method='bkash'; onbPay.note=''; onbRender(); }
   function onbPayBack(){ onbPay.view='plans'; onbPay.note=''; onbRender(); }
-  function onbPayMethod(m){ onbPay.method=m; onbPay.note=''; onbRender(); }
+  function onbPayMethod(m){
+    onbPay.method=m; onbPay.note='';
+    var st=document.getElementById('onbStage');
+    var rows = st ? st.querySelectorAll('[data-onbpay]') : null;
+    if(!rows || !rows.length){ onbRender(); return; }
+    for(var k=0;k<rows.length;k++) rows[k].classList.toggle('is-on', rows[k].getAttribute('data-onbpay')===m);
+    var warn=st.querySelector('.onbpw__notewrap'); if(warn) warn.remove();
+  }
 
   function onbPayView(){
     if(onbPay.view==='pay') return onbPaySheet();
