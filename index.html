@@ -8202,7 +8202,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var AUTH={user:null}, _authMode='in', _authFirstRun=false;
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -8388,6 +8388,11 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
       pills[k].classList.toggle('is-on', on);
       pills[k].setAttribute('aria-pressed', on?'true':'false');
     }
+    /* Continue stays dimmed until there is an answer — mirrors the same test the
+       renderer uses, so it lights up the instant a valid choice is made. */
+    var has=(group==='family') ? !!onbState.family : !!(onbState[group] && onbState[group].length);
+    var cont=st.querySelector('[data-onbnext]');
+    if(cont) cont.classList.toggle('is-dim', !has);
   }
   function onbNext(){
     var s=onbState.step;
@@ -8701,10 +8706,33 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var me=AUTH.user.id;
  var fin=function(){ try{ if(sb) sb.auth.signOut(); }catch(e){} try{ Store.clearAll(); }catch(e){} try{ location.reload(); }catch(e){} };
  if(!sb){ fin(); return; }
- sb.from('family_messages')['delete']().eq('user_id',me)
+ /* Ask the server to remove the auth record too. The browser cannot delete an auth
+    user itself, and leaving it behind means the email can never be reused. If the
+    function is not deployed yet we fall through to clearing the data rows only. */
+ var serverDelete=function(){
+   return new Promise(function(resolve){
+     var done=function(){ resolve(false); };
+     try{
+       sb.auth.getSession().then(function(r){
+         var tok=r&&r.data&&r.data.session ? r.data.session.access_token : '';
+         if(!tok){ done(); return; }
+         fetch(SUPA_URL+'/functions/v1/wisal-delete-account',{
+           method:'POST',
+           headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+tok }
+         }).then(function(r2){ return r2.json(); })
+           .then(function(d){ resolve(!!(d&&d.ok)); })
+           .catch(done);
+       }).catch(done);
+     }catch(e){ done(); }
+   });
+ };
+ serverDelete().then(function(fullyRemoved){
+   if(fullyRemoved){ fin(); return; }
+   sb.from('family_messages')['delete']().eq('user_id',me)
  .then(function(){ return sb.from('family_members')['delete']().eq('member_id',me); }, function(){ return sb.from('family_members')['delete']().eq('member_id',me); })
  .then(function(){ return sb.from('family_data')['delete']().eq('user_id',me); }, function(){ return sb.from('family_data')['delete']().eq('user_id',me); })
  .then(fin, fin);
+ });
  }
  function wipeLocalData(){
    // Securely clear this device of the current account's family data + sync state.
