@@ -3778,6 +3778,23 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .avcrop__zoom svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--text-3);stroke-width:2}
 .avcrop__act{display:flex;gap:10px;margin-top:16px}
 .avcrop__act .btn{flex:1;justify-content:center;padding:13px}
+
+/* ---- Lightbox: tap any picture to see the whole thing ---- */
+[class*="journal"] img,[class*="trip"] img,[class*="memory"] img{cursor:zoom-in}
+.lbx{position:fixed;inset:0;z-index:1300;display:none;align-items:center;justify-content:center;
+  padding:24px;background:color-mix(in srgb,#050912 88%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.lbx.is-on{display:flex;animation:lbxIn .22s var(--ease)}
+@keyframes lbxIn{from{opacity:0}to{opacity:1}}
+.lbx img{max-width:100%;max-height:86vh;border-radius:16px;object-fit:contain;
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.8)}
+.lbx__x{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  color:#fff;cursor:pointer}
+.lbx__x svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2}
+.lbx__cap{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:rgba(255,255,255,.82);
+  font-size:.9rem;padding:0 24px}
 </style>
 </head>
 <body>
@@ -4723,6 +4740,12 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <button class="auth__swap" id="authSwap" type="button" data-auth-toggle>New to Wisal? <b>Create an account</b></button>
  <button class="auth__swap" id="authResend" type="button" data-auth-resend hidden>Didn't get it? <b>Resend email</b></button>
  </div>
+</div>
+
+<div class="lbx" id="lbx" role="dialog" aria-modal="true" aria-label="Picture">
+ <button class="lbx__x" type="button" data-action="lbx-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+ <img id="lbxImg" src="" alt="">
+ <div class="lbx__cap" id="lbxCap"></div>
 </div>
 
 <div class="avcrop" id="avCrop" role="dialog" aria-modal="true" aria-label="Adjust your picture">
@@ -8351,22 +8374,30 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   }
 
   /* ---- Cropper: square viewport, drag to pan, slider to zoom ---- */
-  var _cropImg=null, _cropZ=1, _cropX=0, _cropY=0, _cropDrag=null, _cropSide=560;
+  var _cropImg=null, _cropZ=1, _cropX=0, _cropY=0, _cropDrag=null, _cropSide=1280;
+  var _cropAsp=1, _cropCb=null;   /* 1 = round avatar, 1.5 = wide cover */
   function cropDraw(){
     var cv=document.getElementById('avCanvas'); if(!cv||!_cropImg) return;
-    if(cv.width!==_cropSide){ cv.width=_cropSide; cv.height=_cropSide; }
+    var W=_cropSide, H=Math.round(_cropSide/_cropAsp);
+    if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
     var cx=cv.getContext('2d');
     cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
-    cx.clearRect(0,0,_cropSide,_cropSide);
+    cx.clearRect(0,0,W,H);
     var iw=_cropImg.width, ih=_cropImg.height;
-    var base=_cropSide/Math.min(iw,ih);          /* cover the square */
+    var base=Math.max(W/iw, H/ih);               /* always cover the frame */
     var sc=base*_cropZ, dw=iw*sc, dh=ih*sc;
-    var maxX=Math.max(0,(dw-_cropSide)/2), maxY=Math.max(0,(dh-_cropSide)/2);
+    var maxX=Math.max(0,(dw-W)/2), maxY=Math.max(0,(dh-H)/2);
     _cropX=Math.max(-maxX,Math.min(maxX,_cropX));
     _cropY=Math.max(-maxY,Math.min(maxY,_cropY));
-    cx.drawImage(_cropImg,(_cropSide-dw)/2+_cropX,(_cropSide-dh)/2+_cropY,dw,dh);
+    cx.drawImage(_cropImg,(W-dw)/2+_cropX,(H-dh)/2+_cropY,dw,dh);
   }
-  function cropOpen(src){
+  function cropOpen(src, aspect, cb){
+    _cropAsp = aspect || 1; _cropCb = cb || null;
+    var stage=document.getElementById('avStage');
+    if(stage){
+      stage.style.aspectRatio = String(_cropAsp);
+      stage.style.borderRadius = (_cropAsp===1 ? '50%' : '18px');
+    }
     var im=new Image();
     im.onload=function(){
       _cropImg=im; _cropZ=1; _cropX=0; _cropY=0;
@@ -8383,8 +8414,11 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     var durl;
     try{ durl=cv.toDataURL('image/jpeg',0.92); }catch(e){ durl=null; }
     if(!durl){ cropClose(); return; }
+    var cb=_cropCb;
+    cropClose();
+    if(cb){ cb(durl); return; }
     try{ var p=avStore(); p.photo=durl; FD.save(); }catch(e){}
-    cropClose(); avApply();
+    avApply();
     if(typeof flash==='function') flash('Profile picture saved');
   }
   try{
@@ -8405,6 +8439,34 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     document.addEventListener('input', function(e){
       if(e.target && e.target.id==='avZoom'){ _cropZ=(parseInt(e.target.value,10)||100)/100; cropDraw(); }
     });
+  }catch(e){}
+
+
+  /* Any picture inside a card opens full-size. Nothing to wire per feature:
+     one delegated listener covers journal, trips, memories and attachments. */
+  function lbxOpen(src, cap){
+    var b=document.getElementById('lbx'), im=document.getElementById('lbxImg'), c=document.getElementById('lbxCap');
+    if(!b||!im) return;
+    im.src=src; if(c) c.textContent=cap||'';
+    b.classList.add('is-on');
+  }
+  function lbxClose(){ var b=document.getElementById('lbx'); if(b){ b.classList.remove('is-on'); var im=document.getElementById('lbxImg'); if(im) im.src=''; } }
+  try{
+    document.addEventListener('click', function(e){
+      if(e.target.closest('[data-action="lbx-close"]') || (e.target.id==='lbx')){ lbxClose(); return; }
+      var im=e.target.closest('img');
+      if(!im || im.id==='lbxImg') return;
+      if(!/^data:image\/|^https?:|^blob:/.test(im.src||'')) return;
+      if(im.closest('.lbx')||im.closest('.avcrop')||im.closest('.brand__logo')||im.closest('.avphoto__pv')) return;
+      if(im.closest('.jr-card')||im.closest('.trip')||im.closest('.mem')||im.closest('.att')||
+         im.closest('[class*="journal"]')||im.closest('[class*="trip"]')||im.closest('[class*="memory"]')){
+        e.preventDefault();
+        var card=im.closest('[class*="card"]')||im.parentElement;
+        var t=card?card.querySelector('h3,h4,.jr-title,.trip__name'):null;
+        lbxOpen(im.src, t?t.textContent.trim():'');
+      }
+    }, true);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') lbxClose(); });
   }catch(e){}
 
   function avGridHtml(){
@@ -11549,7 +11611,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var dlg=$('#modalDialog'); dlg.innerHTML=h;
  pjModalShow();
  var rng=dlg.querySelector('input[type=range]'); if(rng) rng.addEventListener('input',function(){ var s=this.parentNode.querySelector('.range-val'); if(s) s.textContent=this.value+'%'; });
- var pin=dlg.querySelector('#photoInput'); if(pin) pin.addEventListener('change',function(){ var file=this.files&&this.files[0]; if(!file) return; processImage(file,function(durl){ if(durl){ pendingPhoto=durl; var pv=$('#photoPrev'); if(pv) pv.innerHTML='<img src="'+durl+'">'; } }); });
+ var pin=dlg.querySelector('#photoInput'); if(pin) pin.addEventListener('change',function(){ var file=this.files&&this.files[0]; if(!file) return; var _rd=new FileReader(); _rd.onload=function(){ cropOpen(_rd.result, 1.5, function(durl){ pendingPhoto=durl; var pv=$('#photoPrev'); if(pv) pv.innerHTML='<img src="'+durl+'">'; if(typeof flash==='function') flash('Picture ready'); }); }; _rd.onerror=function(){ if(typeof flash==='function') flash('Could not read that picture'); }; _rd.readAsDataURL(file); });
  var ain=dlg.querySelector('#attInput'); if(ain) ain.addEventListener('change',function(){ var files=this.files; if(!files||!files.length) return; addAttachments(files); this.value=''; });
  var csel=dlg.querySelector('#catSelect'); if(csel) csel.addEventListener('change',function(){ var val=this.value; var box=dlg.querySelector('#newCatBox'); var on=(val===NEW_CAT_OPT); if(box){ box.hidden=!on; if(on){ var ni=box.querySelector('.newcat__name'); if(ni) ni.focus(); } } var del=dlg.querySelector('#catDelBtn'); if(del){ del.hidden=!(FD.data.customCategories||[]).some(function(c){return c.label===val;}); } });
  var bcs=dlg.querySelector('#budgetCatSel'); if(bcs) bcs.addEventListener('change',function(){ var val=this.value, isNew=(val==='__newfincat__'); var nb=dlg.querySelector('#finNewCatBox'); if(nb){ nb.hidden=!isNew; if(isNew){ var ni=nb.querySelector('.newcat__name'); if(ni) ni.focus(); } } var amtIn=dlg.querySelector('[name="amount"]'); if(amtIn&&!isNew){ var b=FD.data.finance.budgets[val]; amtIn.value=b?b:''; } var dn=dlg.querySelector('#finCatDelBtn'); if(dn){ var ic=finCustomCats().some(function(c){return c.key===val;}); dn.hidden=!ic; dn.setAttribute('data-fincatdel', ic?val:''); } });
