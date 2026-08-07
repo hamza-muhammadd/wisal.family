@@ -3745,6 +3745,12 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   background:color-mix(in srgb,var(--brand) 0%,transparent);transition:background .18s}
 .brand__logo:hover::after{background:color-mix(in srgb,var(--brand) 14%,transparent)}
 .brand__logo .avt{width:100%;height:100%;display:block;border-radius:inherit}
+.avphoto{display:flex;align-items:center;gap:16px}
+.avphoto__pv{width:68px;height:68px;flex:none;border-radius:20px;overflow:hidden;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--glass-hair);color:var(--brand)}
+.avphoto__pv img{width:100%;height:100%;object-fit:cover}
+.avphoto__pv svg{width:60%;height:60%}
+.avphoto__act{display:flex;gap:9px;flex-wrap:wrap}
+.brand__logo img.avt{object-fit:cover}
 .avpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:12px;margin-top:6px}
 .avpick button{aspect-ratio:1;border-radius:18px;border:2px solid var(--glass-hair);background:var(--surface-2);
   padding:8px;cursor:pointer;transition:border-color .16s,transform .16s var(--ease),box-shadow .18s}
@@ -4606,7 +4612,9 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 
  <section class="set__card reveal" data-pane="avatar" style="animation-delay:.11s">
 <h2 class="set__h">Your picture</h2>
-<p class="set__p">Pick a mark for your household. It shows in the sidebar.</p>
+<p class="set__p">Use a photo, or pick a mark. It shows in the sidebar.</p>
+<div class="avphoto"><span class="avphoto__pv" id="avPhotoPv"></span><div class="avphoto__act"><button class="btn" type="button" data-action="av-photo">Upload photo</button><button class="btn" type="button" data-action="av-photo-rm" id="avPhotoRm" hidden>Remove</button></div></div>
+<p class="set__p" style="margin:18px 0 8px">Or choose a mark</p>
 <div class="avpick" id="avGrid"></div>
 </section>
 
@@ -8240,10 +8248,17 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   function avSvg(key,cls){
     return '<svg class="'+(cls||'avt')+'" viewBox="0 0 24 24" aria-hidden="true">'+(AVATARS[key]||AVATARS.wisal)+'</svg>';
   }
+  function avPhoto(){ try{ return Store.get('fw.avatar.photo',null); }catch(e){ return null; } }
   function avApply(){
     try{
-      var k=avGet(), host=document.getElementById('brandLogo');
-      if(host) host.innerHTML=avSvg(k,'avt');
+      var k=avGet(), host=document.getElementById('brandLogo'), ph=avPhoto();
+      if(host) host.innerHTML = ph
+        ? '<img class="avt" src="'+ph+'" alt="">'
+        : avSvg(k,'avt');
+      var pv=document.getElementById('avPhotoPv');
+      if(pv) pv.innerHTML = ph ? '<img src="'+ph+'" alt="">' : avSvg(k,'');
+      var rm=document.getElementById('avPhotoRm');
+      if(rm) rm.hidden = !ph;
       var grid=document.getElementById('avGrid');
       if(grid){
         var btns=grid.querySelectorAll('[data-av]');
@@ -8253,9 +8268,30 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   }
   function avSet(k){
     if(!AVATARS[k]) return;
-    try{ Store.set('fw.avatar',k); }catch(e){}
+    try{ Store.set('fw.avatar',k); Store.set('fw.avatar.photo',null); }catch(e){}
     avApply();
     if(typeof flash==='function') flash('Picture updated');
+  }
+  function avPickPhoto(){
+    try{
+      var inp=document.createElement('input');
+      inp.type='file'; inp.accept='image/*';
+      inp.onchange=function(){
+        var f=inp.files&&inp.files[0]; if(!f) return;
+        processImage(f, function(durl){
+          if(!durl){ if(typeof flash==='function') flash('Could not read that picture'); return; }
+          try{ Store.set('fw.avatar.photo',durl); }catch(e){}
+          avApply();
+          if(typeof flash==='function') flash('Picture updated');
+        });
+      };
+      inp.click();
+    }catch(e){}
+  }
+  function avClearPhoto(){
+    try{ Store.set('fw.avatar.photo',null); }catch(e){}
+    avApply();
+    if(typeof flash==='function') flash('Photo removed');
   }
   function avGridHtml(){
     return AV_ORDER.map(function(k){
@@ -11472,9 +11508,30 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  function ageOf(m){ if(!m.birthday) return null; var p=String(m.birthday).split('-'); if(p.length<3) return null; var b=new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10)); if(isNaN(b)) return null; var t=new Date(); var a=t.getFullYear()-b.getFullYear(); var mo=t.getMonth()-b.getMonth(); if(mo<0||(mo===0&&t.getDate()<b.getDate())) a--; return (a>=0&&a<200)?a:null; }
  function ovDate(b){ if(!b) return ''; var p=String(b).split('-'); if(p.length<3) return ''; return parseInt(p[2],10)+' '+MON[parseInt(p[1],10)-1]+' '+p[0]; }
  function money(n){ n=Number(n)||0; return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
+ /* Downscale in halving steps with high smoothing. A single big jump
+    (4000px -> 1280px) is what made saved pictures look soft. */
+ function imgScaled(img, maxSide){
+   var w=img.width, h=img.height;
+   var sc=Math.min(1, maxSide/Math.max(w,h));
+   var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+   var src=img, sw=w, sh=h;
+   while(sw*0.5 > cw && sh*0.5 > ch){
+     var half=document.createElement('canvas');
+     half.width=Math.round(sw*0.5); half.height=Math.round(sh*0.5);
+     var hx=half.getContext('2d');
+     hx.imageSmoothingEnabled=true; hx.imageSmoothingQuality='high';
+     hx.drawImage(src,0,0,half.width,half.height);
+     src=half; sw=half.width; sh=half.height;
+   }
+   var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
+   var cx=cv.getContext('2d');
+   cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
+   cx.drawImage(src,0,0,cw,ch);
+   return cv;
+ }
  function processImage(file,cb){
  var reader=new FileReader();
- reader.onload=function(){ var img=new Image(); img.onload=function(){ var w=img.width,h=img.height,side=Math.min(w,h),sx=(w-side)/2,sy=(h-side)/2; var cv=document.createElement('canvas'); cv.width=256; cv.height=256; var cx=cv.getContext('2d'); cx.drawImage(img,sx,sy,side,side,0,0,256,256); try{ cb(cv.toDataURL('image/jpeg',0.82)); }catch(e){ cb(null); } }; img.onerror=function(){ cb(null); }; img.src=reader.result; };
+ reader.onload=function(){ var img=new Image(); img.onload=function(){ var w=img.width,h=img.height,side=Math.min(w,h),sx=(w-side)/2,sy=(h-side)/2; var sq=document.createElement('canvas'); sq.width=side; sq.height=side; var s2=sq.getContext('2d'); s2.imageSmoothingEnabled=true; s2.imageSmoothingQuality='high'; s2.drawImage(img,sx,sy,side,side,0,0,side,side); var cv=imgScaled(sq,512); try{ cb(cv.toDataURL('image/jpeg',0.92)); }catch(e){ cb(null); } }; img.onerror=function(){ cb(null); }; img.src=reader.result; };
  reader.onerror=function(){ cb(null); };
  reader.readAsDataURL(file);
  }
@@ -11832,7 +11889,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  }
  function attChipsHTML(){ if(!pendingAtts.length) return '<span class="att-none">No files attached yet.</span>'; return pendingAtts.map(function(a){ var isImg=/^data:image\//.test(a.dataUrl||''); var thumb=isImg?('<img class="attchip__img" src="'+a.dataUrl+'" alt="">'):('<span class="attchip__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M13 3.5H6.5A1.5 1.5 0 0 0 5 5v14a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9.5L13 3.5Z"/><path d="M13 3.5V9.5h6"/></svg></span>'); return '<span class="attchip">'+thumb+'<span class="attchip__nm">'+esc(a.name)+'</span><button type="button" class="attchip__x" data-att-remove="'+a.id+'" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>'; }).join(''); }
  function fileToAttachment(file,cb){
- if(/^image\//.test(file.type)){ var reader=new FileReader(); reader.onload=function(){ var img=new Image(); img.onload=function(){ var w=img.width,h=img.height,max=1280,sc=Math.min(1,max/Math.max(w,h)); var cw=Math.round(w*sc),ch=Math.round(h*sc); var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch; cv.getContext('2d').drawImage(img,0,0,cw,ch); var durl; try{ durl=cv.toDataURL('image/jpeg',0.8); }catch(e){ durl=reader.result; } cb({name:file.name,dataUrl:durl}); }; img.onerror=function(){ cb(null); }; img.src=reader.result; }; reader.onerror=function(){ cb(null); }; reader.readAsDataURL(file); return; }
+ if(/^image\//.test(file.type)){ var reader=new FileReader(); reader.onload=function(){ var img=new Image(); img.onload=function(){ var cv=imgScaled(img,1920); var durl; try{ durl=cv.toDataURL('image/jpeg',0.88); }catch(e){ durl=reader.result; } cb({name:file.name,dataUrl:durl}); }; img.onerror=function(){ cb(null); }; img.src=reader.result; }; reader.onerror=function(){ cb(null); }; reader.readAsDataURL(file); return; }
  if(file.size>10485760){ flash('\u201c'+file.name+'\u201d is larger than 10 MB'); cb(null); return; }
  var rd=new FileReader(); rd.onload=function(){ cb({name:file.name,dataUrl:rd.result}); }; rd.onerror=function(){ cb(null); }; rd.readAsDataURL(file);
  }
@@ -12951,6 +13008,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(e.target.closest('[data-auth-toggle]')){ authSetMode(_authMode==='in'?'up':'in'); try{ authShowResend(false); }catch(e){} return; }
  if(e.target.closest('[data-auth-resend]')){ authResend(); return; }
  var _av=e.target.closest('[data-av]'); if(_av){ avSet(_av.getAttribute('data-av')); return; }
+ if(e.target.closest('[data-action="av-photo"]')){ avPickPhoto(); return; }
+ if(e.target.closest('[data-action="av-photo-rm"]')){ avClearPhoto(); return; }
  if(e.target.closest('[data-action="avatar"]')){ try{ navigate('settings'); }catch(_){} return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
