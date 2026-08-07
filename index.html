@@ -139,6 +139,7 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 .is-collapsed .nav__groupitems{max-height:none!important}
 .is-collapsed .nav__group:last-of-type .nav__groupitems{border-bottom:0;margin-bottom:0;padding-bottom:0}
 
+.footbtn[data-action="collapse"]{display:none!important}
 .sidebar__foot{margin-top:auto;display:flex;flex-direction:column;gap:3px;padding-top:10px;border-top:1px solid var(--border)}
 /* ---- Collapse control: stays out of the way until you reach for it ---- */
 .footbtn[data-action="collapse"]{
@@ -3732,14 +3733,24 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   .app.is-autorail.is-collapsed .nav__label,
   .app.is-autorail.is-collapsed .nav__cap,
   .app.is-autorail.is-collapsed .footbtn__lbl{opacity:0;transition-delay:0s}
-  /* Hover now does this job, so the manual control is redundant here.
-     It stays available on touch, where there is no hover to replace it. */
-  .app.is-autorail .footbtn[data-action="collapse"],
-  .app.is-autorail .sidebar__foot .footbtn[data-action="collapse"]{display:none}
+  /* Hover does this job on desktop. */
 }
 @media (prefers-reduced-motion:reduce){
   .app.is-autorail .sidebar{transition:none}
 }
+
+/* ==================== AVATARS ==================== */
+.brand__logo{border:0;padding:0;cursor:pointer;position:relative;overflow:hidden}
+.brand__logo::after{content:'';position:absolute;inset:0;border-radius:inherit;
+  background:color-mix(in srgb,var(--brand) 0%,transparent);transition:background .18s}
+.brand__logo:hover::after{background:color-mix(in srgb,var(--brand) 14%,transparent)}
+.brand__logo .avt{width:100%;height:100%;display:block;border-radius:inherit}
+.avpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:12px;margin-top:6px}
+.avpick button{aspect-ratio:1;border-radius:18px;border:2px solid var(--glass-hair);background:var(--surface-2);
+  padding:8px;cursor:pointer;transition:border-color .16s,transform .16s var(--ease),box-shadow .18s}
+.avpick button:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--brand) 45%,transparent)}
+.avpick button.is-on{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 15%,transparent)}
+.avpick svg{width:100%;height:100%;display:block}
 </style>
 </head>
 <body>
@@ -3749,9 +3760,9 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <!-- ===================== SIDEBAR ===================== -->
  <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
  <div class="brand">
- <span class="brand__logo" aria-hidden="true">
+ <button class="brand__logo" id="brandLogo" data-action="avatar" title="Change your picture" aria-label="Change your picture">
  <svg stroke-linecap="butt" class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="7.85" cy="12" r="5.7" stroke-dasharray="2.64 3.34 29.84"/><circle cx="16.15" cy="12" r="5.7" stroke-dasharray="20.54 3.34 11.93"/></svg>
- </span>
+ </button>
  <span class="brand__text">
  <span class="brand__name">Wisal</span>
  <span class="brand__sub" id="brandSub">Family OS</span>
@@ -4593,7 +4604,13 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <p class="set__p" id="installedNote" hidden style="margin-top:10px"><strong>Installed.</strong> You can open Wisal from your home screen like any other app.</p>
  </section>
 
- <section class="set__card reveal" data-pane="plan" style="animation-delay:.13s">
+ <section class="set__card reveal" data-pane="avatar" style="animation-delay:.11s">
+<h2 class="set__h">Your picture</h2>
+<p class="set__p">Pick a mark for your household. It shows in the sidebar.</p>
+<div class="avpick" id="avGrid"></div>
+</section>
+
+<section class="set__card reveal" data-pane="plan" style="animation-delay:.13s">
 <h2 class="set__h">Your plan</h2>
 <p class="set__p">You are on <strong id="setPlanName">Wisal Free</strong>. See what Plus adds and how to pay from Bangladesh.</p>
 <a class="legal__link" href="/pricing.html" target="_blank" rel="noopener"><span class="legal__link__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l2.4 5.4L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.6-.6z"/></svg></span>Plans &amp; pricing</a>
@@ -8200,6 +8217,52 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var SUPA_KEY='sb_publishable_XSYO_1rCHF1m_iE4A05pZw_r2crDZlS';
  var sb=null; try{ if(window.supabase && window.supabase.createClient){ sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); } }catch(e){}
  var AUTH={user:null}, _authMode='in', _authFirstRun=false;
+
+  /* ==================== AVATARS ====================
+     Twelve marks drawn in the brand palette. No photos, no uploads, no faces to
+     get wrong — a family picks a shape and it shows wherever their identity does. */
+  var AVATARS = {
+    wisal:'<circle cx="7.85" cy="12" r="5.7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="2.64 3.34 29.84"/><circle cx="16.15" cy="12" r="5.7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="20.54 3.34 11.93"/>',
+    hearth:'<path d="M4.6 19v-7.4a7.4 7.4 0 0 1 14.8 0V19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="13" r="2.3" fill="currentColor"/>',
+    knot:'<path d="M8.4 8.2a3.8 3.8 0 1 0 0 7.6c3.6 0 3.6-7.6 7.2-7.6a3.8 3.8 0 1 1 0 7.6c-3.6 0-3.6-7.6-7.2-7.6z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>',
+    orbit:'<circle cx="12" cy="12" r="7.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/><circle cx="12" cy="4.6" r="2" fill="currentColor"/>',
+    star:'<path d="M12 3.4l2.5 5.7 6 .6-4.4 4.2 1.2 6-5.3-3-5.3 3 1.2-6L3.5 9.7l6-.6z" fill="currentColor"/>',
+    leaf:'<path d="M19 5c0 8-5.4 13.4-13.4 13.4C5.6 10.4 11 5 19 5z" fill="currentColor"/><path d="M6.6 17.4 15 9" fill="none" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/>',
+    moon:'<path d="M17.6 14.9A7.4 7.4 0 0 1 8.2 5.6a7.6 7.6 0 1 0 9.4 9.3z" fill="currentColor"/>',
+    drop:'<path d="M12 3.6c3.4 4 5.4 6.7 5.4 9.2a5.4 5.4 0 0 1-10.8 0c0-2.5 2-5.2 5.4-9.2z" fill="currentColor"/>',
+    shield:'<path d="M12 3.4 5 6.2v5c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3v-5L12 3.4z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M9.2 12.2 11.3 14.3l3.7-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+    book:'<path d="M4.4 5.4h6a2.6 2.6 0 0 1 2.6 2.6v11a2 2 0 0 0-2-2H4.4z" fill="currentColor"/><path d="M19.6 5.4h-6A2.6 2.6 0 0 0 11 8v11a2 2 0 0 1 2-2h6.6z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
+    sun:'<circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 2.6v2.4M12 19v2.4M2.6 12H5M19 12h2.4M5.4 5.4 7.1 7.1M16.9 16.9l1.7 1.7M18.6 5.4 16.9 7.1M7.1 16.9l-1.7 1.7"/></g>',
+    mountain:'<path d="M2.6 19 9 8.4l3.4 5.4 2.2-3.4L21.4 19z" fill="currentColor"/>'
+  };
+  var AV_ORDER = ['wisal','hearth','knot','orbit','star','leaf','moon','drop','shield','book','sun','mountain'];
+  function avGet(){ try{ var v=Store.get('fw.avatar','wisal'); return AVATARS[v]?v:'wisal'; }catch(e){ return 'wisal'; } }
+  function avSvg(key,cls){
+    return '<svg class="'+(cls||'avt')+'" viewBox="0 0 24 24" aria-hidden="true">'+(AVATARS[key]||AVATARS.wisal)+'</svg>';
+  }
+  function avApply(){
+    try{
+      var k=avGet(), host=document.getElementById('brandLogo');
+      if(host) host.innerHTML=avSvg(k,'avt');
+      var grid=document.getElementById('avGrid');
+      if(grid){
+        var btns=grid.querySelectorAll('[data-av]');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('is-on', btns[i].getAttribute('data-av')===k);
+      }
+    }catch(e){}
+  }
+  function avSet(k){
+    if(!AVATARS[k]) return;
+    try{ Store.set('fw.avatar',k); }catch(e){}
+    avApply();
+    if(typeof flash==='function') flash('Picture updated');
+  }
+  function avGridHtml(){
+    return AV_ORDER.map(function(k){
+      return '<button type="button" data-av="'+k+'" aria-label="'+k+'" style="color:var(--brand)">'+avSvg(k,'')+'</button>';
+    }).join('');
+  }
+
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
   var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
@@ -12887,6 +12950,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  if(e.target.closest('#authGo')){ doAuth(); return; }
  if(e.target.closest('[data-auth-toggle]')){ authSetMode(_authMode==='in'?'up':'in'); try{ authShowResend(false); }catch(e){} return; }
  if(e.target.closest('[data-auth-resend]')){ authResend(); return; }
+ var _av=e.target.closest('[data-av]'); if(_av){ avSet(_av.getAttribute('data-av')); return; }
+ if(e.target.closest('[data-action="avatar"]')){ try{ navigate('settings'); }catch(_){} return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
  if(e.target.closest('[data-auth-signout]')){ doSignOut(); return; }
@@ -13562,6 +13627,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  try{ applySpaceVisibility(); }catch(e){}
  try{ authInit(); }catch(e){}
  try{ bootOnboarding(); }catch(e){}
+ try{ var _g=document.getElementById('avGrid'); if(_g) _g.innerHTML=avGridHtml(); avApply(); }catch(e){}
  try{ wisalHandlePaymentReturn(); }catch(e){}
  try{ wisalHandleUpgradeLink(); }catch(e){}
  try{ wisalSyncPlan(); }catch(e){}
