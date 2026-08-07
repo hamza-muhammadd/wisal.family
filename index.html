@@ -3760,6 +3760,24 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .avpick button:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--brand) 45%,transparent)}
 .avpick button.is-on{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 15%,transparent)}
 .avpick svg{width:100%;height:100%;display:block}
+
+/* ---- Profile picture cropper ---- */
+.avcrop{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;
+  padding:20px;background:color-mix(in srgb,#060B18 72%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.avcrop.is-on{display:flex}
+.avcrop__box{width:min(420px,94vw);background:var(--surface);border:1px solid var(--glass-hair);
+  border-radius:24px;padding:22px;box-shadow:var(--sh-3)}
+.avcrop__t{font-size:1.12rem;font-weight:720;letter-spacing:-.02em;margin:0 0 4px}
+.avcrop__s{font-size:.88rem;color:var(--text-2);margin:0 0 16px}
+.avcrop__stage{position:relative;width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;
+  background:var(--surface-2);touch-action:none;cursor:grab;border:1px solid var(--glass-hair)}
+.avcrop__stage:active{cursor:grabbing}
+.avcrop__stage canvas{width:100%;height:100%;display:block}
+.avcrop__zoom{display:flex;align-items:center;gap:12px;margin:16px 0 4px}
+.avcrop__zoom input{flex:1;accent-color:var(--brand)}
+.avcrop__zoom svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--text-3);stroke-width:2}
+.avcrop__act{display:flex;gap:10px;margin-top:16px}
+.avcrop__act .btn{flex:1;justify-content:center;padding:13px}
 </style>
 </head>
 <body>
@@ -4704,6 +4722,22 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <button class="btn btn--primary auth__go" id="authGo" type="button">Sign in</button>
  <button class="auth__swap" id="authSwap" type="button" data-auth-toggle>New to Wisal? <b>Create an account</b></button>
  <button class="auth__swap" id="authResend" type="button" data-auth-resend hidden>Didn't get it? <b>Resend email</b></button>
+ </div>
+</div>
+
+<div class="avcrop" id="avCrop" role="dialog" aria-modal="true" aria-label="Adjust your picture">
+ <div class="avcrop__box">
+  <h3 class="avcrop__t">Your picture</h3>
+  <p class="avcrop__s">Drag to move, slide to zoom.</p>
+  <div class="avcrop__stage" id="avStage"><canvas id="avCanvas"></canvas></div>
+  <div class="avcrop__zoom">
+   <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+   <input type="range" id="avZoom" min="100" max="320" value="100" aria-label="Zoom">
+  </div>
+  <div class="avcrop__act">
+   <button class="btn" type="button" data-action="av-cancel">Cancel</button>
+   <button class="btn btn--primary" type="button" data-action="av-save">Save picture</button>
+  </div>
  </div>
 </div>
 
@@ -8241,6 +8275,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
      Twelve marks drawn in the brand palette. No photos, no uploads, no faces to
      get wrong — a family picks a shape and it shows wherever their identity does. */
   var AVATARS = {
+    person:AV_PERSON,
     wisal:'<circle cx="7.85" cy="12" r="5.7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="2.64 3.34 29.84"/><circle cx="16.15" cy="12" r="5.7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="20.54 3.34 11.93"/>',
     hearth:'<path d="M4.6 19v-7.4a7.4 7.4 0 0 1 14.8 0V19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="13" r="2.3" fill="currentColor"/>',
     knot:'<path d="M8.4 8.2a3.8 3.8 0 1 0 0 7.6c3.6 0 3.6-7.6 7.2-7.6a3.8 3.8 0 1 1 0 7.6c-3.6 0-3.6-7.6-7.2-7.6z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>',
@@ -8254,12 +8289,24 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
     sun:'<circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 2.6v2.4M12 19v2.4M2.6 12H5M19 12h2.4M5.4 5.4 7.1 7.1M16.9 16.9l1.7 1.7M18.6 5.4 16.9 7.1M7.1 16.9l-1.7 1.7"/></g>',
     mountain:'<path d="M2.6 19 9 8.4l3.4 5.4 2.2-3.4L21.4 19z" fill="currentColor"/>'
   };
-  var AV_ORDER = ['wisal','hearth','knot','orbit','star','leaf','moon','drop','shield','book','sun','mountain'];
-  function avGet(){ try{ var v=Store.get('fw.avatar','wisal'); return AVATARS[v]?v:'wisal'; }catch(e){ return 'wisal'; } }
+  var AV_ORDER = ['person','wisal','hearth','knot','orbit','star','leaf','moon','drop','shield','book','sun','mountain'];
+  function avGet(){ try{ var v=(avStore().mark)||Store.get('fw.avatar','person'); return AVATARS[v]?v:'person'; }catch(e){ return 'person'; } }
   function avSvg(key,cls){
     return '<svg class="'+(cls||'avt')+'" viewBox="0 0 24 24" aria-hidden="true">'+(AVATARS[key]||AVATARS.wisal)+'</svg>';
   }
-  function avPhoto(){ try{ return Store.get('fw.avatar.photo',null); }catch(e){ return null; } }
+  /* Lives inside FD.data so it travels with every other synced thing.
+     Falls back to the old local-only key once, then migrates it. */
+  function avStore(){ try{ if(!FD.data.profile) FD.data.profile={}; return FD.data.profile; }catch(e){ return {}; } }
+  function avPhoto(){
+    try{
+      var p=avStore();
+      if(p.photo) return p.photo;
+      var legacy=Store.get('fw.avatar.photo',null);
+      if(legacy){ p.photo=legacy; try{ FD.save(); Store.set('fw.avatar.photo',null); }catch(e){} return legacy; }
+      return null;
+    }catch(e){ return null; }
+  }
+  var AV_PERSON='<circle cx="12" cy="8.4" r="3.9" fill="currentColor"/><path d="M4.6 20.4c0-4.1 3.3-6.6 7.4-6.6s7.4 2.5 7.4 6.6z" fill="currentColor"/>';
   function avApply(){
     try{
       var k=avGet(), host=document.getElementById('brandLogo'), ph=avPhoto();
@@ -8279,7 +8326,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   }
   function avSet(k){
     if(!AVATARS[k]) return;
-    try{ Store.set('fw.avatar',k); Store.set('fw.avatar.photo',null); }catch(e){}
+    try{ var p=avStore(); p.mark=k; p.photo=null; FD.save(); }catch(e){}
     avApply();
     if(typeof flash==='function') flash('Picture updated');
   }
@@ -8289,21 +8336,77 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
       inp.type='file'; inp.accept='image/*';
       inp.onchange=function(){
         var f=inp.files&&inp.files[0]; if(!f) return;
-        processImage(f, function(durl){
-          if(!durl){ if(typeof flash==='function') flash('Could not read that picture'); return; }
-          try{ Store.set('fw.avatar.photo',durl); }catch(e){}
-          avApply();
-          if(typeof flash==='function') flash('Picture updated');
-        });
+        var rd=new FileReader();
+        rd.onload=function(){ cropOpen(rd.result); };
+        rd.onerror=function(){ if(typeof flash==='function') flash('Could not read that picture'); };
+        rd.readAsDataURL(f);
       };
       inp.click();
     }catch(e){}
   }
   function avClearPhoto(){
-    try{ Store.set('fw.avatar.photo',null); }catch(e){}
+    try{ var p=avStore(); p.photo=null; FD.save(); }catch(e){}
     avApply();
     if(typeof flash==='function') flash('Photo removed');
   }
+
+  /* ---- Cropper: square viewport, drag to pan, slider to zoom ---- */
+  var _cropImg=null, _cropZ=1, _cropX=0, _cropY=0, _cropDrag=null, _cropSide=560;
+  function cropDraw(){
+    var cv=document.getElementById('avCanvas'); if(!cv||!_cropImg) return;
+    if(cv.width!==_cropSide){ cv.width=_cropSide; cv.height=_cropSide; }
+    var cx=cv.getContext('2d');
+    cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
+    cx.clearRect(0,0,_cropSide,_cropSide);
+    var iw=_cropImg.width, ih=_cropImg.height;
+    var base=_cropSide/Math.min(iw,ih);          /* cover the square */
+    var sc=base*_cropZ, dw=iw*sc, dh=ih*sc;
+    var maxX=Math.max(0,(dw-_cropSide)/2), maxY=Math.max(0,(dh-_cropSide)/2);
+    _cropX=Math.max(-maxX,Math.min(maxX,_cropX));
+    _cropY=Math.max(-maxY,Math.min(maxY,_cropY));
+    cx.drawImage(_cropImg,(_cropSide-dw)/2+_cropX,(_cropSide-dh)/2+_cropY,dw,dh);
+  }
+  function cropOpen(src){
+    var im=new Image();
+    im.onload=function(){
+      _cropImg=im; _cropZ=1; _cropX=0; _cropY=0;
+      var z=document.getElementById('avZoom'); if(z) z.value=100;
+      var box=document.getElementById('avCrop'); if(box) box.classList.add('is-on');
+      cropDraw();
+    };
+    im.onerror=function(){ if(typeof flash==='function') flash('Could not read that picture'); };
+    im.src=src;
+  }
+  function cropClose(){ var b=document.getElementById('avCrop'); if(b) b.classList.remove('is-on'); _cropImg=null; }
+  function cropSave(){
+    var cv=document.getElementById('avCanvas'); if(!cv||!_cropImg){ cropClose(); return; }
+    var durl;
+    try{ durl=cv.toDataURL('image/jpeg',0.92); }catch(e){ durl=null; }
+    if(!durl){ cropClose(); return; }
+    try{ var p=avStore(); p.photo=durl; FD.save(); }catch(e){}
+    cropClose(); avApply();
+    if(typeof flash==='function') flash('Profile picture saved');
+  }
+  try{
+    var _st=null;
+    document.addEventListener('pointerdown', function(e){
+      var st=e.target.closest('#avStage'); if(!st||!_cropImg) return;
+      _st=st; _cropDrag={x:e.clientX,y:e.clientY,ox:_cropX,oy:_cropY};
+      try{ st.setPointerCapture(e.pointerId); }catch(_){}
+    });
+    document.addEventListener('pointermove', function(e){
+      if(!_cropDrag) return;
+      var k=_cropSide/(_st?_st.getBoundingClientRect().width:_cropSide);
+      _cropX=_cropDrag.ox+(e.clientX-_cropDrag.x)*k;
+      _cropY=_cropDrag.oy+(e.clientY-_cropDrag.y)*k;
+      cropDraw();
+    });
+    document.addEventListener('pointerup', function(){ _cropDrag=null; });
+    document.addEventListener('input', function(e){
+      if(e.target && e.target.id==='avZoom'){ _cropZ=(parseInt(e.target.value,10)||100)/100; cropDraw(); }
+    });
+  }catch(e){}
+
   function avGridHtml(){
     return AV_ORDER.map(function(k){
       return '<button type="button" data-av="'+k+'" aria-label="'+k+'" style="color:var(--brand)">'+avSvg(k,'')+'</button>';
@@ -11589,7 +11692,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 
  function showMembersList(){ currentMemberId=null; var dt=$('#memberDetail'),ls=$('#membersList'); if(dt){ dt.hidden=true; dt.innerHTML=''; } if(ls){ ls.style.display=''; renderMembersList(); } }
  function openMember(id){ var dt=$('#memberDetail'),ls=$('#membersList'); if(!dt) return; currentMemberId=id; renderMemberDetail(id); if(ls) ls.style.display='none'; dt.hidden=false; var c=$('#canvas'); if(c) c.scrollTop=0; }
- function refreshAll(ctx){ renderDashboard(); if($('#mydayBody')) renderMyDay(); if($('#membersList')) renderMembersList(); if(ctx && ctx.memberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(ctx.memberId); if($('#meetingsList')) renderMeetingsList(); if(ctx && ctx.meetingId && $('#meetingDetail') && !$('#meetingDetail').hidden) renderMeetingDetail(ctx.meetingId); if($('#goalsList')) renderGoalsList(); if($('#calWrap')) renderCalendar(); if($('#commWrap')) renderComm(); if($('#hOverview')) renderHealthOverview(); if($('#hProfiles')) renderHealthProfiles(); if($('#hMeds')) renderHealthMeds(); if($('#hRecords')) renderHealthRecords(); if($('#hAppts')) renderHealthAppts(); if($('#hVitals')) renderHealthVitals(); if($('#respWrap')) renderResponsibilities(); if($('#docsWrap')) renderDocuments(); if($('#treeWrap')) renderFamilyTree(); if($('#finOverview')) renderFinOverview(); if($('#finTx')) renderFinTx(); if($('#finPlanned')) renderFinPlanned(); if($('#finDebts')) renderFinDebts(); if($('#finBudget')) renderFinBudget(); if($('#finSavings')) renderFinSavings(); if($('#finStats')) renderFinStats(); if($('#jOverview')) renderJournalOverview(); if($('#jEntries')) renderJournalEntries(); if($('#jGratitude')) renderJournalGratitude(); if($('#jMilestones')) renderJournalMilestones(); if($('#ckOverview')) renderCookingOverview(); if($('#ckRecipes')) renderCookingRecipes(); if($('#ckMeals')) renderCookingMeals(); if($('#ckShopping')) renderCookingShopping(); if($('#gsCard')) renderGettingStarted(); if($('#hmOverview')) renderHomeOverview(); if($('#hmChores')) renderHomeChores(); if($('#hmMaint')) renderHomeMaint(); if($('#hmSupplies')) renderHomeSupplies(); if($('#lnOverview')) renderLearnOverview(); if($('#lnCourses')) renderLearnCourses(); if($('#lnBooks')) renderLearnBooks(); if($('#lnSkills')) renderLearnSkills(); if($('#tvOverview')) renderTravelOverview(); if($('#tvTrips')) renderTravelTrips(); if($('#tvPacking')) renderTravelPacking(); if($('#tvBucket')) renderTravelBucket(); if($('#ftOverview')) renderFitOverview(); if($('#ftWorkouts')) renderFitWorkouts(); if($('#ftGoals')) renderFitGoals(); if($('#ftRoutines')) renderFitRoutines(); if($('#ntOverview')) renderNutriOverview(); if($('#ntMeals')) renderNutriMeals(); if($('#ntWater')) renderNutriWater(); if($('#ntHabits')) renderNutriHabits(); if($('#plOverview')) renderPlanOverview(); if($('#plTasks')) renderPlanTasks(); if($('#plProjects')) renderPlanProjects(); if($('#plWeek')) renderPlanWeek(); if($('#rlLock')) renderRelLock(); if(rlUnlocked){ if($('#rlUs')) renderRelUs(); if($('#rlNotes')) renderRelNotes(); if($('#rlDates')) renderRelDates(); if($('#rlPlans')) renderRelPlans(); } if($('#mmOverview')) renderMemOverview(); if($('#mmAlbums')) renderMemAlbums(); if($('#mmStories')) renderMemStories(); if($('#mmCapsule')) renderMemCapsule(); if($('#wbOverview')) renderWbOverview(); if($('#wbCheckins')) renderWbCheckins(); if($('#wbCare')) renderWbCare(); if($('#wbGrowth')) renderWbGrowth(); if($('#lgOverview')) renderLegOverview(); if($('#lgDuas')) renderLegDuas(); if($('#lgDeeds')) renderLegDeeds(); if($('#lgWisdom')) renderLegWisdom(); if(currentMemberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(currentMemberId); if(document.getElementById('notiBody')) renderNotifications(); if(document.getElementById('homeToday')) renderHome(); try{ renderHeroPulse(); }catch(e){} }
+ function refreshAll(ctx){ try{ avApply(); }catch(e){} renderDashboard(); if($('#mydayBody')) renderMyDay(); if($('#membersList')) renderMembersList(); if(ctx && ctx.memberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(ctx.memberId); if($('#meetingsList')) renderMeetingsList(); if(ctx && ctx.meetingId && $('#meetingDetail') && !$('#meetingDetail').hidden) renderMeetingDetail(ctx.meetingId); if($('#goalsList')) renderGoalsList(); if($('#calWrap')) renderCalendar(); if($('#commWrap')) renderComm(); if($('#hOverview')) renderHealthOverview(); if($('#hProfiles')) renderHealthProfiles(); if($('#hMeds')) renderHealthMeds(); if($('#hRecords')) renderHealthRecords(); if($('#hAppts')) renderHealthAppts(); if($('#hVitals')) renderHealthVitals(); if($('#respWrap')) renderResponsibilities(); if($('#docsWrap')) renderDocuments(); if($('#treeWrap')) renderFamilyTree(); if($('#finOverview')) renderFinOverview(); if($('#finTx')) renderFinTx(); if($('#finPlanned')) renderFinPlanned(); if($('#finDebts')) renderFinDebts(); if($('#finBudget')) renderFinBudget(); if($('#finSavings')) renderFinSavings(); if($('#finStats')) renderFinStats(); if($('#jOverview')) renderJournalOverview(); if($('#jEntries')) renderJournalEntries(); if($('#jGratitude')) renderJournalGratitude(); if($('#jMilestones')) renderJournalMilestones(); if($('#ckOverview')) renderCookingOverview(); if($('#ckRecipes')) renderCookingRecipes(); if($('#ckMeals')) renderCookingMeals(); if($('#ckShopping')) renderCookingShopping(); if($('#gsCard')) renderGettingStarted(); if($('#hmOverview')) renderHomeOverview(); if($('#hmChores')) renderHomeChores(); if($('#hmMaint')) renderHomeMaint(); if($('#hmSupplies')) renderHomeSupplies(); if($('#lnOverview')) renderLearnOverview(); if($('#lnCourses')) renderLearnCourses(); if($('#lnBooks')) renderLearnBooks(); if($('#lnSkills')) renderLearnSkills(); if($('#tvOverview')) renderTravelOverview(); if($('#tvTrips')) renderTravelTrips(); if($('#tvPacking')) renderTravelPacking(); if($('#tvBucket')) renderTravelBucket(); if($('#ftOverview')) renderFitOverview(); if($('#ftWorkouts')) renderFitWorkouts(); if($('#ftGoals')) renderFitGoals(); if($('#ftRoutines')) renderFitRoutines(); if($('#ntOverview')) renderNutriOverview(); if($('#ntMeals')) renderNutriMeals(); if($('#ntWater')) renderNutriWater(); if($('#ntHabits')) renderNutriHabits(); if($('#plOverview')) renderPlanOverview(); if($('#plTasks')) renderPlanTasks(); if($('#plProjects')) renderPlanProjects(); if($('#plWeek')) renderPlanWeek(); if($('#rlLock')) renderRelLock(); if(rlUnlocked){ if($('#rlUs')) renderRelUs(); if($('#rlNotes')) renderRelNotes(); if($('#rlDates')) renderRelDates(); if($('#rlPlans')) renderRelPlans(); } if($('#mmOverview')) renderMemOverview(); if($('#mmAlbums')) renderMemAlbums(); if($('#mmStories')) renderMemStories(); if($('#mmCapsule')) renderMemCapsule(); if($('#wbOverview')) renderWbOverview(); if($('#wbCheckins')) renderWbCheckins(); if($('#wbCare')) renderWbCare(); if($('#wbGrowth')) renderWbGrowth(); if($('#lgOverview')) renderLegOverview(); if($('#lgDuas')) renderLegDuas(); if($('#lgDeeds')) renderLegDeeds(); if($('#lgWisdom')) renderLegWisdom(); if(currentMemberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(currentMemberId); if(document.getElementById('notiBody')) renderNotifications(); if(document.getElementById('homeToday')) renderHome(); try{ renderHeroPulse(); }catch(e){} }
 
  /* ===================== GOVERNANCE ===================== */
  var GOV=[
@@ -13021,6 +13124,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var _av=e.target.closest('[data-av]'); if(_av){ avSet(_av.getAttribute('data-av')); return; }
  if(e.target.closest('[data-action="av-photo"]')){ avPickPhoto(); return; }
  if(e.target.closest('[data-action="av-photo-rm"]')){ avClearPhoto(); return; }
+ if(e.target.closest('[data-action="av-cancel"]')){ cropClose(); return; }
+ if(e.target.closest('[data-action="av-save"]')){ cropSave(); return; }
  if(e.target.closest('[data-action="avatar"]')){ avPickPhoto(); return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
