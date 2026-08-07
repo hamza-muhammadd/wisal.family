@@ -96,7 +96,7 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 .sidebar::-webkit-scrollbar,.canvas::-webkit-scrollbar{width:0;height:0;display:none}
 .sidebar::-webkit-scrollbar-thumb,.canvas::-webkit-scrollbar-thumb{background:transparent}
 
-.sidebar,.canvas{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--text-3) 38%,transparent) transparent}
+.sidebar,.canvas{scrollbar-width:none;-ms-overflow-style:none}
 .brand{display:flex;align-items:center;gap:12px;padding:8px 8px 18px}
 .brand__logo{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:13px;
  color:#fff;background:linear-gradient(150deg,var(--brand-2),var(--brand));box-shadow:var(--sh-1)}
@@ -3700,6 +3700,44 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  .onb__p{margin-bottom:21px}
  .onbc{padding:10px 0}
 }
+
+/* ==================== AUTO RAIL — hover-expanding glass sidebar ====================
+   The reserved grid column stays at the rail width, so expanding the sidebar never
+   reflows the page. The sidebar itself widens on top of the canvas.
+   Desktop + real pointer only: touch and keyboard-only users keep the pinned behaviour. */
+@media (min-width:960px) and (hover:hover) and (pointer:fine){
+  .app.is-autorail{grid-template-columns:78px 1fr}
+  .app.is-autorail .sidebar{
+    width:var(--rail);
+    z-index:60;
+    overflow-x:hidden;
+    -webkit-backdrop-filter:blur(26px) saturate(190%);
+    backdrop-filter:blur(26px) saturate(190%);
+    box-shadow:inset -1px 0 0 var(--glass-brd);
+    transition:width .34s var(--ease), box-shadow .34s var(--ease), border-color .34s var(--ease);
+    will-change:width}
+  /* open state — lift it off the canvas so the edge reads clearly */
+  .app.is-autorail:not(.is-collapsed) .sidebar{
+    overflow:visible;
+    box-shadow:inset 0 1px 0 var(--glass-brd), inset -1px 0 0 var(--glass-brd),
+               24px 0 60px -26px color-mix(in srgb,var(--brand) 46%,transparent),
+               0 24px 64px -30px rgba(6,14,38,.4);
+    border-right-color:var(--glass-brd)}
+  /* labels fade rather than pop as the rail widens */
+  .app.is-autorail .brand__text,
+  .app.is-autorail .nav__label,
+  .app.is-autorail .nav__cap,
+  .app.is-autorail .footbtn__lbl{transition:opacity .2s var(--ease) .06s}
+  .app.is-autorail.is-collapsed .brand__text,
+  .app.is-autorail.is-collapsed .nav__label,
+  .app.is-autorail.is-collapsed .nav__cap,
+  .app.is-autorail.is-collapsed .footbtn__lbl{opacity:0;transition-delay:0s}
+  /* the collapse control doubles as a pin, so keep it reachable while peeking */
+  .app.is-autorail:not(.is-collapsed) .footbtn[data-action="collapse"]{opacity:1;transform:none;pointer-events:auto}
+}
+@media (prefers-reduced-motion:reduce){
+  .app.is-autorail .sidebar{transition:none}
+}
 </style>
 </head>
 <body>
@@ -4705,16 +4743,43 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  function quickTheme(){ setTheme(effective(themePref)==='dark'?'light':'dark'); }
 
  /* ---- Collapse (desktop rail) ---- */
- var collapsed = Store.get(K.collapsed, false);
- var _colT=null;
+ var collapsed = Store.get(K.collapsed, true);
+ var _colT=null, _railPeek=false, _railT=null;
  function applyCollapsed(){
  app.classList.add('no-anim');
  app.classList.toggle('is-collapsed', !!collapsed);
+ /* Auto-rail: while the rail is the resting state, hovering may open it over the
+    canvas. Pinning it open leaves auto-rail behind entirely. */
+ app.classList.toggle('is-autorail', !!collapsed);
+ _railPeek=false; clearTimeout(_railT);
  clearTimeout(_colT);
  _colT=setTimeout(function(){ app.classList.remove('no-anim'); }, 260);
  }
  applyCollapsed();
  function toggleCollapse(){ collapsed=!collapsed; Store.set(K.collapsed,collapsed); applyCollapsed(); }
+
+ /* ---- Hover peek ----------------------------------------------------------
+    Opens the rail while the pointer is inside it, closes it again on exit.
+    Runs only in auto-rail mode, so a pinned-open sidebar is left alone, and
+    hovering never writes to the stored preference. */
+ function railPeek(open){
+   if(!collapsed || !app.classList.contains('is-autorail')) return;
+   if(_railPeek===open) return;
+   _railPeek=open;
+   app.classList.remove('no-anim');
+   app.classList.toggle('is-collapsed', !open);
+ }
+ function railEnter(){ clearTimeout(_railT); _railT=setTimeout(function(){ railPeek(true); }, 80); }
+ function railLeave(){ clearTimeout(_railT); _railT=setTimeout(function(){ railPeek(false); }, 220); }
+ try{
+   var _sb=document.getElementById('sidebar');
+   if(_sb && window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+     _sb.addEventListener('mouseenter', railEnter);
+     _sb.addEventListener('mouseleave', railLeave);
+     _sb.addEventListener('focusin', function(){ clearTimeout(_railT); railPeek(true); });
+     _sb.addEventListener('focusout', function(e){ if(!_sb.contains(e.relatedTarget)) railLeave(); });
+   }
+ }catch(e){}
 
  /* ---- Mobile drawer ---- */
  function openDrawer(){ app.classList.add('is-drawer-open'); backdrop.hidden=false; }
