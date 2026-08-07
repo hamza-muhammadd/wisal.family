@@ -3732,8 +3732,10 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   .app.is-autorail.is-collapsed .nav__label,
   .app.is-autorail.is-collapsed .nav__cap,
   .app.is-autorail.is-collapsed .footbtn__lbl{opacity:0;transition-delay:0s}
-  /* the collapse control doubles as a pin, so keep it reachable while peeking */
-  .app.is-autorail:not(.is-collapsed) .footbtn[data-action="collapse"]{opacity:1;transform:none;pointer-events:auto}
+  /* Hover now does this job, so the manual control is redundant here.
+     It stays available on touch, where there is no hover to replace it. */
+  .app.is-autorail .footbtn[data-action="collapse"],
+  .app.is-autorail .sidebar__foot .footbtn[data-action="collapse"]{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   .app.is-autorail .sidebar{transition:none}
