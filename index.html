@@ -98,10 +98,7 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 
 .sidebar,.canvas{scrollbar-width:none;-ms-overflow-style:none}
 .brand{display:flex;align-items:center;gap:12px;padding:8px 8px 18px}
-/* The name stays put while the list scrolls beneath it. */
-.sidebar .brand{position:sticky;top:-20px;z-index:4;margin:-20px -16px 0;padding:28px 24px 14px;background:var(--surface);border-bottom:1px solid transparent;transition:border-color .2s}
-.sidebar.is-scrolled .brand{border-bottom-color:var(--border)}
-.app.is-autorail .sidebar .brand{background:color-mix(in srgb,var(--surface) 82%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+
 .brand__logo{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:13px;
  color:#fff;background:linear-gradient(150deg,var(--brand-2),var(--brand));box-shadow:var(--sh-1)}
 .brand__logo .ico{width:24px;height:24px;stroke-width:1.8}
@@ -3744,7 +3741,9 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 }
 
 /* ==================== AVATARS ==================== */
-.brand__logo{border:0;padding:0;cursor:pointer;position:relative;overflow:hidden}
+.brand__logo{border:0;padding:0;cursor:pointer;position:relative;overflow:hidden;flex:none}
+.brand__logo .avt{width:100%;height:100%;object-fit:cover;display:block}
+.brand__logo img.avt{border-radius:inherit}
 .brand__logo::after{content:'';position:absolute;inset:0;border-radius:inherit;
   background:color-mix(in srgb,var(--brand) 0%,transparent);transition:background .18s}
 .brand__logo:hover::after{background:color-mix(in srgb,var(--brand) 14%,transparent)}
@@ -3770,7 +3769,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  <!-- ===================== SIDEBAR ===================== -->
  <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
  <div class="brand">
- <button class="brand__logo" id="brandLogo" data-action="avatar" title="Change your picture" aria-label="Change your picture">
+ <button class="brand__logo" id="brandLogo" data-action="avatar" title="Set your profile picture" aria-label="Set your profile picture">
  <svg stroke-linecap="butt" class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="7.85" cy="12" r="5.7" stroke-dasharray="2.64 3.34 29.84"/><circle cx="16.15" cy="12" r="5.7" stroke-dasharray="20.54 3.34 11.93"/></svg>
  </button>
  <span class="brand__text">
@@ -13022,7 +13021,7 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
  var _av=e.target.closest('[data-av]'); if(_av){ avSet(_av.getAttribute('data-av')); return; }
  if(e.target.closest('[data-action="av-photo"]')){ avPickPhoto(); return; }
  if(e.target.closest('[data-action="av-photo-rm"]')){ avClearPhoto(); return; }
- if(e.target.closest('[data-action="avatar"]')){ try{ navigate('settings'); }catch(_){} return; }
+ if(e.target.closest('[data-action="avatar"]')){ avPickPhoto(); return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
  if(e.target.closest('[data-auth-signout]')){ doSignOut(); return; }
