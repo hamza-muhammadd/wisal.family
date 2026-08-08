@@ -3796,18 +3796,28 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .lbx__cap{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:rgba(255,255,255,.82);
   font-size:.9rem;padding:0 24px}
 
-/* ==================== WIDE-SCREEN MEDIA ====================
-   On a desktop the canvas is wide, so a full-width picture becomes a stretched
-   banner. Cap the picture instead of the card: the card keeps its layout, the
-   photo simply stops growing. (An earlier attempt gridded #jEntries, but that
-   container also holds the toolbar and search, so everything scattered.) */
+/* ==================== PICTURE THUMBNAILS ====================
+   Every saved picture shows as a consistent, tidy thumbnail rather than at
+   whatever size the original happened to be. Tap it to see the whole thing.
+   !important is used because the base rules set max-height on both the box
+   and the image, and a photo must never dictate the layout. */
+.jentry__photo{
+  position:relative;width:100%;max-width:440px;
+  aspect-ratio:16/10;max-height:none!important;
+  border-radius:var(--r-md);overflow:hidden;cursor:zoom-in;
+  background:var(--surface-2)}
+.jentry__photo img{
+  width:100%!important;height:100%!important;max-height:none!important;
+  object-fit:cover;display:block}
+.tvhero__ph{
+  position:relative;width:100%;aspect-ratio:16/9;max-height:none!important;
+  overflow:hidden;cursor:zoom-in;background:var(--surface-2)}
+.tvhero__ph img{
+  width:100%!important;height:100%!important;max-height:none!important;
+  object-fit:cover;display:block}
 @media (min-width:1000px){
-  .jentry__photo{max-width:520px;max-height:340px}
-  .jentry__photo img{max-height:340px}
-  .tvhero__ph{max-height:230px}
+  .jentry__photo{max-width:400px}
 }
-/* Tapping a picture should open it, everywhere */
-.jentry__photo,.tvhero__ph{cursor:zoom-in}
 </style>
 </head>
 <body>
