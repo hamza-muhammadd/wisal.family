@@ -3796,25 +3796,15 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .lbx__cap{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:rgba(255,255,255,.82);
   font-size:.9rem;padding:0 24px}
 
-/* ==================== WIDE-SCREEN GALLERIES ====================
-   On a phone one card per row is right. On a desktop the same card stretches
-   the full canvas and its cover turns into a letterbox banner, which is what
-   made Travel and Journal look unfinished. Above 1000px they become a gallery. */
+/* ==================== WIDE-SCREEN MEDIA ====================
+   On a desktop the canvas is wide, so a full-width picture becomes a stretched
+   banner. Cap the picture instead of the card: the card keeps its layout, the
+   photo simply stops growing. (An earlier attempt gridded #jEntries, but that
+   container also holds the toolbar and search, so everything scattered.) */
 @media (min-width:1000px){
-  #tvTrips,#jEntries{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
-    gap:20px;
-    align-items:start}
-  #tvTrips>*,#jEntries>*{margin:0}
-  /* covers keep a real photographic ratio instead of a fixed pixel height */
-  .tvhero__ph{max-height:none;aspect-ratio:16/10}
-  .tvhero__ph img{height:100%}
-  .jentry__photo{max-height:none;aspect-ratio:4/3}
-  .jentry__photo img{height:100%;max-height:none}
-}
-@media (min-width:1500px){
-  #tvTrips,#jEntries{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}
+  .jentry__photo{max-width:520px;max-height:340px}
+  .jentry__photo img{max-height:340px}
+  .tvhero__ph{max-height:230px}
 }
 /* Tapping a picture should open it, everywhere */
 .jentry__photo,.tvhero__ph{cursor:zoom-in}
