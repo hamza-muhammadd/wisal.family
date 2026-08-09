@@ -1,5 +1,6 @@
 (function(){
  'use strict';
+ try{ document.documentElement.setAttribute('data-build','46'); console.log('Wisal build 46 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3683,7 +3684,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4970,7 +4971,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '45';
+  var APP_VERSION = '46 \u00b7 trip-details';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9092,4 +9093,176 @@
  }
  applyNavGroups();
  navigate(VIEWS.indexOf(start)!==-1?start:'home', false);
+/* ==================== TRIP COMMAND CENTER (step 1) ====================
+   Tapping a trip opens its own space. Everything here reads from the existing
+   trip object and the existing packing list — no data was moved or renamed, so
+   the Travel list keeps working exactly as before. New fields are optional and
+   created on demand. */
+
+  var TRD_TABS = [
+    ['overview','Overview'], ['itinerary','Itinerary'], ['packing','Packing'],
+    ['budget','Budget'], ['bookings','Bookings'], ['docs','Documents'], ['journal','Journal']
+  ];
+  /* The eight things that decide whether a family is actually ready to go. */
+  var TRD_PREP = [
+    ['flights','Flights booked'], ['hotel','Accommodation confirmed'],
+    ['passport','Passports ready'], ['visa','Visa completed'],
+    ['insurance','Travel insurance'], ['currency','Currency exchanged'],
+    ['transfer','Airport transfer'], ['docs','Documents copied']
+  ];
+  var trdId=null, trdTab='overview';
+
+  function trdTrip(){ try{ return (FD.data.travel.trips||[]).filter(function(t){return t.id===trdId;})[0]||null; }catch(e){ return null; } }
+  function trdPrepOf(t){ if(!t.prep) t.prep={}; return t.prep; }
+
+  function trdReadiness(t){
+    var p=trdPrepOf(t), done=0;
+    TRD_PREP.forEach(function(x){ if(p[x[0]]) done++; });
+    var pk=tvPackStats(t.id);
+    /* Preparation is most of it; packing counts for a quarter. */
+    var prepPart = done/TRD_PREP.length;
+    var packPart = pk.total ? pk.done/pk.total : 0;
+    var pc = Math.round((prepPart*0.75 + packPart*0.25)*100);
+    return { pc:pc, done:done, total:TRD_PREP.length, pack:pk };
+  }
+
+  function trdRemaining(t){
+    var p=trdPrepOf(t), out=[];
+    TRD_PREP.forEach(function(x){ if(!p[x[0]]) out.push(x[1]); });
+    var pk=tvPackStats(t.id);
+    if(pk.total && pk.done<pk.total) out.push((pk.total-pk.done)+' packing items');
+    return out;
+  }
+
+  function trdNights(t){
+    if(!t.start||!t.end) return null;
+    var a=new Date(t.start), b=new Date(t.end);
+    var d=Math.round((b-a)/86400000);
+    return d>0? d : null;
+  }
+
+  function trdIco(name){
+    if(name==='back') return '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return '<svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function trdTabOverview(t){
+    var r=trdReadiness(t), left=trdRemaining(t), n=trdNights(t);
+    var facts=[
+      ['Destination', t.dest||'\u2014'],
+      ['Departure', t.start? fmtDate(t.start) : 'To decide'],
+      ['Return', t.end? fmtDate(t.end) : 'To decide'],
+      ['Duration', n? (n+' night'+(n>1?'s':'')) : '\u2014'],
+      ['Travellers', (t.travelers&&t.travelers.length)? t.travelers.join(', ') : 'Everyone'],
+      ['Packing', r.pack.total? (r.pack.done+' of '+r.pack.total+' packed') : 'Not started']
+    ];
+    var p=trdPrepOf(t);
+    return '<div class="trd__sec"><div class="trd__secH">Trip summary</div><div class="trd__facts">'
+      + facts.map(function(f){ return '<div class="trd__fact"><div class="trd__factL">'+f[0]+'</div><div class="trd__factV">'+esc(String(f[1]))+'</div></div>'; }).join('')
+      + '</div></div>'
+      + (t.note? '<div class="trd__sec"><div class="trd__secH">Notes</div><div class="trd__fact">'+esc(t.note).replace(/\n/g,'<br>')+'</div></div>' : '')
+      + '<div class="trd__sec"><div class="trd__secH">Before you leave \u00b7 '+r.done+' of '+r.total+'</div><div class="trd__prep">'
+      + TRD_PREP.map(function(x){
+          return '<button type="button" class="trd__prepI'+(p[x[0]]?' is-done':'')+'" data-trdprep="'+x[0]+'">'
+            +'<span class="trd__box">'+trdIco('tick')+'</span><span class="trd__prepT">'+x[1]+'</span></button>';
+        }).join('')
+      + '</div></div>';
+  }
+
+  function trdSoon(what){
+    return '<div class="trd__soon">'+what+' arrives in the next step.<br>Everything you add elsewhere stays exactly where it is.</div>';
+  }
+
+  function trdRender(){
+    var t=trdTrip(); if(!t) return trdClose();
+    var host=document.getElementById('trdView'); if(!host) return;
+    var r=trdReadiness(t), left=trdRemaining(t);
+    var st=tripStatus(t), cd=tvCountdown(t);
+    var cover = t.photo
+      ? '<img src="'+t.photo+'" alt="">'
+      : '';
+    var hint = left.length
+      ? '<b>'+left.length+' left:</b> '+esc(left.slice(0,3).join(' \u00b7 '))+(left.length>3?' \u00b7 \u2026':'')
+      : '<b>Everything is ready.</b> Have a safe journey.';
+
+    host.innerHTML =
+      '<div class="trd__scroll">'
+      + '<div class="trd__cover">'+cover
+        + '<button class="trd__back" data-trdclose aria-label="Back to trips">'+trdIco('back')+'</button>'
+        + '<div class="trd__head">'
+          + '<div class="trd__dest">'+esc(t.dest||'Trip')+'</div>'
+          + '<h1 class="trd__name">'+esc(t.name||t.dest||'Trip')+'</h1>'
+          + '<div class="trd__dates">'+fmtRange(t.start,t.end)+'</div>'
+          + '<span class="trd__pill">'+(cd||TV_PILL[st])+'</span>'
+        + '</div>'
+      + '</div>'
+      + '<div class="trd__ready">'
+        + '<div class="trd__readtop"><span class="trd__readlbl">Trip readiness</span><span class="trd__readpc">'+r.pc+'%</span></div>'
+        + '<div class="trd__bar"><div class="trd__barfill" style="width:'+r.pc+'%"></div></div>'
+        + '<div class="trd__hint">'+hint+'</div>'
+      + '</div>'
+      + '<div class="trd__tabs">'
+        + TRD_TABS.map(function(x){ return '<button class="trd__tab'+(trdTab===x[0]?' is-on':'')+'" data-trdtab="'+x[0]+'">'+x[1]+'</button>'; }).join('')
+      + '</div>'
+      + '<div class="trd__body">'
+        + (trdTab==='overview' ? trdTabOverview(t)
+          : trdTab==='packing' ? trdSoon('The full packing view')
+          : trdTab==='itinerary' ? trdSoon('A day-by-day itinerary')
+          : trdTab==='budget' ? trdSoon('Trip budget and expenses')
+          : trdTab==='bookings' ? trdSoon('Flights, hotels and reservations')
+          : trdTab==='docs' ? trdSoon('Passports, visas and tickets')
+          : trdSoon('The travel journal'))
+      + '</div>'
+      + '</div>';
+  }
+
+  function trdOpen(id){
+    trdId=id; trdTab='overview';
+    var host=document.getElementById('trdView');
+    if(!host){
+      host=document.createElement('div');
+      host.className='trd'; host.id='trdView';
+      document.body.appendChild(host);
+    }
+    trdRender();
+    host.classList.add('is-on');
+    try{ host.querySelector('.trd__scroll').scrollTop=0; }catch(e){}
+    document.body.style.overflow='hidden';
+  }
+  function trdClose(){
+    var host=document.getElementById('trdView');
+    if(host) host.classList.remove('is-on');
+    document.body.style.overflow='';
+    trdId=null;
+    try{ renderTravelTrips(); }catch(e){}
+  }
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest('[data-trdclose]')){ trdClose(); return; }
+    var tb=e.target.closest('[data-trdtab]');
+    if(tb){ trdTab=tb.getAttribute('data-trdtab'); trdRender(); return; }
+    var pr=e.target.closest('[data-trdprep]');
+    if(pr){
+      var t=trdTrip(); if(!t) return;
+      var k=pr.getAttribute('data-trdprep'), p=trdPrepOf(t);
+      p[k]=!p[k];
+      try{ FD.save(); }catch(_){}
+      trdRender();
+      return;
+    }
+    /* Open a trip — but never when the tap was meant for a control on the card. */
+    var card=e.target.closest('.tvcard');
+    if(card && !e.target.closest('button') && !e.target.closest('a')){
+      var arr=FD.data.travel.trips||[];
+      var idx=Array.prototype.indexOf.call(card.parentNode.querySelectorAll('.tvcard'), card);
+      var ordered = (typeof tvOrderTrips==='function') ? tvOrderTrips() : arr;
+      var t2=ordered[idx];
+      if(t2){ trdOpen(t2.id); }
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && trdId) trdClose();
+  });
+
 })();
