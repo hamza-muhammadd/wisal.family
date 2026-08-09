@@ -3,8 +3,8 @@
    Strategy: network-first for the page (so you always get the latest when online),
    cache-first for fonts, and a cached fallback when offline. */
 
-var CACHE = 'wisal-v73';
-var SHELL = ['./', './index.html'];
+var CACHE = 'wisal-v75';
+var SHELL = ['./', './index.html', './styles.css', './app.js'];
 
 self.addEventListener('install', function(e){
   self.skipWaiting();
@@ -58,6 +58,21 @@ self.addEventListener('fetch', function(e){
       }).catch(function(){
         return caches.match(req).then(function(m){ return m || caches.match('./') || caches.match('./index.html'); });
       })
+    );
+    return;
+  }
+
+  // Our own CSS and JS: network-first, so a deploy is always picked up.
+  // (Cache-first here would freeze the app on an old build forever.)
+  if(url.origin === location.origin && /\.(css|js)$/.test(url.pathname)){
+    e.respondWith(
+      fetch(req).then(function(res){
+        if(res && res.status === 200){
+          var copy = res.clone();
+          caches.open(CACHE).then(function(c){ c.put(req, copy); });
+        }
+        return res;
+      }).catch(function(){ return caches.match(req); })
     );
     return;
   }
