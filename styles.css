@@ -3872,9 +3872,21 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .trd__prepI.is-done .trd__prepT{color:var(--text-3);text-decoration:line-through}
 .trd__soon{padding:34px 20px;text-align:center;color:var(--text-3);font-size:.92rem;line-height:1.6;
   border:1px dashed var(--border-strong);border-radius:var(--r-lg)}
+/* When a trip has no cover photo, the header still needs a surface to sit on. */
+.trd__cover--empty{background:linear-gradient(160deg,color-mix(in srgb,var(--brand) 34%,var(--bg)),var(--bg))}
+.trd__cover--empty::after{background:linear-gradient(180deg,rgba(6,10,24,.25),rgba(6,10,24,.7))}
+
 @media (min-width:900px){
   .trd__cover{height:330px}
   .trd__name{font-size:2.1rem}
-  .trd__ready,.trd__tabs,.trd__body{max-width:860px;margin-left:auto;margin-right:auto}
-  .trd__ready{margin-top:-30px}
+  /* Keep the cover text on the same centred column as everything below it,
+     otherwise the title drifts to the far edge on a wide screen. */
+  .trd__head{padding-left:0;padding-right:0}
+  .trd__head,.trd__ready,.trd__tabs,.trd__body{
+    max-width:880px;margin-left:auto;margin-right:auto;left:0;right:0}
+  .trd__ready{margin-top:-32px}
+  .trd__back{left:calc(50vw - 440px)}
+}
+@media (min-width:900px) and (max-width:960px){
+  .trd__back{left:14px}
 }

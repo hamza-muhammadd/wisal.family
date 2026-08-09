@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','47'); console.log('Wisal build 47 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','48'); console.log('Wisal build 48 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3687,7 +3687,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4974,7 +4974,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '47 \u00b7 trip-details';
+  var APP_VERSION = '48 \u00b7 trip-details';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9181,16 +9181,15 @@
     var host=document.getElementById('trdView'); if(!host) return;
     var r=trdReadiness(t), left=trdRemaining(t);
     var st=tripStatus(t), cd=tvCountdown(t);
-    var cover = t.photo
-      ? '<img src="'+t.photo+'" alt="">'
-      : '';
+    var hasPhoto = !!t.photo;
+    var cover = hasPhoto ? '<img src="'+t.photo+'" alt="">' : '';
     var hint = left.length
       ? '<b>'+left.length+' left:</b> '+esc(left.slice(0,3).join(' \u00b7 '))+(left.length>3?' \u00b7 \u2026':'')
       : '<b>Everything is ready.</b> Have a safe journey.';
 
     host.innerHTML =
       '<div class="trd__scroll">'
-      + '<div class="trd__cover">'+cover
+      + '<div class="trd__cover'+(hasPhoto?'':' trd__cover--empty')+'">'+cover
         + '<button class="trd__back" data-trdclose aria-label="Back to trips">'+trdIco('back')+'</button>'
         + '<div class="trd__head">'
           + '<div class="trd__dest">'+esc(t.dest||'Trip')+'</div>'
