@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','57'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','60'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '57 \u00b7 date-time-picker';
+  var APP_VERSION = '60 \u00b7 year-jump';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9105,7 +9105,7 @@
      call sites, we intercept the tap, show our own sheet, then write the value
      back and fire the same events the app already listens for. */
   var WDP = {
-    el:null, input:null, mode:'date', view:null, sel:null, h:12, m:0, mer:'AM',
+    el:null, input:null, mode:'date', view:null, sel:null, h:12, m:0, mer:'AM', jump:false,
     MON:['January','February','March','April','May','June','July','August','September','October','November','December'],
     DOW:['S','M','T','W','T','F','S'],
     mount:function(){
@@ -9138,6 +9138,7 @@
           this.mer=h2>=12?'PM':'AM'; this.h=h2%12||12; this.m=m2;
         }
       }
+      this.jump=false;
       this.mount().classList.add('is-on'); this.paint();
     },
     close:function(){ if(this.el) this.el.classList.remove('is-on'); this.input=null; },
@@ -9160,7 +9161,7 @@
       var self=this;
       return '<div class="wdp__nav">'
         + '<button class="wdp__arw" data-wdpmo="-1" aria-label="Previous month"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
-        + '<span class="wdp__mo">'+this.MON[mo]+' '+y+'</span>'
+        + '<button class="wdp__mo" data-wdpjump aria-label="Choose month and year">'+this.MON[mo]+' '+y+'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
         + '<button class="wdp__arw" data-wdpmo="1" aria-label="Next month"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
         + '</div>'
         + '<div class="wdp__dow">'+this.DOW.map(function(x){return '<span>'+x+'</span>';}).join('')+'</div>'
@@ -9171,6 +9172,29 @@
             if(+real===+today) cls+=' is-today';
             if(self.sel){ var sd=new Date(self.sel); sd.setHours(0,0,0,0); if(+real===+sd) cls+=' is-sel'; }
             return '<button class="'+cls+'" data-wdpd="'+real.getFullYear()+'-'+self.pad(real.getMonth()+1)+'-'+self.pad(real.getDate())+'">'+c.d+'</button>';
+          }).join('')
+        + '</div>';
+    },
+    /* Second level: step through years quickly, then pick a month.
+       Month-by-month was fine for next week and useless for next year. */
+    jumpHTML:function(){
+      var y=this.view.getFullYear(), mo=this.view.getMonth(), self=this;
+      var now=new Date();
+      return '<div class="wdp__nav">'
+        + '<button class="wdp__arw" data-wdpyr="-1" aria-label="Previous year"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        + '<button class="wdp__mo" data-wdpback>'+y+'<svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        + '<button class="wdp__arw" data-wdpyr="1" aria-label="Next year"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        + '</div>'
+        + '<div class="wdp__mgrid">'
+        + this.MON.map(function(name,i){
+            var cls='wdp__m'+(i===mo?' is-sel':'')+((y===now.getFullYear()&&i===now.getMonth())?' is-today':'');
+            return '<button class="'+cls+'" data-wdpmpick="'+i+'">'+name.slice(0,3)+'</button>';
+          }).join('')
+        + '</div>'
+        + '<div class="wdp__yrow">'
+        + [-2,-1,0,1,2].map(function(d){
+            var yy=y+d;
+            return '<button class="wdp__y'+(d===0?' is-sel':'')+'" data-wdpypick="'+yy+'">'+yy+'</button>';
           }).join('')
         + '</div>';
     },
@@ -9189,7 +9213,7 @@
       this.el.innerHTML = '<div class="wdp__box" role="dialog" aria-modal="true">'
         + '<div class="wdp__t">'+title+'</div>'
         + '<div class="wdp__v">'+esc(this.label())+'</div>'
-        + (this.mode==='time' ? this.clockHTML() : this.calHTML() + (this.mode==='datetime' ? '<div style="margin-top:14px">'+this.clockHTML()+'</div>' : ''))
+        + (this.mode==='time' ? this.clockHTML() : '<div id="wdpCal">'+(this.jump?this.jumpHTML():this.calHTML())+'</div>' + (this.mode==='datetime' ? '<div style="margin-top:14px">'+this.clockHTML()+'</div>' : ''))
         + '<div class="wdp__acts">'
           + '<button class="btn wdp__now" data-wdpnow>'+(this.mode==='time'?'Now':'Today')+'</button>'
           + '<button class="btn" data-wdpcancel>Cancel</button>'
@@ -9198,6 +9222,23 @@
       var hc=document.getElementById('wdpH'), mc=document.getElementById('wdpM'), a, b;
       if(hc){ a=hc.querySelector('.is-sel'); if(a) hc.scrollTop=a.offsetTop-hc.clientHeight/2+a.clientHeight/2; }
       if(mc){ b=mc.querySelector('.is-sel'); if(b) mc.scrollTop=b.offsetTop-mc.clientHeight/2+b.clientHeight/2; }
+    },
+    /* Repaint only what changed. Rebuilding the whole sheet replayed the open
+       animation and threw the hour/minute columns back to the top on every tap. */
+    syncLabel:function(){
+      var v=this.el && this.el.querySelector('.wdp__v');
+      if(v) v.textContent=this.label();
+    },
+    mark:function(attr, val){
+      if(!this.el) return;
+      var list=this.el.querySelectorAll('['+attr+']');
+      for(var i=0;i<list.length;i++)
+        list[i].classList.toggle('is-sel', list[i].getAttribute(attr)===String(val));
+      this.syncLabel();
+    },
+    redrawCal:function(){
+      var c=this.el && this.el.querySelector('#wdpCal');
+      if(c){ c.innerHTML=this.calHTML(); this.syncLabel(); } else { this.paint(); }
     },
     commit:function(){
       if(!this.input) return;
@@ -9231,17 +9272,24 @@
     if(!WDP.input) return;
     if(e.target.id==='wdpSheet'){ WDP.close(); return; }
     var t;
-    if((t=e.target.closest('[data-wdpmo]'))){ WDP.view.setMonth(WDP.view.getMonth()+parseInt(t.getAttribute('data-wdpmo'),10)); WDP.paint(); return; }
-    if((t=e.target.closest('[data-wdpd]'))){ WDP.sel=new Date(t.getAttribute('data-wdpd')+'T00:00:00'); WDP.paint(); return; }
-    if((t=e.target.closest('[data-wdph]'))){ WDP.h=parseInt(t.getAttribute('data-wdph'),10); WDP.paint(); return; }
-    if((t=e.target.closest('[data-wdpm]'))){ WDP.m=parseInt(t.getAttribute('data-wdpm'),10); WDP.paint(); return; }
-    if((t=e.target.closest('[data-wdpmer]'))){ WDP.mer=t.getAttribute('data-wdpmer'); WDP.paint(); return; }
+    if(e.target.closest('[data-wdpjump]')){ WDP.jump=true; WDP.redrawCal(); return; }
+    if(e.target.closest('[data-wdpback]')){ WDP.jump=false; WDP.redrawCal(); return; }
+    if((t=e.target.closest('[data-wdpyr]'))){ WDP.view.setFullYear(WDP.view.getFullYear()+parseInt(t.getAttribute('data-wdpyr'),10)); WDP.redrawCal(); return; }
+    if((t=e.target.closest('[data-wdpypick]'))){ WDP.view.setFullYear(parseInt(t.getAttribute('data-wdpypick'),10)); WDP.redrawCal(); return; }
+    if((t=e.target.closest('[data-wdpmpick]'))){ WDP.view.setMonth(parseInt(t.getAttribute('data-wdpmpick'),10)); WDP.jump=false; WDP.redrawCal(); return; }
+    if((t=e.target.closest('[data-wdpmo]'))){ WDP.view.setMonth(WDP.view.getMonth()+parseInt(t.getAttribute('data-wdpmo'),10)); WDP.redrawCal(); return; }
+    if((t=e.target.closest('[data-wdpd]'))){ WDP.sel=new Date(t.getAttribute('data-wdpd')+'T00:00:00'); WDP.mark('data-wdpd', t.getAttribute('data-wdpd')); return; }
+    if((t=e.target.closest('[data-wdph]'))){ WDP.h=parseInt(t.getAttribute('data-wdph'),10); WDP.mark('data-wdph', WDP.h); return; }
+    if((t=e.target.closest('[data-wdpm]'))){ WDP.m=parseInt(t.getAttribute('data-wdpm'),10); WDP.mark('data-wdpm', WDP.m); return; }
+    if((t=e.target.closest('[data-wdpmer]'))){ WDP.mer=t.getAttribute('data-wdpmer'); WDP.mark('data-wdpmer', WDP.mer); return; }
     if(e.target.closest('[data-wdpnow]')){
       var n=new Date();
       WDP.sel=new Date(n.getFullYear(),n.getMonth(),n.getDate());
       WDP.view=new Date(n.getFullYear(),n.getMonth(),1);
       WDP.mer=n.getHours()>=12?'PM':'AM'; WDP.h=n.getHours()%12||12; WDP.m=Math.round(n.getMinutes()/5)*5%60;
-      WDP.paint(); return;
+      WDP.redrawCal(); WDP.mark('data-wdph', WDP.h); WDP.mark('data-wdpm', WDP.m); WDP.mark('data-wdpmer', WDP.mer);
+      var _d=WDP.sel; if(_d) WDP.mark('data-wdpd', _d.getFullYear()+'-'+WDP.pad(_d.getMonth()+1)+'-'+WDP.pad(_d.getDate()));
+      return;
     }
     if(e.target.closest('[data-wdpcancel]')){ WDP.close(); return; }
     if(e.target.closest('[data-wdpok]')){ WDP.commit(); return; }
@@ -9309,7 +9357,8 @@
       ['Return', t.end? fmtDate(t.end) : 'To decide'],
       ['Duration', n? (n+' night'+(n>1?'s':'')) : '\u2014'],
       ['Travellers', (t.travelers&&t.travelers.length)? t.travelers.join(', ') : 'Everyone'],
-      ['Packing', r.pack.total? (r.pack.done+' of '+r.pack.total+' packed') : 'Not started']
+      ['Packing', r.pack.total? (r.pack.done+' of '+r.pack.total+' packed') : 'Not started'],
+      ['Spent', (t.expenses&&t.expenses.length)? fmtMoney(trdSpent(t)) : 'Nothing yet']
     ];
     var p=trdPrepOf(t);
     return '<div class="trd__sec"><div class="trd__secH">Trip summary</div><div class="trd__facts">'
@@ -9364,6 +9413,62 @@
     }).join('');
   }
 
+  /* ---- Budget: one estimate, expenses grouped by category ---- */
+  var TRD_CATS = ['Flights','Accommodation','Transport','Food','Activities','Shopping','Visa','Insurance','Gifts','Other'];
+
+  function trdSpent(t){
+    return (t.expenses||[]).reduce(function(a,x){ return a + (parseFloat(x.amt)||0); }, 0);
+  }
+  function trdTabBudget(t){
+    var est = parseFloat(t.budget)||0, spent = trdSpent(t), left = est - spent;
+    var byCat = {};
+    (t.expenses||[]).forEach(function(x){ byCat[x.cat||'Other'] = (byCat[x.cat||'Other']||0) + (parseFloat(x.amt)||0); });
+    var cats = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; });
+    var top = cats.length ? byCat[cats[0]] : 0;
+
+    var head = '<div class="bdg__top">'
+      + '<div class="bdg__t"><div class="bdg__tl">Estimated</div><div class="bdg__tv">'+(est?fmtMoney(est):'\u2014')+'</div></div>'
+      + '<div class="bdg__t bdg__t--spent"><div class="bdg__tl">Spent</div><div class="bdg__tv">'+fmtMoney(spent)+'</div></div>'
+      + '<div class="bdg__t '+(est&&left<0?'bdg__t--over':'bdg__t--left')+'"><div class="bdg__tl">'+(left<0?'Over by':'Remaining')+'</div><div class="bdg__tv">'+(est?fmtMoney(Math.abs(left)):'\u2014')+'</div></div>'
+      + '</div>'
+      + '<div class="bdg__set">'
+        + '<input class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="Set a budget for this trip" value="'+(est||'')+'" id="bdgEst">'
+        + '<button class="btn" data-bdgset>Save budget</button>'
+      + '</div>';
+
+    var catList = cats.length
+      ? '<div class="trd__secH">Where it went</div><div class="bdg__cat">'
+        + cats.map(function(c){
+            var v=byCat[c], pc = top ? Math.round(v/top*100) : 0;
+            return '<div class="bdg__row"><div style="flex:1;min-width:0">'
+              + '<div style="display:flex;justify-content:space-between;gap:12px">'
+              + '<span class="bdg__nm">'+esc(c)+'</span><span class="bdg__amt">'+fmtMoney(v)+'</span></div>'
+              + '<div class="bdg__pct"><div class="bdg__pctf" style="width:'+pc+'%"></div></div>'
+              + '</div></div>';
+          }).join('')
+        + '</div>'
+      : '';
+
+    var list = (t.expenses||[]).slice().sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
+    var exp = '<div class="trd__secH">Expenses \u00b7 '+list.length+'</div>'
+      + (list.length
+        ? '<div class="bdg__exp">' + list.map(function(x){
+            return '<div class="bdg__e"><span class="bdg__ec"><span class="bdg__et">'+esc(x.name)+'</span>'
+              + '<span class="bdg__em">'+esc(x.cat||'Other')+(x.date?' \u00b7 '+fmtDate(x.date):'')+'</span></span>'
+              + '<span class="bdg__ea">'+fmtMoney(parseFloat(x.amt)||0)+'</span>'
+              + '<button class="bdg__del" data-bdgdel="'+x.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button></div>';
+          }).join('') + '</div>'
+        : '<div class="itn__empty">No expenses yet. Add the first one below.</div>')
+      + '<div class="bdg__add">'
+        + '<input class="input" type="text" placeholder="What was it for?" id="bdgName">'
+        + '<input class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="Amount" id="bdgAmt">'
+        + '<select class="input" id="bdgCat">'+TRD_CATS.map(function(c){ return '<option>'+c+'</option>'; }).join('')+'</select>'
+        + '<button class="btn btn--primary" data-bdgadd>Add</button>'
+      + '</div>';
+
+    return head + catList + exp;
+  }
+
   function trdSoon(what){
     return '<div class="trd__soon">'+what+' arrives in the next step.<br>Everything you add elsewhere stays exactly where it is.</div>';
   }
@@ -9402,7 +9507,7 @@
         + (trdTab==='overview' ? trdTabOverview(t)
           : trdTab==='packing' ? trdSoon('The full packing view')
           : trdTab==='itinerary' ? trdTabItinerary(t)
-          : trdTab==='budget' ? trdSoon('Trip budget and expenses')
+          : trdTab==='budget' ? trdTabBudget(t)
           : trdTab==='bookings' ? trdSoon('Flights, hotels and reservations')
           : trdTab==='docs' ? trdSoon('Passports, visas and tickets')
           : trdSoon('The travel journal'))
@@ -9458,6 +9563,33 @@
       try{ FD.save(); }catch(_){}
       trdRender();
       return;
+    }
+    if(e.target.closest('[data-bdgset]')){
+      var tb=trdTrip(); if(!tb) return;
+      var f=document.getElementById('bdgEst');
+      tb.budget = parseFloat(f&&f.value)||0;
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-bdgadd]')){
+      var t5=trdTrip(); if(!t5) return;
+      var nm=document.getElementById('bdgName'), am=document.getElementById('bdgAmt'), ct=document.getElementById('bdgCat');
+      var name=(nm&&nm.value||'').trim(), amt=parseFloat(am&&am.value);
+      if(!name){ if(nm) nm.focus(); return; }
+      if(isNaN(amt)||amt<=0){ if(am) am.focus(); return; }
+      if(!t5.expenses) t5.expenses=[];
+      t5.expenses.push({ id:'ex'+Date.now()+Math.random().toString(36).slice(2,6),
+        name:name, amt:amt, cat:(ct&&ct.value)||'Other', date:new Date().toISOString().slice(0,10) });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var bd=e.target.closest('[data-bdgdel]');
+    if(bd){
+      var t6=trdTrip(); if(!t6) return;
+      var eid=bd.getAttribute('data-bdgdel');
+      t6.expenses=(t6.expenses||[]).filter(function(x){ return x.id!==eid; });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
     }
     var pr=e.target.closest('[data-trdprep]');
     if(pr){

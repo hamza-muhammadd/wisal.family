@@ -4015,3 +4015,89 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 /* the field itself now reads as a proper control */
 .wdate{cursor:pointer;position:relative}
 .wdate::-webkit-calendar-picker-indicator{display:none}
+
+/* ==================== TRIP BUDGET ==================== */
+.bdg__top{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:18px}
+.bdg__t{padding:15px 16px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--glass-hair)}
+.bdg__tl{font-size:.72rem;color:var(--text-3);margin-bottom:5px;font-family:var(--mono);
+  letter-spacing:.08em;text-transform:uppercase}
+.bdg__tv{font-size:1.16rem;font-weight:740;letter-spacing:-.02em;color:var(--text)}
+.bdg__t--spent .bdg__tv{color:var(--brand)}
+.bdg__t--left .bdg__tv{color:var(--ok,#2C7F6B)}
+.bdg__t--over .bdg__tv{color:var(--danger,#d9534f)}
+.bdg__set{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.bdg__set input{flex:1;min-width:140px}
+.bdg__cat{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+.bdg__row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid var(--glass-hair)}
+.bdg__nm{flex:1;min-width:0;font-size:.94rem;font-weight:580;color:var(--text)}
+.bdg__amt{font-family:var(--mono);font-size:.92rem;font-weight:620;color:var(--text)}
+.bdg__pct{width:100%;height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:7px}
+.bdg__pctf{height:100%;border-radius:99px;background:var(--brand);transition:width .4s var(--ease)}
+.bdg__exp{display:flex;flex-direction:column;gap:2px}
+.bdg__e{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:var(--r-md);
+  transition:background .15s}
+.bdg__e:hover{background:var(--surface-2)}
+.bdg__ec{flex:1;min-width:0}
+.bdg__et{font-size:.94rem;font-weight:560;color:var(--text)}
+.bdg__em{font-size:.78rem;color:var(--text-3);margin-top:2px}
+.bdg__ea{font-family:var(--mono);font-size:.92rem;font-weight:620;color:var(--text);white-space:nowrap}
+.bdg__del{flex:none;border:0;background:transparent;color:var(--text-3);cursor:pointer;padding:5px;
+  border-radius:8px;opacity:0;transition:opacity .15s,color .15s}
+.bdg__e:hover .bdg__del{opacity:1}
+.bdg__del:hover{color:var(--danger,#d9534f)}
+.bdg__del svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.bdg__add{display:grid;grid-template-columns:1.4fr .9fr 1fr auto;gap:8px;margin-top:12px}
+@media (max-width:620px){ .bdg__add{grid-template-columns:1fr 1fr} .bdg__add .btn{grid-column:1/-1;justify-content:center} }
+@media (max-width:480px){ .bdg__top{grid-template-columns:1fr} }
+
+/* ---- picker: month & year level ---- */
+.wdp__mo{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;
+  font:inherit;font-size:1rem;font-weight:680;color:var(--text);cursor:pointer;
+  padding:7px 11px;border-radius:11px;transition:background .15s}
+.wdp__mo:hover{background:var(--surface-2)}
+.wdp__mo svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;opacity:.55}
+.wdp__mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.wdp__m{padding:15px 0;border:1px solid var(--glass-hair);background:var(--surface-2);
+  border-radius:14px;font:inherit;font-size:.92rem;font-weight:600;color:var(--text);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+.wdp__m:hover{border-color:var(--border-strong)}
+.wdp__m.is-today{box-shadow:inset 0 0 0 1.5px var(--border-strong)}
+.wdp__m.is-sel{background:var(--brand);color:#fff;border-color:transparent}
+.wdp__yrow{display:flex;gap:6px;margin-top:12px}
+.wdp__y{flex:1;padding:11px 0;border:1px solid var(--glass-hair);background:var(--surface-2);
+  border-radius:11px;font:inherit;font-family:var(--mono);font-size:.84rem;font-weight:600;
+  color:var(--text-2);cursor:pointer;transition:all .15s}
+.wdp__y:hover{color:var(--text);border-color:var(--border-strong)}
+.wdp__y.is-sel{background:color-mix(in srgb,var(--brand) 15%,transparent);color:var(--brand);
+  border-color:color-mix(in srgb,var(--brand) 35%,transparent);font-weight:760}
+
+/* ---- the date & time fields themselves ----
+   The browser draws dd/mm/yyyy as separate little parts. Styling those parts is
+   what makes the field feel like ours rather than a raw form control. */
+input[type="date"],input[type="time"],input[type="datetime-local"]{
+  cursor:pointer;font-family:var(--mono);font-size:.9rem;letter-spacing:.02em;
+  color:var(--text)}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator{
+  opacity:.5;cursor:pointer;filter:grayscale(1)}
+::-webkit-datetime-edit{padding:0}
+::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;gap:1px}
+::-webkit-datetime-edit-text{color:var(--text-3);padding:0 3px;font-weight:400}
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-year-field,
+::-webkit-datetime-edit-hour-field,
+::-webkit-datetime-edit-minute-field{
+  color:var(--text);font-weight:600;padding:1px 3px;border-radius:5px}
+::-webkit-datetime-edit-ampm-field{
+  color:var(--brand);font-weight:700;padding:1px 5px;margin-left:4px;border-radius:5px;
+  background:color-mix(in srgb,var(--brand) 12%,transparent)}
+::-webkit-datetime-edit-day-field:focus,
+::-webkit-datetime-edit-month-field:focus,
+::-webkit-datetime-edit-year-field:focus,
+::-webkit-datetime-edit-hour-field:focus,
+::-webkit-datetime-edit-minute-field:focus,
+::-webkit-datetime-edit-ampm-field:focus{
+  background:color-mix(in srgb,var(--brand) 18%,transparent);color:var(--brand);outline:none}
