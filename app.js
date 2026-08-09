@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','63'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','64'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '63 \u00b7 clean-fit';
+  var APP_VERSION = '64 \u00b7 trip-packing';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9260,7 +9260,7 @@
     clockHTML:function(){
       var hs='', ms='', i, j;
       for(i=1;i<=12;i++) hs+='<button class="wdp__o'+(i===this.h?' is-sel':'')+'" data-wdph="'+i+'">'+this.pad(i)+'</button>';
-      for(j=0;j<60;j+=5) ms+='<button class="wdp__o'+(j===this.m?' is-sel':'')+'" data-wdpm="'+j+'">'+this.pad(j)+'</button>';
+      for(j=0;j<60;j++) ms+='<button class="wdp__o'+(j===this.m?' is-sel':'')+'" data-wdpm="'+j+'">'+this.pad(j)+'</button>';
       return '<div class="wdp__cols"><div class="wdp__col" id="wdpH">'+hs+'</div><div class="wdp__col" id="wdpM">'+ms+'</div></div>'
         + '<div class="wdp__mer">'
         + '<button class="'+(this.mer==='AM'?'is-sel':'')+'" data-wdpmer="AM">AM</button>'
@@ -9346,7 +9346,7 @@
       var n=new Date();
       WDP.sel=new Date(n.getFullYear(),n.getMonth(),n.getDate());
       WDP.view=new Date(n.getFullYear(),n.getMonth(),1);
-      WDP.mer=n.getHours()>=12?'PM':'AM'; WDP.h=n.getHours()%12||12; WDP.m=Math.round(n.getMinutes()/5)*5%60;
+      WDP.mer=n.getHours()>=12?'PM':'AM'; WDP.h=n.getHours()%12||12; WDP.m=n.getMinutes();
       WDP.redrawCal(); WDP.mark('data-wdph', WDP.h); WDP.mark('data-wdpm', WDP.m); WDP.mark('data-wdpmer', WDP.mer);
       var _d=WDP.sel; if(_d) WDP.mark('data-wdpd', _d.getFullYear()+'-'+WDP.pad(_d.getMonth()+1)+'-'+WDP.pad(_d.getDate()));
       return;
@@ -9539,6 +9539,56 @@
     return head + catList + exp;
   }
 
+  /* ---- Packing, inside the trip it belongs to ---- */
+  var TRD_PACKCATS = ['Documents','Clothing','Personal','Religious','Family','Tech','Other'];
+  var TRD_ESSENTIALS = [
+    ['Documents','Passport'],['Documents','Visa'],['Documents','Tickets'],['Documents','Hotel booking'],
+    ['Personal','Medication'],['Personal','Toiletries'],['Tech','Charger'],['Tech','Power bank'],
+    ['Religious','Prayer mat'],['Religious','Tasbih'],['Clothing','Shoes'],['Clothing','Jacket']
+  ];
+  function trdPackItems(t){
+    return FD.data.travel.packing.filter(function(p){ return p.tripId===t.id; });
+  }
+  function trdTabPacking(t){
+    var items=trdPackItems(t);
+    var done=items.filter(function(p){ return p.done; }).length;
+    var pc = items.length ? Math.round(done/items.length*100) : 0;
+    var groups={};
+    items.forEach(function(p){ var c=p.cat||'Other'; (groups[c]=groups[c]||[]).push(p); });
+    var order=TRD_PACKCATS.filter(function(c){ return groups[c]; });
+
+    var head='<div class="tvpk__head"><div style="flex:1;min-width:0">'
+      + '<div class="tvpk__lbl">'+(items.length? done+' of '+items.length+' packed' : 'Nothing on the list yet')+'</div>'
+      + '<div class="tvpk__bar"><div class="tvpk__barf" style="width:'+pc+'%"></div></div>'
+      + '</div><div class="tvpk__pc">'+pc+'%</div></div>';
+
+    var body = order.length
+      ? order.map(function(c){
+          var list=groups[c];
+          var cdone=list.filter(function(p){return p.done;}).length;
+          return '<div class="pk__grp">'
+            + '<div class="pk__gh"><span>'+esc(c)+'</span><span class="pk__gc">'+cdone+'/'+list.length+'</span></div>'
+            + list.map(function(p){
+                return '<div class="pk__i'+(p.done?' is-done':'')+'">'
+                  + '<button class="pk__chk" data-pkto="'+p.id+'" aria-label="Toggle"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+                  + '<span class="pk__t">'+esc(p.name||p.title||'Item')+'</span>'
+                  + '<button class="pk__x" data-pkdel="'+p.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+                + '</div>';
+              }).join('')
+            + '</div>';
+        }).join('')
+      : '<div class="itn__empty">Nothing packed yet. Add the essentials below, then anything else you need.</div>';
+
+    var add = '<div class="pk__add">'
+      + '<input class="input" type="text" placeholder="Add something to pack" id="pkName">'
+      + '<select class="input" id="pkCat" aria-label="Category">'+TRD_PACKCATS.map(function(c){ return '<option>'+c+'</option>'; }).join('')+'</select>'
+      + '<button class="btn btn--primary" data-pkadd>Add</button>'
+      + '</div>'
+      + (items.length ? '' : '<button class="btn pk__seed" data-pkseed>Add travel essentials</button>');
+
+    return head + body + add;
+  }
+
   function trdSoon(what){
     return '<div class="trd__soon">'+what+' arrives in the next step.<br>Everything you add elsewhere stays exactly where it is.</div>';
   }
@@ -9575,7 +9625,7 @@
       + '</div>'
       + '<div class="trd__body">'
         + (trdTab==='overview' ? trdTabOverview(t)
-          : trdTab==='packing' ? trdSoon('The full packing view')
+          : trdTab==='packing' ? trdTabPacking(t)
           : trdTab==='itinerary' ? trdTabItinerary(t)
           : trdTab==='budget' ? trdTabBudget(t)
           : trdTab==='bookings' ? trdSoon('Flights, hotels and reservations')
@@ -9610,6 +9660,27 @@
     if(e.target.closest('[data-trdclose]')){ trdClose(); return; }
     var tb=e.target.closest('[data-trdtab]');
     if(tb){ trdTab=tb.getAttribute('data-trdtab'); trdRender(); return; }
+    var pkt=e.target.closest('[data-pkto]');
+    if(pkt){
+      var it=FD.getPack(pkt.getAttribute('data-pkto'));
+      if(it){ FD.updatePack(it.id,{done:!it.done}); trdRender(); }
+      return;
+    }
+    var pkd=e.target.closest('[data-pkdel]');
+    if(pkd){ FD.removePack(pkd.getAttribute('data-pkdel')); trdRender(); return; }
+    if(e.target.closest('[data-pkadd]')){
+      var tp=trdTrip(); if(!tp) return;
+      var nmE=document.getElementById('pkName'), ctE=document.getElementById('pkCat');
+      var nm=(nmE&&nmE.value||'').trim();
+      if(!nm){ if(nmE) nmE.focus(); return; }
+      FD.addPack({ tripId:tp.id, name:nm, cat:(ctE&&ctE.value)||'Other', done:false });
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-pkseed]')){
+      var tp2=trdTrip(); if(!tp2) return;
+      TRD_ESSENTIALS.forEach(function(x){ FD.addPack({ tripId:tp2.id, cat:x[0], name:x[1], done:false }); });
+      trdRender(); return;
+    }
     var ic=e.target.closest('[data-itnclock]');
     if(ic){
       var day=ic.getAttribute('data-itnclock');
@@ -9692,6 +9763,9 @@
 
   document.addEventListener('keydown', function(e){
     if(e.key==='Escape' && trdId) trdClose();
+    if(e.key==='Enter' && e.target && e.target.id==='pkName'){
+      var b=document.querySelector('[data-pkadd]'); if(b){ e.preventDefault(); b.click(); }
+    }
     if(e.key==='Enter' && e.target && e.target.hasAttribute && e.target.hasAttribute('data-itntitle')){
       var day=e.target.getAttribute('data-itntitle');
       var btn=document.querySelector('[data-itnadd="'+day+'"]');

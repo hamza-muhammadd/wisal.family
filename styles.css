@@ -4236,3 +4236,35 @@ html,body{max-width:100%;overflow-x:hidden}
 .canvas,.view,.set__card,.trd__body{max-width:100%}
 .canvas *{min-width:0}
 input,select,textarea{max-width:100%}
+
+/* ==================== PACKING INSIDE A TRIP ==================== */
+.pk__grp{margin-bottom:18px}
+.pk__gh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;
+  font-family:var(--mono);font-size:.66rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-3)}
+.pk__gc{color:var(--brand);letter-spacing:.04em}
+.pk__i{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r-md);
+  border:1px solid transparent;transition:background .15s,border-color .15s}
+.pk__i:hover{background:var(--surface-2);border-color:var(--glass-hair)}
+.pk__chk{flex:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--border-strong);
+  background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;
+  transition:background .18s,border-color .18s}
+.pk__chk svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;opacity:0;transition:opacity .18s}
+.pk__i.is-done .pk__chk{background:var(--brand);border-color:var(--brand)}
+.pk__i.is-done .pk__chk svg{opacity:1}
+.pk__t{flex:1;min-width:0;font-size:.96rem;color:var(--text);overflow-wrap:anywhere}
+.pk__i.is-done .pk__t{color:var(--text-3);text-decoration:line-through;text-decoration-thickness:1px}
+.pk__x{flex:none;border:0;background:transparent;color:var(--text-3);cursor:pointer;padding:6px;
+  border-radius:8px;opacity:0;transition:opacity .15s,color .15s}
+.pk__i:hover .pk__x{opacity:1}
+.pk__x:hover{color:var(--danger,#d9534f)}
+.pk__x svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.pk__add{display:grid;grid-template-columns:1fr;gap:9px;margin-top:16px;padding:15px 16px;
+  border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--glass-hair)}
+.pk__add>*{min-width:0}
+@media (min-width:640px){
+  .pk__add{grid-template-columns:1.6fr 1fr auto}
+}
+.pk__seed{width:100%;justify-content:center;margin-top:11px}
+/* the header sits above the groups with breathing room */
+.tvpk__head{margin-bottom:20px}
