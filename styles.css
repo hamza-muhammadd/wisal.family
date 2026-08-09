@@ -3819,12 +3819,12 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .16s}
 .trd__back:hover{background:rgba(10,16,34,.66)}
 .trd__back svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.2}
-.trd__head{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:20px 22px 18px;color:#fff}
+.trd__head{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:20px 22px 46px;color:#fff}
 .trd__dest{font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.18em;
   text-transform:uppercase;opacity:.86;margin-bottom:7px}
 .trd__name{font-size:1.72rem;font-weight:780;letter-spacing:-.03em;line-height:1.12;margin:0 0 7px}
 .trd__dates{font-size:.92rem;opacity:.82}
-.trd__pill{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:6px 13px;border-radius:999px;
+.trd__pill{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 13px;border-radius:999px;
   font-size:.78rem;font-weight:640;border:1px solid rgba(255,255,255,.26);
   background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 
@@ -3884,7 +3884,8 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   .trd__head{padding-left:0;padding-right:0}
   .trd__head,.trd__ready,.trd__tabs,.trd__body{
     max-width:880px;margin-left:auto;margin-right:auto;left:0;right:0}
-  .trd__ready{margin-top:-32px}
+  .trd__ready{margin-top:-30px}
+  .trd__head{padding-bottom:56px}
   .trd__back{left:calc(50vw - 440px)}
 }
 @media (min-width:900px) and (max-width:960px){
