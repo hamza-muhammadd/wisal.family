@@ -1,7 +1,6 @@
-/* 001 · app.js · build 56 · UPLOAD AS: app.js */
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','56'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','57'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3692,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4979,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '56 \u00b7 itinerary';
+  var APP_VERSION = '57 \u00b7 date-time-picker';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9101,6 +9100,154 @@
  }
  applyNavGroups();
  navigate(VIEWS.indexOf(start)!==-1?start:'home', false);
+  /* ==================== WISAL DATE & TIME PICKERS ====================
+     Every date/time field in the app is a native input. Rather than rewrite 45
+     call sites, we intercept the tap, show our own sheet, then write the value
+     back and fire the same events the app already listens for. */
+  var WDP = {
+    el:null, input:null, mode:'date', view:null, sel:null, h:12, m:0, mer:'AM',
+    MON:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    DOW:['S','M','T','W','T','F','S'],
+    mount:function(){
+      if(this.el) return this.el;
+      var d=document.createElement('div');
+      d.className='wdp'; d.id='wdpSheet';
+      document.body.appendChild(d); this.el=d; return d;
+    },
+    pad:function(n){ return (n<10?'0':'')+n; },
+    open:function(input){
+      this.input=input;
+      this.mode = input.type==='time' ? 'time' : (input.type==='datetime-local' ? 'datetime' : 'date');
+      var v=input.value, now=new Date();
+      if(this.mode==='time'){
+        var p=(v||'').split(':');
+        var hh=parseInt(p[0],10); if(isNaN(hh)) hh=now.getHours();
+        var mm=parseInt(p[1],10); if(isNaN(mm)) mm=0;
+        this.mer = hh>=12 ? 'PM' : 'AM';
+        this.h = hh%12; if(this.h===0) this.h=12;
+        this.m = mm; this.sel=null;
+      } else {
+        var base = v ? new Date(v.slice(0,10)+'T00:00:00') : now;
+        if(isNaN(base)) base=now;
+        this.sel = v ? new Date(base) : null;
+        this.view = new Date(base.getFullYear(), base.getMonth(), 1);
+        if(this.mode==='datetime'){
+          var t=(v||'').slice(11,16).split(':');
+          var h2=parseInt(t[0],10); if(isNaN(h2)) h2=now.getHours();
+          var m2=parseInt(t[1],10); if(isNaN(m2)) m2=0;
+          this.mer=h2>=12?'PM':'AM'; this.h=h2%12||12; this.m=m2;
+        }
+      }
+      this.mount().classList.add('is-on'); this.paint();
+    },
+    close:function(){ if(this.el) this.el.classList.remove('is-on'); this.input=null; },
+    label:function(){
+      if(this.mode==='time') return this.pad(this.h)+':'+this.pad(this.m)+' '+this.mer;
+      if(!this.sel) return 'Pick a date';
+      var d=this.sel;
+      return d.getDate()+' '+this.MON[d.getMonth()].slice(0,3)+' '+d.getFullYear()
+        + (this.mode==='datetime' ? '  \u00b7  '+this.pad(this.h)+':'+this.pad(this.m)+' '+this.mer : '');
+    },
+    calHTML:function(){
+      var y=this.view.getFullYear(), mo=this.view.getMonth();
+      var start=new Date(y,mo,1).getDay();
+      var days=new Date(y,mo+1,0).getDate(), prev=new Date(y,mo,0).getDate();
+      var today=new Date(); today.setHours(0,0,0,0);
+      var cells=[], i, d;
+      for(i=start-1;i>=0;i--) cells.push({d:prev-i, out:-1});
+      for(d=1;d<=days;d++) cells.push({d:d, out:0});
+      var n=1; while(cells.length%7){ cells.push({d:n++, out:1}); }
+      var self=this;
+      return '<div class="wdp__nav">'
+        + '<button class="wdp__arw" data-wdpmo="-1" aria-label="Previous month"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        + '<span class="wdp__mo">'+this.MON[mo]+' '+y+'</span>'
+        + '<button class="wdp__arw" data-wdpmo="1" aria-label="Next month"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        + '</div>'
+        + '<div class="wdp__dow">'+this.DOW.map(function(x){return '<span>'+x+'</span>';}).join('')+'</div>'
+        + '<div class="wdp__grid">'
+        + cells.map(function(c){
+            var real=new Date(y,mo+c.out,c.d); real.setHours(0,0,0,0);
+            var cls='wdp__d'+(c.out?' is-out':'');
+            if(+real===+today) cls+=' is-today';
+            if(self.sel){ var sd=new Date(self.sel); sd.setHours(0,0,0,0); if(+real===+sd) cls+=' is-sel'; }
+            return '<button class="'+cls+'" data-wdpd="'+real.getFullYear()+'-'+self.pad(real.getMonth()+1)+'-'+self.pad(real.getDate())+'">'+c.d+'</button>';
+          }).join('')
+        + '</div>';
+    },
+    clockHTML:function(){
+      var hs='', ms='', i, j;
+      for(i=1;i<=12;i++) hs+='<button class="wdp__o'+(i===this.h?' is-sel':'')+'" data-wdph="'+i+'">'+this.pad(i)+'</button>';
+      for(j=0;j<60;j+=5) ms+='<button class="wdp__o'+(j===this.m?' is-sel':'')+'" data-wdpm="'+j+'">'+this.pad(j)+'</button>';
+      return '<div class="wdp__cols"><div class="wdp__col" id="wdpH">'+hs+'</div><div class="wdp__col" id="wdpM">'+ms+'</div></div>'
+        + '<div class="wdp__mer">'
+        + '<button class="'+(this.mer==='AM'?'is-sel':'')+'" data-wdpmer="AM">AM</button>'
+        + '<button class="'+(this.mer==='PM'?'is-sel':'')+'" data-wdpmer="PM">PM</button>'
+        + '</div>';
+    },
+    paint:function(){
+      var title = this.mode==='time' ? 'Choose a time' : (this.mode==='datetime' ? 'Choose date & time' : 'Choose a date');
+      this.el.innerHTML = '<div class="wdp__box" role="dialog" aria-modal="true">'
+        + '<div class="wdp__t">'+title+'</div>'
+        + '<div class="wdp__v">'+esc(this.label())+'</div>'
+        + (this.mode==='time' ? this.clockHTML() : this.calHTML() + (this.mode==='datetime' ? '<div style="margin-top:14px">'+this.clockHTML()+'</div>' : ''))
+        + '<div class="wdp__acts">'
+          + '<button class="btn wdp__now" data-wdpnow>'+(this.mode==='time'?'Now':'Today')+'</button>'
+          + '<button class="btn" data-wdpcancel>Cancel</button>'
+          + '<button class="btn btn--primary" data-wdpok>Done</button>'
+        + '</div></div>';
+      var hc=document.getElementById('wdpH'), mc=document.getElementById('wdpM'), a, b;
+      if(hc){ a=hc.querySelector('.is-sel'); if(a) hc.scrollTop=a.offsetTop-hc.clientHeight/2+a.clientHeight/2; }
+      if(mc){ b=mc.querySelector('.is-sel'); if(b) mc.scrollTop=b.offsetTop-mc.clientHeight/2+b.clientHeight/2; }
+    },
+    commit:function(){
+      if(!this.input) return;
+      var h24 = this.h%12 + (this.mer==='PM'?12:0), out;
+      if(this.mode==='time') out=this.pad(h24)+':'+this.pad(this.m);
+      else if(!this.sel) out='';
+      else {
+        var d=this.sel, ds=d.getFullYear()+'-'+this.pad(d.getMonth()+1)+'-'+this.pad(d.getDate());
+        out = this.mode==='datetime' ? ds+'T'+this.pad(h24)+':'+this.pad(this.m) : ds;
+      }
+      this.input.value=out;
+      try{
+        this.input.dispatchEvent(new Event('input',{bubbles:true}));
+        this.input.dispatchEvent(new Event('change',{bubbles:true}));
+      }catch(e){}
+      this.close();
+    }
+  };
+
+  document.addEventListener('mousedown', function(e){
+    var i=e.target.closest && e.target.closest('input[type="date"],input[type="time"],input[type="datetime-local"]');
+    if(!i) return;
+    e.preventDefault(); i.blur(); WDP.open(i);
+  }, true);
+  document.addEventListener('keydown', function(e){
+    var i=e.target.closest && e.target.closest('input[type="date"],input[type="time"],input[type="datetime-local"]');
+    if(i && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); WDP.open(i); }
+    if(e.key==='Escape' && WDP.input) WDP.close();
+  });
+  document.addEventListener('click', function(e){
+    if(!WDP.input) return;
+    if(e.target.id==='wdpSheet'){ WDP.close(); return; }
+    var t;
+    if((t=e.target.closest('[data-wdpmo]'))){ WDP.view.setMonth(WDP.view.getMonth()+parseInt(t.getAttribute('data-wdpmo'),10)); WDP.paint(); return; }
+    if((t=e.target.closest('[data-wdpd]'))){ WDP.sel=new Date(t.getAttribute('data-wdpd')+'T00:00:00'); WDP.paint(); return; }
+    if((t=e.target.closest('[data-wdph]'))){ WDP.h=parseInt(t.getAttribute('data-wdph'),10); WDP.paint(); return; }
+    if((t=e.target.closest('[data-wdpm]'))){ WDP.m=parseInt(t.getAttribute('data-wdpm'),10); WDP.paint(); return; }
+    if((t=e.target.closest('[data-wdpmer]'))){ WDP.mer=t.getAttribute('data-wdpmer'); WDP.paint(); return; }
+    if(e.target.closest('[data-wdpnow]')){
+      var n=new Date();
+      WDP.sel=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+      WDP.view=new Date(n.getFullYear(),n.getMonth(),1);
+      WDP.mer=n.getHours()>=12?'PM':'AM'; WDP.h=n.getHours()%12||12; WDP.m=Math.round(n.getMinutes()/5)*5%60;
+      WDP.paint(); return;
+    }
+    if(e.target.closest('[data-wdpcancel]')){ WDP.close(); return; }
+    if(e.target.closest('[data-wdpok]')){ WDP.commit(); return; }
+  });
+
+
 /* ==================== TRIP COMMAND CENTER (step 1) ====================
    Tapping a trip opens its own space. Everything here reads from the existing
    trip object and the existing packing list — no data was moved or renamed, so

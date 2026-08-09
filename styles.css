@@ -1,4 +1,3 @@
-/* 003 · styles.css · upload as styles.css */
 /* ============ TOKENS ============ */
 :root{
  --rail: 266px;
@@ -3944,6 +3943,75 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 .itn__del svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
 .itn__add{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .itn__add input{flex:1;min-width:0}
-.itn__add input.itn__time{flex:none;width:96px}
+/* the time field now opens our own clock, so it needs room for a readable label */
+.itn__add input.itn__time{flex:none;width:120px;text-align:center;cursor:pointer}
+@media (max-width:520px){
+  .itn__add{flex-direction:column}
+  .itn__add input.itn__time{width:100%}
+  .itn__add .btn{width:100%;justify-content:center}
+}
 .itn__empty{padding:26px 18px;text-align:center;color:var(--text-3);font-size:.9rem;
   border:1px dashed var(--border-strong);border-radius:var(--r-lg)}
+
+/* ==================== WISAL DATE & TIME PICKERS ====================
+   Replaces the browser's own tiny grey pickers everywhere at once. */
+.wdp{position:fixed;inset:0;z-index:1400;display:none;align-items:flex-end;justify-content:center;
+  background:color-mix(in srgb,#060B18 62%,transparent);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.wdp.is-on{display:flex}
+.wdp__box{width:min(420px,100%);background:var(--surface);border:1px solid var(--glass-hair);
+  border-radius:26px 26px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:var(--sh-3);animation:wdpUp .26s cubic-bezier(.16,1,.3,1)}
+@keyframes wdpUp{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+@media (min-width:640px){
+  .wdp{align-items:center}
+  .wdp__box{border-radius:26px}
+}
+.wdp__t{font-size:.72rem;font-family:var(--mono);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-3);margin-bottom:4px}
+.wdp__v{font-size:1.5rem;font-weight:760;letter-spacing:-.025em;color:var(--text);margin-bottom:18px}
+
+/* calendar */
+.wdp__nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.wdp__mo{font-size:1rem;font-weight:680;color:var(--text)}
+.wdp__arw{width:36px;height:36px;border-radius:12px;border:1px solid var(--glass-hair);
+  background:var(--surface-2);color:var(--text-2);display:grid;place-items:center;cursor:pointer;
+  transition:color .15s,border-color .15s}
+.wdp__arw:hover{color:var(--text);border-color:var(--border-strong)}
+.wdp__arw svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2}
+.wdp__dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.wdp__dow span{text-align:center;font-family:var(--mono);font-size:.62rem;font-weight:700;
+  letter-spacing:.08em;color:var(--text-3);padding:6px 0}
+.wdp__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.wdp__d{aspect-ratio:1;border:0;background:transparent;font:inherit;font-size:.92rem;font-weight:560;
+  color:var(--text);border-radius:12px;cursor:pointer;display:grid;place-items:center;
+  transition:background .14s,color .14s}
+.wdp__d:hover{background:var(--surface-2)}
+.wdp__d.is-out{color:var(--text-3);opacity:.45}
+.wdp__d.is-today{box-shadow:inset 0 0 0 1.5px var(--border-strong)}
+.wdp__d.is-sel{background:var(--brand);color:#fff;font-weight:700}
+.wdp__d.is-sel:hover{background:var(--brand)}
+
+/* clock */
+.wdp__cols{display:flex;gap:10px;height:212px}
+.wdp__col{flex:1;overflow-y:auto;scroll-snap-type:y mandatory;border:1px solid var(--glass-hair);
+  border-radius:var(--r-md);background:var(--surface-2);padding:78px 0}
+.wdp__col::-webkit-scrollbar{display:none}
+.wdp__o{display:block;width:100%;border:0;background:transparent;font:inherit;font-size:1.02rem;
+  font-weight:560;color:var(--text-2);padding:9px 0;cursor:pointer;scroll-snap-align:center;
+  transition:color .14s,background .14s}
+.wdp__o:hover{background:var(--surface);color:var(--text)}
+.wdp__o.is-sel{color:var(--brand);font-weight:760;background:color-mix(in srgb,var(--brand) 12%,transparent)}
+.wdp__mer{display:flex;gap:6px;margin-top:12px}
+.wdp__mer button{flex:1;border:1px solid var(--glass-hair);background:var(--surface-2);font:inherit;
+  font-size:.88rem;font-weight:620;color:var(--text-2);padding:11px;border-radius:12px;cursor:pointer;
+  transition:all .15s}
+.wdp__mer button.is-sel{background:var(--brand);color:#fff;border-color:transparent}
+
+.wdp__acts{display:flex;gap:9px;margin-top:18px}
+.wdp__acts .btn{flex:1;justify-content:center;padding:13px}
+.wdp__now{flex:none;padding:13px 16px}
+
+/* the field itself now reads as a proper control */
+.wdate{cursor:pointer;position:relative}
+.wdate::-webkit-calendar-picker-indicator{display:none}
