@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','60'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','61'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '60 \u00b7 year-jump';
+  var APP_VERSION = '61 \u00b7 own-controls';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9100,6 +9100,65 @@
  }
  applyNavGroups();
  navigate(VIEWS.indexOf(start)!==-1?start:'home', false);
+  /* ==================== WISAL SELECT ====================
+     Same trick as the date picker: keep the native <select> in the DOM so every
+     existing read of .value keeps working, but take over the tap and show our
+     own sheet. All 17 dropdowns change at once. */
+  var WSEL = {
+    el:null, sel:null,
+    mount:function(){
+      if(this.el) return this.el;
+      var d=document.createElement('div');
+      d.className='wdp'; d.id='wselSheet';
+      document.body.appendChild(d); this.el=d; return d;
+    },
+    open:function(sel){
+      this.sel=sel;
+      var opts=Array.prototype.slice.call(sel.options);
+      var label=sel.getAttribute('aria-label')||sel.name||'Choose';
+      this.mount().innerHTML='<div class="wdp__box" role="dialog" aria-modal="true">'
+        + '<div class="wdp__t">'+esc(label)+'</div>'
+        + '<div class="wsel__list">'
+        + opts.map(function(o,i){
+            return '<button class="wsel__o'+(i===sel.selectedIndex?' is-sel':'')+'" data-wseli="'+i+'">'
+              + '<svg class="wsel__tick" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+              + '<span>'+esc(o.text)+'</span></button>';
+          }).join('')
+        + '</div>'
+        + '<div class="wdp__acts"><button class="btn" data-wselcancel>Close</button></div>'
+        + '</div>';
+      this.el.classList.add('is-on');
+      var on=this.el.querySelector('.is-sel');
+      if(on) on.scrollIntoView({block:'center'});
+    },
+    close:function(){ if(this.el) this.el.classList.remove('is-on'); this.sel=null; },
+    pick:function(i){
+      if(!this.sel) return;
+      this.sel.selectedIndex=i;
+      try{
+        this.sel.dispatchEvent(new Event('input',{bubbles:true}));
+        this.sel.dispatchEvent(new Event('change',{bubbles:true}));
+      }catch(e){}
+      this.close();
+    }
+  };
+  document.addEventListener('mousedown', function(e){
+    var s=e.target.closest && e.target.closest('select');
+    if(!s || s.disabled || s.multiple) return;
+    e.preventDefault(); s.blur(); WSEL.open(s);
+  }, true);
+  document.addEventListener('keydown', function(e){
+    var s=e.target.closest && e.target.closest('select');
+    if(s && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); WSEL.open(s); }
+    if(e.key==='Escape' && WSEL.sel) WSEL.close();
+  });
+  document.addEventListener('click', function(e){
+    if(!WSEL.sel) return;
+    if(e.target.id==='wselSheet' || e.target.closest('[data-wselcancel]')){ WSEL.close(); return; }
+    var o=e.target.closest('[data-wseli]');
+    if(o){ WSEL.pick(parseInt(o.getAttribute('data-wseli'),10)); return; }
+  });
+
   /* ==================== WISAL DATE & TIME PICKERS ====================
      Every date/time field in the app is a native input. Rather than rewrite 45
      call sites, we intercept the tap, show our own sheet, then write the value

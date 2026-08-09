@@ -4101,3 +4101,58 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{
 ::-webkit-datetime-edit-minute-field:focus,
 ::-webkit-datetime-edit-ampm-field:focus{
   background:color-mix(in srgb,var(--brand) 18%,transparent);color:var(--brand);outline:none}
+
+/* ==================== WISAL SELECT ====================
+   Replaces the operating system's grey dropdown everywhere. */
+.wsel__list{display:flex;flex-direction:column;gap:2px;max-height:52vh;overflow-y:auto;margin-top:4px}
+.wsel__o{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;
+  font:inherit;font-size:1rem;color:var(--text);padding:15px 14px;border-radius:14px;cursor:pointer;
+  text-align:left;transition:background .14s}
+.wsel__o:hover{background:var(--surface-2)}
+.wsel__o.is-sel{background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);font-weight:660}
+.wsel__tick{flex:none;width:20px;height:20px;opacity:0;fill:none;stroke:var(--brand);stroke-width:2.6}
+.wsel__o.is-sel .wsel__tick{opacity:1}
+/* the closed field reads as ours, not the browser's */
+select{appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E97AE' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
+  padding-right:38px}
+
+/* ---- picker: make the month/year control obvious on a phone ---- */
+.wdp__mo{font-size:1.06rem;padding:9px 14px;
+  border:1px solid var(--glass-hair);background:var(--surface-2)}
+.wdp__mo svg{width:16px;height:16px;opacity:.8}
+.wdp__arw{width:42px;height:42px}
+
+/* ---- budget: the add row stacks properly instead of colliding ---- */
+.bdg__add{grid-template-columns:1fr 1fr;gap:9px}
+.bdg__add #bdgName{grid-column:1/-1}
+.bdg__add .btn{grid-column:1/-1;justify-content:center;padding:13px}
+@media (min-width:700px){
+  .bdg__add{grid-template-columns:1.5fr .9fr 1fr auto}
+  .bdg__add #bdgName{grid-column:auto}
+  .bdg__add .btn{grid-column:auto;padding:12px 20px}
+}
+.bdg__set input{min-width:0}
+@media (max-width:520px){
+  .bdg__set{flex-direction:column;align-items:stretch}
+  .bdg__set .btn{justify-content:center}
+}
+
+/* ==================== PACKING LIST ====================
+   Grouped, countable, and calm — a list you can actually work through. */
+#tvPacking .ckitem{padding:13px 15px;border-radius:var(--r-md);transition:background .16s,border-color .16s}
+#tvPacking .ckitem:hover{border-color:var(--border-strong)}
+#tvPacking .ckitem.is-done{background:color-mix(in srgb,var(--ok,#2C7F6B) 6%,var(--surface));
+  border-color:color-mix(in srgb,var(--ok,#2C7F6B) 22%,transparent)}
+#tvPacking .ckitem.is-done .ckitem__t{color:var(--text-3);text-decoration:line-through;text-decoration-thickness:1px}
+#tvPacking .ckitem__chk{width:24px;height:24px;border-radius:8px;border-width:2px}
+.tvpk__head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:0 0 14px;padding:15px 17px;border-radius:var(--r-lg);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--brand) 9%,var(--surface)),var(--surface));
+  border:1px solid color-mix(in srgb,var(--brand) 22%,transparent)}
+.tvpk__lbl{font-size:.86rem;color:var(--text-2);font-weight:560}
+.tvpk__pc{font-size:1.35rem;font-weight:780;letter-spacing:-.02em;color:var(--brand)}
+.tvpk__bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:10px}
+.tvpk__barf{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2));
+  transition:width .45s var(--ease)}
