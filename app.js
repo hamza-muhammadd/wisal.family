@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','46'); console.log('Wisal build 46 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','47'); console.log('Wisal build 47 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -2611,7 +2611,7 @@
  var st=tripStatus(t), cd=tvCountdown(t);
  var photo=t.photo?'<div class="rcard__photo"><img src="'+t.photo+'" alt=""></div>':'';
  var pk=tvPackStats(t.id);
- return '<article class="tvcard'+(st==='past'?' is-past':'')+'">'+photo
+ return '<article class="tvcard'+(st==='past'?' is-past':'')+'" data-tvopen="'+t.id+'">'+photo
  +'<div class="rcard__body"><div class="lncard__top"><div class="lncard__hl"><div class="rcard__t">'+esc(t.dest||'Trip')+'</div><div class="lncard__s">'+fmtRange(t.start,t.end)+'</div></div><span class="tvpill tvpill--'+st+'">'+(cd||TV_PILL[st])+'</span></div>'
  +tvTravChips(t.travelers)
  +(t.note?'<div class="lncard__note">'+esc(t.note).replace(/\n/g,'<br>')+'</div>':'')
@@ -3668,6 +3668,9 @@
       var r=im.getBoundingClientRect();
       if(r.width<90 || r.height<60) return;
       if(im.closest('.attchip')||im.closest('.pj-avs')||im.closest('[class*="__av"]')) return;
+      /* A trip card is mostly its cover photo. Tapping it must open the trip,
+         not the picture — the cover is viewable inside the trip itself. */
+      if(im.closest('[data-tvopen]')) return;
       e.preventDefault(); e.stopPropagation();
       var card=im.closest('[class*="card"]')||im.closest('[class*="entry"]')||im.parentElement;
       var t=card?card.querySelector('h3,h4,.jr-title,.trip__name,.tvhero__t,.jentry__t'):null;
@@ -3684,7 +3687,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4971,7 +4974,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '46 \u00b7 trip-details';
+  var APP_VERSION = '47 \u00b7 trip-details';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9251,13 +9254,9 @@
       return;
     }
     /* Open a trip — but never when the tap was meant for a control on the card. */
-    var card=e.target.closest('.tvcard');
+    var card=e.target.closest('[data-tvopen]');
     if(card && !e.target.closest('button') && !e.target.closest('a')){
-      var arr=FD.data.travel.trips||[];
-      var idx=Array.prototype.indexOf.call(card.parentNode.querySelectorAll('.tvcard'), card);
-      var ordered = (typeof tvOrderTrips==='function') ? tvOrderTrips() : arr;
-      var t2=ordered[idx];
-      if(t2){ trdOpen(t2.id); }
+      trdOpen(card.getAttribute('data-tvopen'));
     }
   });
 
