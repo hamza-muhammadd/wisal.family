@@ -1,9 +1,10 @@
+/* 004 · sw.js · upload as sw.js */
 /* Wisal — service worker (optional, enables full offline use)
    Drop this file next to your HTML on Netlify and the app works with no connection.
    Strategy: network-first for the page (so you always get the latest when online),
    cache-first for fonts, and a cached fallback when offline. */
 
-var CACHE = 'wisal-v83';
+var CACHE = 'wisal-v85';
 var SHELL = ['./', './index.html', './styles.css', './app.js'];
 
 self.addEventListener('install', function(e){

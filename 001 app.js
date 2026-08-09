@@ -1,6 +1,7 @@
+/* 001 · app.js · Wisal build 54 · upload as app.js */
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','52'); console.log('Wisal build 52 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','54'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3692,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4979,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '52 \u00b7 journal-cards';
+  var APP_VERSION = '54 \u00b7 itinerary';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9176,6 +9177,46 @@
       + '</div></div>';
   }
 
+
+  /* ---- Itinerary: one row per day, events kept in time order ---- */
+  function trdDays(t){
+    if(!t.start||!t.end) return [];
+    var out=[], a=new Date(t.start), b=new Date(t.end), guard=0;
+    while(a<=b && guard<400){
+      out.push(new Date(a).toISOString().slice(0,10));
+      a.setDate(a.getDate()+1); guard++;
+    }
+    return out;
+  }
+  function trdEvents(t,day){
+    return (t.itinerary||[]).filter(function(x){ return x.day===day; })
+      .sort(function(x,y){ return String(x.time||'').localeCompare(String(y.time||'')); });
+  }
+  function trdTabItinerary(t){
+    var days=trdDays(t);
+    if(!days.length) return '<div class="itn__empty">Add a departure and return date to build the itinerary.</div>';
+    return days.map(function(d,i){
+      var evs=trdEvents(t,d);
+      return '<div class="itn__day">'
+        + '<div class="itn__dayh"><span class="itn__dayn">Day '+(i<9?'0':'')+(i+1)+'</span>'
+          + '<span class="itn__dayd">'+esc(fmtDate(d))+'</span></div>'
+        + (evs.length ? '<div class="itn__line">' + evs.map(function(ev){
+              return '<div class="itn__ev">'
+                + '<span class="itn__t">'+esc(ev.time||'\u2014')+'</span>'
+                + '<span class="itn__c"><span class="itn__title">'+esc(ev.title)+'</span>'
+                + (ev.note?'<span class="itn__note">'+esc(ev.note)+'</span>':'')+'</span>'
+                + '<button class="itn__del" data-itndel="'+ev.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+              + '</div>';
+            }).join('') + '</div>' : '')
+        + '<div class="itn__add">'
+          + '<input class="input itn__time" type="time" data-itntime="'+d+'" aria-label="Time">'
+          + '<input class="input" type="text" placeholder="Add something for this day" data-itntitle="'+d+'">'
+          + '<button class="btn" data-itnadd="'+d+'">Add</button>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  }
+
   function trdSoon(what){
     return '<div class="trd__soon">'+what+' arrives in the next step.<br>Everything you add elsewhere stays exactly where it is.</div>';
   }
@@ -9213,7 +9254,7 @@
       + '<div class="trd__body">'
         + (trdTab==='overview' ? trdTabOverview(t)
           : trdTab==='packing' ? trdSoon('The full packing view')
-          : trdTab==='itinerary' ? trdSoon('A day-by-day itinerary')
+          : trdTab==='itinerary' ? trdTabItinerary(t)
           : trdTab==='budget' ? trdSoon('Trip budget and expenses')
           : trdTab==='bookings' ? trdSoon('Flights, hotels and reservations')
           : trdTab==='docs' ? trdSoon('Passports, visas and tickets')
@@ -9247,6 +9288,30 @@
     if(e.target.closest('[data-trdclose]')){ trdClose(); return; }
     var tb=e.target.closest('[data-trdtab]');
     if(tb){ trdTab=tb.getAttribute('data-trdtab'); trdRender(); return; }
+    var ia=e.target.closest('[data-itnadd]');
+    if(ia){
+      var t3=trdTrip(); if(!t3) return;
+      var day=ia.getAttribute('data-itnadd');
+      var ti=document.querySelector('[data-itntitle="'+day+'"]');
+      var tm=document.querySelector('[data-itntime="'+day+'"]');
+      var title=(ti&&ti.value||'').trim();
+      if(!title){ if(ti) ti.focus(); return; }
+      if(!t3.itinerary) t3.itinerary=[];
+      t3.itinerary.push({ id:'ev'+Date.now()+Math.random().toString(36).slice(2,6),
+                          day:day, time:(tm&&tm.value)||'', title:title, note:'' });
+      try{ FD.save(); }catch(_){}
+      trdRender();
+      return;
+    }
+    var idl=e.target.closest('[data-itndel]');
+    if(idl){
+      var t4=trdTrip(); if(!t4) return;
+      var id=idl.getAttribute('data-itndel');
+      t4.itinerary=(t4.itinerary||[]).filter(function(x){ return x.id!==id; });
+      try{ FD.save(); }catch(_){}
+      trdRender();
+      return;
+    }
     var pr=e.target.closest('[data-trdprep]');
     if(pr){
       var t=trdTrip(); if(!t) return;
@@ -9265,6 +9330,11 @@
 
   document.addEventListener('keydown', function(e){
     if(e.key==='Escape' && trdId) trdClose();
+    if(e.key==='Enter' && e.target && e.target.hasAttribute && e.target.hasAttribute('data-itntitle')){
+      var day=e.target.getAttribute('data-itntitle');
+      var btn=document.querySelector('[data-itnadd="'+day+'"]');
+      if(btn){ e.preventDefault(); btn.click(); }
+    }
   });
 
 })();

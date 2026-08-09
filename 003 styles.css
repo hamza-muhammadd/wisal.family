@@ -1,3 +1,4 @@
+/* 003 · styles.css · upload as styles.css */
 /* ============ TOKENS ============ */
 :root{
  --rail: 266px;
@@ -3900,9 +3901,15 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   background:var(--surface-2);cursor:zoom-in}
 .jentry__cover img{width:100%;height:100%;object-fit:cover;display:block}
 .jentry--cover .jentry__head{margin-bottom:6px}
-/* The card itself stops growing, so the picture fills it instead of leaving a
-   wide empty strip beside it. Same shape as a trip card at every width. */
-.jentry{max-width:560px}
+/* ---- Cards sit beside each other, not in one long column ----
+   .jlist and .cklist hold only the cards, so it is safe to grid them.
+   (Gridding the outer container also caught the toolbar and search.) */
+.jlist,#tvTrips .cklist{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+  align-items:start}
+.jlist>*,#tvTrips .cklist>*{margin:0;max-width:none}
 .jentry--cover .jentry__body,
 .jentry--cover .jtags,
 .jentry--cover .jentry__acts{margin-left:0;margin-right:0}
@@ -3911,3 +3918,32 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 }
 /* the old inline photo style no longer applies to entries */
 .jentry--cover .jentry__photo{display:none}
+
+/* ==================== TRIP ITINERARY ==================== */
+.itn__day{margin-bottom:20px}
+.itn__dayh{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.itn__dayn{font-family:var(--mono);font-size:.66rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand)}
+.itn__dayd{font-size:.84rem;color:var(--text-3)}
+.itn__line{position:relative;padding-left:22px}
+.itn__line::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;
+  border-radius:2px;background:var(--border)}
+.itn__ev{position:relative;display:flex;gap:12px;align-items:flex-start;padding:11px 12px;
+  border-radius:var(--r-md);transition:background .16s}
+.itn__ev:hover{background:var(--surface-2)}
+.itn__ev::before{content:'';position:absolute;left:-21px;top:17px;width:10px;height:10px;
+  border-radius:50%;background:var(--brand);box-shadow:0 0 0 3px var(--bg)}
+.itn__t{flex:none;width:52px;font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--brand);padding-top:1px}
+.itn__c{flex:1;min-width:0}
+.itn__title{font-size:.96rem;font-weight:600;color:var(--text)}
+.itn__note{font-size:.85rem;color:var(--text-2);margin-top:2px;line-height:1.5}
+.itn__del{flex:none;border:0;background:transparent;color:var(--text-3);cursor:pointer;
+  padding:5px;border-radius:8px;opacity:0;transition:opacity .16s,color .16s}
+.itn__ev:hover .itn__del{opacity:1}
+.itn__del:hover{color:var(--danger,#d9534f);background:var(--surface)}
+.itn__del svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.itn__add{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.itn__add input{flex:1;min-width:0}
+.itn__add input.itn__time{flex:none;width:96px}
+.itn__empty{padding:26px 18px;text-align:center;color:var(--text-3);font-size:.9rem;
+  border:1px dashed var(--border-strong);border-radius:var(--r-lg)}
