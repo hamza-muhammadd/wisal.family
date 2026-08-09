@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','62'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','63'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '62 \u00b7 polish';
+  var APP_VERSION = '63 \u00b7 clean-fit';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9434,6 +9434,15 @@
   }
 
 
+  /* 24h in storage, 12h with AM/PM on screen — the way people actually read time. */
+  function fmt12(t){
+    if(!t) return '';
+    var p=String(t).split(':'), h=parseInt(p[0],10), m=parseInt(p[1],10);
+    if(isNaN(h)) return t;
+    var mer = h>=12 ? 'PM' : 'AM';
+    h = h%12; if(h===0) h=12;
+    return h+':'+((m<10?'0':'')+(isNaN(m)?0:m))+' '+mer;
+  }
   /* ---- Itinerary: one row per day, events kept in time order ---- */
   function trdDays(t){
     if(!t.start||!t.end) return [];
@@ -9458,7 +9467,7 @@
           + '<span class="itn__dayd">'+esc(fmtDate(d))+'</span></div>'
         + (evs.length ? '<div class="itn__line">' + evs.map(function(ev){
               return '<div class="itn__ev">'
-                + '<span class="itn__t">'+esc(ev.time||'\u2014')+'</span>'
+                + '<span class="itn__t">'+esc(fmt12(ev.time)||'\u2014')+'</span>'
                 + '<span class="itn__c"><span class="itn__title">'+esc(ev.title)+'</span>'
                 + (ev.note?'<span class="itn__note">'+esc(ev.note)+'</span>':'')+'</span>'
                 + '<button class="itn__del" data-itndel="'+ev.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
@@ -9466,7 +9475,7 @@
             }).join('') + '</div>' : '')
         + '<div class="itn__add">'
           + '<button type="button" class="itn__time" data-itnclock="'+d+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8" stroke-linecap="round"/></svg><span data-itntimeval="'+d+'">Time</span></button>'
-          + '<input type="hidden" data-itntime="'+d+'">'
+          + '<input type="time" class="itn__hidden" data-itntime="'+d+'" tabindex="-1" aria-hidden="true">'
           + '<input class="input" type="text" placeholder="Add something for this day" data-itntitle="'+d+'">'
           + '<button class="btn" data-itnadd="'+d+'">Add</button>'
         + '</div>'
@@ -9606,11 +9615,10 @@
       var day=ic.getAttribute('data-itnclock');
       var hid=document.querySelector('input[data-itntime="'+day+'"]');
       if(hid){
-        hid.type='time';
         WDP.open(hid);
         hid.addEventListener('change', function(){
           var lbl=document.querySelector('[data-itntimeval="'+day+'"]');
-          if(lbl) lbl.textContent = hid.value || 'Time';
+          if(lbl) lbl.textContent = fmt12(hid.value) || 'Time';
         }, {once:true});
       }
       return;

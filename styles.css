@@ -4197,3 +4197,42 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{
 .bdg__add{padding:15px 16px;border-radius:var(--r-lg);background:var(--surface);
   border:1px solid var(--glass-hair);margin-top:14px}
 .bdg__exp{margin-bottom:4px}
+
+/* ==================== FIT INSIDE THE PHONE ====================
+   Grid and flex children default to min-width:auto, so a long word or a wide
+   input pushes the whole row past the screen edge. This is what made the budget
+   panel run off the side. */
+.itn__hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0;pointer-events:none}
+
+.trd__body,.trd__ready,.trd__tabs{max-width:100%;overflow-x:hidden}
+.bdg__add,.bdg__set,.bdg__top,.bdg__cat,.bdg__exp{max-width:100%}
+.bdg__add>*,.bdg__set>*,.bdg__top>*,.bdg__row>*,.bdg__e>*{min-width:0}
+.bdg__add input,.bdg__add select,.bdg__set input{width:100%;min-width:0}
+.bdg__et,.bdg__em,.bdg__nm{overflow-wrap:anywhere}
+.bdg__e{gap:10px}
+.bdg__ea{flex:none}
+
+.itn__add{max-width:100%}
+.itn__add>*{min-width:0}
+.itn__add input[type="text"]{width:100%}
+.itn__ev{max-width:100%}
+.itn__c{overflow-wrap:anywhere}
+/* AM/PM needs a little more room than a bare 24h stamp */
+.itn__t{width:78px;font-size:.78rem;letter-spacing:0}
+
+@media (max-width:620px){
+  .itn__add{display:grid;grid-template-columns:auto 1fr;gap:9px}
+  .itn__add .itn__time{grid-column:1;justify-content:center}
+  .itn__add input[type="text"]{grid-column:2}
+  .itn__add .btn{grid-column:1/-1;justify-content:center}
+  .itn__line{padding-left:18px}
+  .itn__t{width:68px}
+}
+
+/* A global guard: nothing in the app may push the page sideways on a phone.
+   Long words, wide inputs and grid children are the usual culprits. */
+html,body{max-width:100%;overflow-x:hidden}
+.canvas,.view,.set__card,.trd__body{max-width:100%}
+.canvas *{min-width:0}
+input,select,textarea{max-width:100%}
