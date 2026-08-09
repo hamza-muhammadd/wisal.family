@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','61'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','62'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '61 \u00b7 own-controls';
+  var APP_VERSION = '62 \u00b7 polish';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9297,7 +9297,8 @@
     },
     redrawCal:function(){
       var c=this.el && this.el.querySelector('#wdpCal');
-      if(c){ c.innerHTML=this.calHTML(); this.syncLabel(); } else { this.paint(); }
+      if(c){ c.innerHTML = this.jump ? this.jumpHTML() : this.calHTML(); this.syncLabel(); }
+      else { this.paint(); }
     },
     commit:function(){
       if(!this.input) return;
@@ -9464,7 +9465,8 @@
               + '</div>';
             }).join('') + '</div>' : '')
         + '<div class="itn__add">'
-          + '<input class="input itn__time" type="time" data-itntime="'+d+'" aria-label="Time">'
+          + '<button type="button" class="itn__time" data-itnclock="'+d+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8" stroke-linecap="round"/></svg><span data-itntimeval="'+d+'">Time</span></button>'
+          + '<input type="hidden" data-itntime="'+d+'">'
           + '<input class="input" type="text" placeholder="Add something for this day" data-itntitle="'+d+'">'
           + '<button class="btn" data-itnadd="'+d+'">Add</button>'
         + '</div>'
@@ -9512,8 +9514,8 @@
     var exp = '<div class="trd__secH">Expenses \u00b7 '+list.length+'</div>'
       + (list.length
         ? '<div class="bdg__exp">' + list.map(function(x){
-            return '<div class="bdg__e"><span class="bdg__ec"><span class="bdg__et">'+esc(x.name)+'</span>'
-              + '<span class="bdg__em">'+esc(x.cat||'Other')+(x.date?' \u00b7 '+fmtDate(x.date):'')+'</span></span>'
+            return '<div class="bdg__e"><div class="bdg__ec"><div class="bdg__et">'+esc(x.name)+'</div>'
+              + '<div class="bdg__em">'+esc(x.cat||'Other')+(x.date?' \u00b7 '+fmtDate(x.date):'')+'</div></div>'
               + '<span class="bdg__ea">'+fmtMoney(parseFloat(x.amt)||0)+'</span>'
               + '<button class="bdg__del" data-bdgdel="'+x.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button></div>';
           }).join('') + '</div>'
@@ -9599,6 +9601,20 @@
     if(e.target.closest('[data-trdclose]')){ trdClose(); return; }
     var tb=e.target.closest('[data-trdtab]');
     if(tb){ trdTab=tb.getAttribute('data-trdtab'); trdRender(); return; }
+    var ic=e.target.closest('[data-itnclock]');
+    if(ic){
+      var day=ic.getAttribute('data-itnclock');
+      var hid=document.querySelector('input[data-itntime="'+day+'"]');
+      if(hid){
+        hid.type='time';
+        WDP.open(hid);
+        hid.addEventListener('change', function(){
+          var lbl=document.querySelector('[data-itntimeval="'+day+'"]');
+          if(lbl) lbl.textContent = hid.value || 'Time';
+        }, {once:true});
+      }
+      return;
+    }
     var ia=e.target.closest('[data-itnadd]');
     if(ia){
       var t3=trdTrip(); if(!t3) return;

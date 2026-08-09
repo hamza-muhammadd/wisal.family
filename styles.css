@@ -4156,3 +4156,44 @@ select{appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:point
 .tvpk__bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:10px}
 .tvpk__barf{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2));
   transition:width .45s var(--ease)}
+
+/* ==================== NO BROWSER CHROME ANYWHERE ====================
+   The little up/down steppers on number fields are the operating system's,
+   not ours. Gone on every platform. */
+input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;appearance:none;margin:0}
+/* and the browser's own calendar/clock button inside date fields */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator{
+  display:none!important;-webkit-appearance:none;appearance:none}
+
+/* ---- itinerary time: our own control, never an empty grey box ---- */
+.itn__time{display:inline-flex;align-items:center;gap:8px;flex:none;
+  padding:12px 15px;border-radius:var(--r-md);border:1px solid var(--glass-hair);
+  background:var(--surface-2);color:var(--text-2);font:inherit;font-family:var(--mono);
+  font-size:.88rem;font-weight:600;cursor:pointer;transition:border-color .16s,color .16s}
+.itn__time:hover{border-color:var(--border-strong);color:var(--text)}
+.itn__time svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--brand);stroke-width:2}
+
+/* ---- budget, properly composed ---- */
+.bdg__top{gap:10px}
+.bdg__t{display:flex;flex-direction:column;justify-content:center;min-height:78px}
+.bdg__tl{font-size:.64rem;letter-spacing:.13em}
+.bdg__tv{font-size:1.24rem}
+.bdg__set{gap:9px;padding:15px 16px;border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--glass-hair);margin-bottom:22px}
+.bdg__row{padding:13px 15px}
+.bdg__nm{font-size:.92rem}
+.bdg__pctf{background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+/* the name and its category must never run into one another */
+.bdg__ec{display:flex;flex-direction:column;gap:3px}
+.bdg__et{display:block;line-height:1.35}
+.bdg__em{display:block;font-size:.76rem;color:var(--text-3);font-family:var(--mono);letter-spacing:.02em}
+.bdg__e{padding:13px;border:1px solid transparent;border-radius:var(--r-md)}
+.bdg__e:hover{border-color:var(--glass-hair)}
+.bdg__ea{font-size:.95rem;font-weight:700}
+.bdg__add{padding:15px 16px;border-radius:var(--r-lg);background:var(--surface);
+  border:1px solid var(--glass-hair);margin-top:14px}
+.bdg__exp{margin-bottom:4px}
