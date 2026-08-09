@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','50'); console.log('Wisal build 50 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','51'); console.log('Wisal build 51 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3051,14 +3051,17 @@
  var raw=e.body||''; var longish=raw.length>260 || (raw.indexOf('\n')>=0 && raw.length>130);
  var bodyHTML = raw ? ('<div class="jentry__body'+(open||!longish?' is-open':'')+'">'+esc(raw).replace(/\n/g,'<br>')+'</div>'+(longish?'<button class="jentry__more" data-jexpand="'+e.id+'">'+(open?'Show less':'Read more')+'</button>':'')) : '';
  var tags = (e.tags&&e.tags.length) ? '<div class="jtags">'+e.tags.map(function(t){return '<span class="jtag">#'+esc(t)+'</span>';}).join('')+'</div>' : '';
- var photo = e.photo ? '<a class="jentry__photo" href="'+e.photo+'" target="_blank" rel="noopener"><img src="'+e.photo+'" alt=""></a>' : '';
+ /* Cover first, edge to edge, exactly like a trip card. */
+ var photo = e.photo ? '<div class="jentry__cover"><img src="'+e.photo+'" alt=""></div>' : '';
  var metaBits=[jDateLabel(e.date)||'No date']; if(who) metaBits.push(who);
  var moodChip = mm ? '<span class="jmood" style="--mc:'+mm.color+'"><span class="jmood__dot"></span>'+mm.label+'</span>' : '';
- return '<article class="jentry">'
+ return '<article class="jentry'+(e.photo?' jentry--cover':'')+'">'
+ +photo
+ +'<div class="jentry__in">'
  +'<div class="jentry__head"><div class="jentry__hl"><div class="jentry__title">'+(e.title?esc(e.title):'<span class="jentry__untitled">Untitled entry</span>')+'</div><div class="jentry__meta">'+metaBits.join(' \u00b7 ')+'</div></div>'+moodChip+'</div>'
- +photo+bodyHTML+tags
+ +bodyHTML+tags
  +'<div class="jentry__acts"><button class="jentry__act" data-jedit="'+e.id+'">'+J_ICO.pen+'Edit</button><button class="jentry__act jentry__act--del" data-jdel="'+e.id+'"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Delete</button></div>'
- +'</article>';
+ +'</div></article>';
  }
  function renderJournalEntries(){
  var el=$('#jEntries'); if(!el) return;
@@ -3688,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4975,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '50 \u00b7 journal-cards';
+  var APP_VERSION = '51 \u00b7 journal-cards';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',

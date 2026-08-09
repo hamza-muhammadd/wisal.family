@@ -3900,7 +3900,14 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
   background:var(--surface-2);cursor:zoom-in}
 .jentry__cover img{width:100%;height:100%;object-fit:cover;display:block}
 .jentry--cover .jentry__head{margin-bottom:6px}
+/* The card itself stops growing, so the picture fills it instead of leaving a
+   wide empty strip beside it. Same shape as a trip card at every width. */
+.jentry{max-width:560px}
+.jentry--cover .jentry__body,
+.jentry--cover .jtags,
+.jentry--cover .jentry__acts{margin-left:0;margin-right:0}
 @media (min-width:900px){
-  .jentry--cover{max-width:560px}
   .jentry__cover{aspect-ratio:16/9}
 }
+/* the old inline photo style no longer applies to entries */
+.jentry--cover .jentry__photo{display:none}
