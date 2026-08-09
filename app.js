@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','49'); console.log('Wisal build 49 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','50'); console.log('Wisal build 50 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -929,8 +929,9 @@
  var meta=[]; if(s.when) meta.push(esc(s.when)); if(s.who) meta.push(esc(s.who));
  var raw=s.body||''; var longish=raw.length>240||(raw.indexOf('\n')>=0&&raw.length>120);
  var body='<div class="jentry__body'+(open||!longish?' is-open':'')+'">'+esc(raw).replace(/\n/g,'<br>')+'</div>'+(longish?'<button class="jentry__more" style="color:var(--m-memory)" data-mmsexp="'+s.id+'">'+(open?'Show less':'Read the story')+'</button>':'');
- var photo=s.photo?'<a class="jentry__photo" href="'+s.photo+'" target="_blank" rel="noopener"><img src="'+s.photo+'" alt=""></a>':'';
- return '<article class="jentry" style="border-left:3px solid var(--m-memory)"><div class="jentry__head"><div class="jentry__hl"><div class="jentry__title">'+esc(s.title||'A family story')+'</div><div class="jentry__meta">'+meta.join(' \u00b7 ')+'</div></div></div>'+photo+body+'<div class="jentry__acts"><button class="jentry__act" data-mmsedit="'+s.id+'">'+J_ICO.pen+'Edit</button><button class="jentry__act jentry__act--del" data-mmsdel="'+s.id+'">'+MM_ICO.x+'Delete</button></div></article>';
+ /* Cover first, like a trip card: the picture leads, the words follow. */
+ var photo=s.photo?'<div class="jentry__cover"><img src="'+s.photo+'" alt=""></div>':'';
+ return '<article class="jentry'+(s.photo?' jentry--cover':'')+'" style="border-left:3px solid var(--m-memory)">'+photo+'<div class="jentry__in"><div class="jentry__head"><div class="jentry__hl"><div class="jentry__title">'+esc(s.title||'A family story')+'</div><div class="jentry__meta">'+meta.join(' \u00b7 ')+'</div></div></div>'+body+'<div class="jentry__acts"><button class="jentry__act" data-mmsedit="'+s.id+'">'+J_ICO.pen+'Edit</button><button class="jentry__act jentry__act--del" data-mmsdel="'+s.id+'">'+MM_ICO.x+'Delete</button></div></div></article>';
  }
  function renderMemStories(){
  var el=$('#mmStories'); if(!el) return;
@@ -3687,7 +3688,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4974,7 +4975,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '49 \u00b7 trip-details';
+  var APP_VERSION = '50 \u00b7 journal-cards';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',

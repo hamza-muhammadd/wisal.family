@@ -3891,3 +3891,16 @@ html.is-locked,body.is-locked{overflow:hidden!important;overscroll-behavior:none
 @media (min-width:900px) and (max-width:960px){
   .trd__back{left:14px}
 }
+
+/* ==================== JOURNAL CARDS, TRIP-STYLE ====================
+   The picture leads and the words follow, the same shape as a trip card. */
+.jentry--cover{padding:0;overflow:hidden;cursor:default}
+.jentry--cover .jentry__in{padding:16px 17px}
+.jentry__cover{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;
+  background:var(--surface-2);cursor:zoom-in}
+.jentry__cover img{width:100%;height:100%;object-fit:cover;display:block}
+.jentry--cover .jentry__head{margin-bottom:6px}
+@media (min-width:900px){
+  .jentry--cover{max-width:560px}
+  .jentry__cover{aspect-ratio:16/9}
+}
