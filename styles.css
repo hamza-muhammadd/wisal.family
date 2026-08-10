@@ -4205,7 +4205,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{
 .itn__hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0;pointer-events:none}
 
-.trd__body,.trd__ready,.trd__tabs{max-width:100%;overflow-x:hidden}
+.trd__body,.trd__ready,.trd__tabs{overflow-x:hidden}
 .bdg__add,.bdg__set,.bdg__top,.bdg__cat,.bdg__exp{max-width:100%}
 .bdg__add>*,.bdg__set>*,.bdg__top>*,.bdg__row>*,.bdg__e>*{min-width:0}
 .bdg__add input,.bdg__add select,.bdg__set input{width:100%;min-width:0}
@@ -4230,11 +4230,14 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{
   .itn__t{width:68px}
 }
 
-/* A global guard: nothing in the app may push the page sideways on a phone.
-   Long words, wide inputs and grid children are the usual culprits. */
+/* A guard against sideways scrolling on a phone.
+   NOTE: an earlier version of this block used `.canvas *{min-width:0}`. That
+   forced every element in the app to shrink, which collapsed horizontal chip
+   rows on top of one another. Blanket rules are not safe here — the guard now
+   only touches the page frame, and min-width is applied per component where it
+   is actually needed. */
 html,body{max-width:100%;overflow-x:hidden}
-.canvas,.view,.set__card,.trd__body{max-width:100%}
-.canvas *{min-width:0}
+.canvas,.view,.set__card{max-width:100%}
 input,select,textarea{max-width:100%}
 
 /* ==================== PACKING INSIDE A TRIP ==================== */
@@ -4268,3 +4271,76 @@ input,select,textarea{max-width:100%}
 .pk__seed{width:100%;justify-content:center;margin-top:11px}
 /* the header sits above the groups with breathing room */
 .tvpk__head{margin-bottom:20px}
+
+/* ---- Trip view keeps its centred column on a wide screen ----
+   Declared last on purpose: a generic max-width:100% guard added later once
+   flattened this to the full window width. */
+@media (min-width:900px){
+  .trd__head,.trd__ready,.trd__tabs,.trd__body{
+    max-width:880px;margin-left:auto;margin-right:auto;left:0;right:0}
+  .trd__head{padding-left:0;padding-right:0;padding-bottom:56px}
+  .trd__ready{margin-top:-30px}
+  .trd__back{left:calc(50vw - 440px)}
+}
+@media (min-width:900px) and (max-width:960px){
+  .trd__back{left:14px}
+}
+
+/* ---- Chip rows keep their natural width ----
+   Flex children shrink by default; a chip that shrinks below its text overlaps
+   its neighbour. These rows wrap instead. */
+.chiplist>*,.ckfrow>*,.subnav>*{flex:none}
+.chiplist{flex-wrap:wrap;row-gap:8px}
+
+/* ==================== BOOKINGS · DOCUMENTS · JOURNAL ==================== */
+.trx__list{display:flex;flex-direction:column;gap:10px}
+.trx__c{padding:15px 16px;border-radius:var(--r-md);background:var(--surface);
+  border:1px solid var(--glass-hair);transition:border-color .16s}
+.trx__c:hover{border-color:var(--border-strong)}
+.trx__top{display:flex;align-items:flex-start;gap:12px}
+.trx__ic{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--brand) 13%,transparent);color:var(--brand)}
+.trx__ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9}
+.trx__body{flex:1;min-width:0}
+.trx__t{font-size:.98rem;font-weight:620;color:var(--text);overflow-wrap:anywhere}
+.trx__m{font-size:.8rem;color:var(--text-3);margin-top:3px;font-family:var(--mono);letter-spacing:.02em}
+.trx__x{flex:none;border:0;background:transparent;color:var(--text-3);cursor:pointer;padding:6px;
+  border-radius:8px;opacity:0;transition:opacity .15s,color .15s}
+.trx__c:hover .trx__x{opacity:1}
+.trx__x:hover{color:var(--danger,#d9534f)}
+.trx__x svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.trx__ref{margin-top:10px;padding:9px 12px;border-radius:10px;background:var(--surface-2);
+  font-family:var(--mono);font-size:.82rem;color:var(--text-2);overflow-wrap:anywhere}
+.trx__exp{margin-top:9px;display:inline-flex;align-items:center;gap:6px;font-size:.78rem;
+  padding:5px 10px;border-radius:999px;font-weight:620}
+.trx__exp--ok{background:color-mix(in srgb,var(--ok,#2C7F6B) 14%,transparent);color:var(--ok,#2C7F6B)}
+.trx__exp--soon{background:color-mix(in srgb,var(--warn,#BE8E3C) 16%,transparent);color:var(--warn-strong,#8a6524)}
+.trx__exp--gone{background:color-mix(in srgb,var(--danger,#d9534f) 14%,transparent);color:var(--danger,#d9534f)}
+.trx__add{display:grid;grid-template-columns:1fr;gap:9px;margin-top:14px;padding:15px 16px;
+  border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--glass-hair)}
+.trx__add>*{min-width:0}
+.trx__add .btn{justify-content:center}
+@media (min-width:640px){
+  .trx__add{grid-template-columns:1.5fr 1fr 1fr auto}
+  .trx__add textarea{grid-column:1/-1}
+}
+/* journal entries inside a trip */
+.trj__e{padding:16px;border-radius:var(--r-lg);background:var(--surface);
+  border:1px solid var(--glass-hair);margin-bottom:12px}
+.trj__d{font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand);margin-bottom:7px}
+.trj__x{float:right;border:0;background:transparent;color:var(--text-3);cursor:pointer;padding:4px;
+  border-radius:8px}
+.trj__x:hover{color:var(--danger,#d9534f)}
+.trj__x svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.trj__t{font-size:.96rem;line-height:1.6;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+.trj__ph{margin-top:12px;width:100%;height:180px;border-radius:var(--r-md);overflow:hidden;
+  background:var(--surface-2);cursor:zoom-in}
+.trj__ph img{width:100%;height:100%;object-fit:cover;display:block}
+.trj__add{display:flex;flex-direction:column;gap:10px;padding:15px 16px;border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--glass-hair)}
+.trj__row{display:flex;gap:9px;flex-wrap:wrap}
+.trj__row .btn{flex:1;justify-content:center;min-width:120px}
+
+/* a document is only useful if you can show it — the photo lives with it */
+.trx__shot{width:100%;justify-content:center;margin-top:11px;font-size:.86rem}

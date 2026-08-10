@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','64'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','68'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '64 \u00b7 trip-packing';
+  var APP_VERSION = '68 \u00b7 honest-readiness';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9382,11 +9382,17 @@
     var p=trdPrepOf(t), done=0;
     TRD_PREP.forEach(function(x){ if(p[x[0]]) done++; });
     var pk=tvPackStats(t.id);
-    /* Preparation is most of it; packing counts for a quarter. */
+    /* An honest number. Ticking eight boxes while holding no booking, no
+       document and no budget should not read as "ready" — it did, and that is
+       the kind of reassurance that gets someone stranded at an airport. */
     var prepPart = done/TRD_PREP.length;
     var packPart = pk.total ? pk.done/pk.total : 0;
-    var pc = Math.round((prepPart*0.75 + packPart*0.25)*100);
-    return { pc:pc, done:done, total:TRD_PREP.length, pack:pk };
+    var hasBook  = (t.bookings||[]).length ? 1 : 0;
+    var hasDocs  = (t.docs||[]).length ? 1 : 0;
+    var hasMoney = (parseFloat(t.budget)||0) > 0 ? 1 : 0;
+    var pc = Math.round((prepPart*0.45 + packPart*0.20 + hasBook*0.15 + hasDocs*0.12 + hasMoney*0.08)*100);
+    return { pc:pc, done:done, total:TRD_PREP.length, pack:pk,
+             book:hasBook, docs:hasDocs, money:hasMoney };
   }
 
   function trdRemaining(t){
@@ -9394,6 +9400,16 @@
     TRD_PREP.forEach(function(x){ if(!p[x[0]]) out.push(x[1]); });
     var pk=tvPackStats(t.id);
     if(pk.total && pk.done<pk.total) out.push((pk.total-pk.done)+' packing items');
+    if(!(t.bookings||[]).length) out.push('No bookings saved');
+    if(!(t.docs||[]).length) out.push('No documents saved');
+    if(!(parseFloat(t.budget)||0)) out.push('No budget set');
+    /* An expired document outranks everything else that is left. */
+    (t.docs||[]).forEach(function(d){
+      if(!d.expiry) return;
+      var days=Math.round((new Date(d.expiry+'T00:00:00') - new Date().setHours(0,0,0,0))/86400000);
+      if(days<0) out.unshift(esc(d.name)+' has expired');
+      else if(days<=90) out.unshift(esc(d.name)+' expires in '+days+' days');
+    });
     return out;
   }
 
@@ -9589,6 +9605,113 @@
     return head + body + add;
   }
 
+  /* ---- Bookings, Documents, Journal ----
+     All three live on the trip object, so they travel with it and sync with
+     everything else. Photos reuse the same cropper the rest of the app uses. */
+  var TRX_ICO = {
+    flight:'<svg viewBox="0 0 24 24"><path d="M10.5 20.5 9 14.8 3.8 13l16-8.5-4.6 15.7-4.7-2.2Z"/><path d="M9 14.8l10.6-9.9"/></svg>',
+    hotel:'<svg viewBox="0 0 24 24"><path d="M3.5 20V6.5h9V20"/><path d="M12.5 11h8v9"/><path d="M6.5 10h2M6.5 14h2M15.5 14h2"/></svg>',
+    car:'<svg viewBox="0 0 24 24"><path d="M4 16.5v2h3v-2M17 16.5v2h3v-2"/><path d="M4.5 16.5h15l-1-5.5-1.4-3.2a2 2 0 0 0-1.8-1.2H8.7a2 2 0 0 0-1.8 1.2L5.5 11Z"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/></svg>',
+    doc:'<svg viewBox="0 0 24 24"><path d="M14 3.5H7a1.5 1.5 0 0 0-1.5 1.5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8Z"/><path d="M14 3.5V8h4.5"/></svg>',
+    other:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l2.5 1.5"/></svg>'
+  };
+  var TRX_BOOKS = ['Flight','Hotel','Transport','Activity','Restaurant','Other'];
+  var TRX_DOCS  = ['Passport','Visa','Ticket','Insurance','ID','Booking','Other'];
+
+  function trxIcon(kind){
+    var k=String(kind||'').toLowerCase();
+    if(k.indexOf('flight')>=0) return TRX_ICO.flight;
+    if(k.indexOf('hotel')>=0)  return TRX_ICO.hotel;
+    if(k.indexOf('transport')>=0||k.indexOf('car')>=0) return TRX_ICO.car;
+    if(k.indexOf('passport')>=0||k.indexOf('visa')>=0||k.indexOf('ticket')>=0||k.indexOf('insurance')>=0||k.indexOf('id')>=0) return TRX_ICO.doc;
+    return TRX_ICO.other;
+  }
+  function trxExpiry(dateStr){
+    if(!dateStr) return '';
+    var d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return '';
+    var days=Math.round((d - new Date().setHours(0,0,0,0))/86400000);
+    if(days<0)   return '<span class="trx__exp trx__exp--gone">Expired</span>';
+    if(days<=90) return '<span class="trx__exp trx__exp--soon">Expires in '+days+' day'+(days===1?'':'s')+'</span>';
+    return '<span class="trx__exp trx__exp--ok">Valid \u00b7 '+fmtDate(dateStr)+'</span>';
+  }
+
+  function trdTabBookings(t){
+    var list=(t.bookings||[]).slice().sort(function(a,b){ return String(a.date||'').localeCompare(String(b.date||'')); });
+    var body = list.length
+      ? '<div class="trx__list">'+list.map(function(b){
+          var meta=[b.kind]; 
+          if(b.date) meta.push(fmtDate(b.date));
+          if(b.cost) meta.push(fmtMoney(parseFloat(b.cost)||0));
+          return '<div class="trx__c"><div class="trx__top">'
+            + '<span class="trx__ic">'+trxIcon(b.kind)+'</span>'
+            + '<span class="trx__body"><span class="trx__t">'+esc(b.name)+'</span>'
+            + '<span class="trx__m">'+esc(meta.join(' \u00b7 '))+'</span></span>'
+            + '<button class="trx__x" data-trxdel="bookings:'+b.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+            + '</div>'
+            + (b.ref? '<div class="trx__ref">Confirmation \u00b7 '+esc(b.ref)+'</div>' : '')
+          + '</div>';
+        }).join('')+'</div>'
+      : '<div class="itn__empty">No bookings saved yet. Flights, hotels and reservations all live here.</div>';
+
+    return body + '<div class="trx__add">'
+      + '<input class="input" type="text" placeholder="What is booked?" id="bkName">'
+      + '<select class="input" id="bkKind" aria-label="Kind">'+TRX_BOOKS.map(function(k){return '<option>'+k+'</option>';}).join('')+'</select>'
+      + '<input class="input" type="date" id="bkDate" aria-label="Date">'
+      + '<button class="btn btn--primary" data-bkadd>Add</button>'
+      + '<input class="input" type="text" placeholder="Confirmation number (optional)" id="bkRef" style="grid-column:1/-1">'
+      + '</div>';
+  }
+
+  function trdTabDocs(t){
+    var list=(t.docs||[]).slice();
+    var body = list.length
+      ? '<div class="trx__list">'+list.map(function(d){
+          return '<div class="trx__c"><div class="trx__top">'
+            + '<span class="trx__ic">'+trxIcon(d.kind)+'</span>'
+            + '<span class="trx__body"><span class="trx__t">'+esc(d.name)+'</span>'
+            + '<span class="trx__m">'+esc(d.kind||'Document')+(d.who?' \u00b7 '+esc(d.who):'')+'</span>'
+            + trxExpiry(d.expiry)
+            + '</span>'
+            + '<button class="trx__x" data-trxdel="docs:'+d.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+            + '</div>'
+            + (d.photo
+                ? '<div class="trj__ph" style="height:150px;margin-top:12px"><img src="'+d.photo+'" alt=""></div>'
+                : '<button class="btn trx__shot" data-dcshot="'+d.id+'">Add a photo of it</button>')
+            + '</div>';
+        }).join('')+'</div>'
+      : '<div class="itn__empty">Keep passports, visas and tickets here, with their expiry dates.</div>';
+
+    return body + '<div class="trx__add">'
+      + '<input class="input" type="text" placeholder="Document name" id="dcName">'
+      + '<select class="input" id="dcKind" aria-label="Kind">'+TRX_DOCS.map(function(k){return '<option>'+k+'</option>';}).join('')+'</select>'
+      + '<input class="input" type="date" id="dcExp" aria-label="Expiry">'
+      + '<button class="btn btn--primary" data-dcadd>Add</button>'
+      + '<input class="input" type="text" placeholder="Whose is it? (optional)" id="dcWho" style="grid-column:1/-1">'
+      + '</div>';
+  }
+
+  function trdTabJournal(t){
+    var list=(t.journal||[]).slice().sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
+    var body = list.length
+      ? list.map(function(j){
+          return '<div class="trj__e">'
+            + '<button class="trj__x" data-trxdel="journal:'+j.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+            + '<div class="trj__d">'+esc(fmtDate(j.date))+'</div>'
+            + '<div class="trj__t">'+esc(j.text)+'</div>'
+            + (j.photo? '<div class="trj__ph"><img src="'+j.photo+'" alt=""></div>' : '')
+          + '</div>';
+        }).join('')
+      : '<div class="itn__empty">Write down how the journey actually felt. You will want this later.</div>';
+
+    return body + '<div class="trj__add">'
+      + '<textarea class="input" rows="3" placeholder="What happened today?" id="tjText"></textarea>'
+      + '<div class="trj__row">'
+        + '<button class="btn" data-tjphoto>'+(trdPhotoBuf?'Photo added':'Add a photo')+'</button>'
+        + '<button class="btn btn--primary" data-tjadd>Save entry</button>'
+      + '</div></div>';
+  }
+  var trdPhotoBuf = null;
+
   function trdSoon(what){
     return '<div class="trd__soon">'+what+' arrives in the next step.<br>Everything you add elsewhere stays exactly where it is.</div>';
   }
@@ -9628,9 +9751,9 @@
           : trdTab==='packing' ? trdTabPacking(t)
           : trdTab==='itinerary' ? trdTabItinerary(t)
           : trdTab==='budget' ? trdTabBudget(t)
-          : trdTab==='bookings' ? trdSoon('Flights, hotels and reservations')
-          : trdTab==='docs' ? trdSoon('Passports, visas and tickets')
-          : trdSoon('The travel journal'))
+          : trdTab==='bookings' ? trdTabBookings(t)
+          : trdTab==='docs' ? trdTabDocs(t)
+          : trdTabJournal(t))
       + '</div>'
       + '</div>';
   }
@@ -9652,7 +9775,7 @@
     var host=document.getElementById('trdView');
     if(host) host.classList.remove('is-on');
     document.body.style.overflow='';
-    trdId=null;
+    trdId=null; trdPhotoBuf=null;
     try{ renderTravelTrips(); }catch(e){}
   }
 
@@ -9660,6 +9783,91 @@
     if(e.target.closest('[data-trdclose]')){ trdClose(); return; }
     var tb=e.target.closest('[data-trdtab]');
     if(tb){ trdTab=tb.getAttribute('data-trdtab'); trdRender(); return; }
+    /* one delete route for bookings, documents and journal */
+    var trx=e.target.closest('[data-trxdel]');
+    if(trx){
+      var tt=trdTrip(); if(!tt) return;
+      var parts=trx.getAttribute('data-trxdel').split(':');
+      var key=parts[0], rid=parts[1];
+      tt[key]=(tt[key]||[]).filter(function(x){ return x.id!==rid; });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-bkadd]')){
+      var tb2=trdTrip(); if(!tb2) return;
+      var n1=document.getElementById('bkName'), k1=document.getElementById('bkKind'),
+          d1=document.getElementById('bkDate'), r1=document.getElementById('bkRef');
+      var nv=(n1&&n1.value||'').trim();
+      if(!nv){ if(n1) n1.focus(); return; }
+      if(!tb2.bookings) tb2.bookings=[];
+      tb2.bookings.push({ id:'bk'+Date.now()+Math.random().toString(36).slice(2,6),
+        name:nv, kind:(k1&&k1.value)||'Other', date:(d1&&d1.value)||'', ref:(r1&&r1.value||'').trim() });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-dcadd]')){
+      var td2=trdTrip(); if(!td2) return;
+      var n2=document.getElementById('dcName'), k2=document.getElementById('dcKind'),
+          x2=document.getElementById('dcExp'), w2=document.getElementById('dcWho');
+      var nv2=(n2&&n2.value||'').trim();
+      if(!nv2){ if(n2) n2.focus(); return; }
+      if(!td2.docs) td2.docs=[];
+      td2.docs.push({ id:'dc'+Date.now()+Math.random().toString(36).slice(2,6),
+        name:nv2, kind:(k2&&k2.value)||'Other', expiry:(x2&&x2.value)||'', who:(w2&&w2.value||'').trim() });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var dsh=e.target.closest('[data-dcshot]');
+    if(dsh){
+      var docId=dsh.getAttribute('data-dcshot');
+      try{
+        var di=document.createElement('input');
+        di.type='file'; di.accept='image/*';
+        di.onchange=function(){
+          var f=di.files&&di.files[0]; if(!f) return;
+          var rd=new FileReader();
+          rd.onload=function(){
+            cropOpen(rd.result, 1.45, function(durl){
+              var td3=trdTrip(); if(!td3) return;
+              (td3.docs||[]).forEach(function(x){ if(x.id===docId) x.photo=durl; });
+              try{ FD.save(); }catch(_){}
+              trdRender();
+            });
+          };
+          rd.readAsDataURL(f);
+        };
+        di.click();
+      }catch(_){}
+      return;
+    }
+    if(e.target.closest('[data-tjphoto]')){
+      try{
+        var inp=document.createElement('input');
+        inp.type='file'; inp.accept='image/*';
+        inp.onchange=function(){
+          var f=inp.files&&inp.files[0]; if(!f) return;
+          var rd=new FileReader();
+          rd.onload=function(){
+            cropOpen(rd.result, 1.6, function(durl){ trdPhotoBuf=durl; trdRender(); });
+          };
+          rd.readAsDataURL(f);
+        };
+        inp.click();
+      }catch(_){}
+      return;
+    }
+    if(e.target.closest('[data-tjadd]')){
+      var tj=trdTrip(); if(!tj) return;
+      var tx=document.getElementById('tjText');
+      var txt=(tx&&tx.value||'').trim();
+      if(!txt && !trdPhotoBuf){ if(tx) tx.focus(); return; }
+      if(!tj.journal) tj.journal=[];
+      tj.journal.push({ id:'tj'+Date.now()+Math.random().toString(36).slice(2,6),
+        date:new Date().toISOString().slice(0,10), text:txt, photo:trdPhotoBuf||'' });
+      trdPhotoBuf=null;
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
     var pkt=e.target.closest('[data-pkto]');
     if(pkt){
       var it=FD.getPack(pkt.getAttribute('data-pkto'));
