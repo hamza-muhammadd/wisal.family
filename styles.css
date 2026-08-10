@@ -4460,3 +4460,27 @@ input,select,textarea{max-width:100%}
 .tvpk__head+.pk__grp{margin-top:4px}
 .bdg__top{margin-bottom:16px}
 .bdg__cat{margin-top:12px}
+
+/* ==================== NOTHING JUMPS ====================
+   Three separate causes of the page leaping on a tap:
+   the browser re-anchoring scroll when content above changes height,
+   iOS zooming into any input whose text is under 16px,
+   and tap highlights flashing before a transition starts. */
+.trd__scroll,.canvas,.wdp__col,.wsel__list,.tjread__box{overflow-anchor:none}
+input,select,textarea{font-size:16px}
+@media (min-width:900px){
+  input,select,textarea{font-size:.94rem}
+}
+input,button,select,textarea,a{-webkit-tap-highlight-color:transparent}
+
+/* things that appear or change should ease, never snap */
+.itn__ev,.pk__i,.bdg__e,.trx__c,.trj__e,.wsel__o,.wdp__d,.wdp__o,.trd__tab,.itn__dayh{
+  transition:background .18s var(--ease),border-color .18s var(--ease),
+             color .16s var(--ease),transform .18s var(--ease),opacity .18s var(--ease)}
+.trd__barfill,.tvpk__barf,.bdg__pctf{transition:width .5s var(--ease)}
+.trd__body{animation:trdFade .22s var(--ease)}
+@keyframes trdFade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .trd__body{animation:none}
+  .itn__addwrap{transition:none}
+}
