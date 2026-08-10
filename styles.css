@@ -4205,7 +4205,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator{
 .itn__hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0;pointer-events:none}
 
-.trd__body,.trd__ready,.trd__tabs{overflow-x:hidden}
+.trd__body,.trd__ready{overflow-x:hidden}
+.trd__tabs{overflow-x:auto}
 .bdg__add,.bdg__set,.bdg__top,.bdg__cat,.bdg__exp{max-width:100%}
 .bdg__add>*,.bdg__set>*,.bdg__top>*,.bdg__row>*,.bdg__e>*{min-width:0}
 .bdg__add input,.bdg__add select,.bdg__set input{width:100%;min-width:0}
@@ -4344,3 +4345,48 @@ input,select,textarea{max-width:100%}
 
 /* a document is only useful if you can show it — the photo lives with it */
 .trx__shot{width:100%;justify-content:center;margin-top:11px;font-size:.86rem}
+
+/* ==================== TRIP: FINAL LAYOUT PASS ====================
+   Four things this fixes, all reported from real screens:
+   the tab row could not be scrolled to reach the last tabs; the timeline dots
+   sat off to one side; journal entries and document photos stretched into thin
+   letterbox strips instead of showing the picture. */
+
+/* --- tabs stay reachable and hint that they scroll --- */
+.trd__tabs{-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+  padding-right:26px;
+  -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.trd__tab{scroll-snap-align:start}
+@media (min-width:900px){
+  .trd__tabs{-webkit-mask-image:none;mask-image:none;padding-right:18px}
+}
+
+/* --- timeline: the dot sits on the line, the line runs through the day --- */
+.itn__line{padding-left:26px}
+.itn__line::before{left:7px;top:14px;bottom:14px;width:2px;
+  background:linear-gradient(180deg,transparent,var(--border) 12%,var(--border) 88%,transparent)}
+.itn__ev{position:relative;padding:12px 12px 12px 4px;align-items:center}
+.itn__ev::before{left:-24px;top:50%;transform:translateY(-50%);
+  width:11px;height:11px;border:2px solid var(--bg);
+  background:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+.itn__ev:hover::before{box-shadow:0 0 0 5px color-mix(in srgb,var(--brand) 22%,transparent)}
+.itn__t{align-self:center;padding-top:0;color:var(--brand);opacity:.9}
+
+/* --- journal entries sit beside each other and show the whole picture --- */
+@media (min-width:820px){
+  .trj__wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:14px;align-items:start}
+  .trj__e{margin:0}
+}
+.trj__ph{height:auto;aspect-ratio:4/3}
+.trj__ph img{object-fit:cover}
+
+/* --- a document photo is meant to be read, so give it room --- */
+.trx__shotimg{margin-top:12px;width:100%;aspect-ratio:3/2;border-radius:var(--r-md);
+  overflow:hidden;background:var(--surface-2);cursor:zoom-in}
+.trx__shotimg img{width:100%;height:100%;object-fit:cover;display:block}
+@media (min-width:820px){
+  .trx__list--docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:12px;align-items:start}
+}

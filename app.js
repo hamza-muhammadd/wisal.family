@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','68'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','69'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '68 \u00b7 honest-readiness';
+  var APP_VERSION = '69 \u00b7 trip-layout';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9665,7 +9665,7 @@
   function trdTabDocs(t){
     var list=(t.docs||[]).slice();
     var body = list.length
-      ? '<div class="trx__list">'+list.map(function(d){
+      ? '<div class="trx__list trx__list--docs">'+list.map(function(d){
           return '<div class="trx__c"><div class="trx__top">'
             + '<span class="trx__ic">'+trxIcon(d.kind)+'</span>'
             + '<span class="trx__body"><span class="trx__t">'+esc(d.name)+'</span>'
@@ -9675,7 +9675,7 @@
             + '<button class="trx__x" data-trxdel="docs:'+d.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
             + '</div>'
             + (d.photo
-                ? '<div class="trj__ph" style="height:150px;margin-top:12px"><img src="'+d.photo+'" alt=""></div>'
+                ? '<div class="trx__shotimg"><img src="'+d.photo+'" alt=""></div>'
                 : '<button class="btn trx__shot" data-dcshot="'+d.id+'">Add a photo of it</button>')
             + '</div>';
         }).join('')+'</div>'
@@ -9693,14 +9693,14 @@
   function trdTabJournal(t){
     var list=(t.journal||[]).slice().sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
     var body = list.length
-      ? list.map(function(j){
+      ? '<div class="trj__wrap">'+list.map(function(j){
           return '<div class="trj__e">'
             + '<button class="trj__x" data-trxdel="journal:'+j.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
             + '<div class="trj__d">'+esc(fmtDate(j.date))+'</div>'
             + '<div class="trj__t">'+esc(j.text)+'</div>'
             + (j.photo? '<div class="trj__ph"><img src="'+j.photo+'" alt=""></div>' : '')
           + '</div>';
-        }).join('')
+        }).join('')+'</div>'
       : '<div class="itn__empty">Write down how the journey actually felt. You will want this later.</div>';
 
     return body + '<div class="trj__add">'
