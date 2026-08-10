@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','73'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','74'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -2093,8 +2093,9 @@
       requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.classList.add('is-open'); }); });
     } else { setTimeout(function(){ m.classList.add('is-open'); },16); }
   }
- function pjCloseDrawer(){
+ function pjCloseDrawer(fromBack){
   if(pjDrawerId) unlockScroll('drawer');
+  var had=pjDrawerId;
   pjDrawerId='';
   var s=document.getElementById('pjScrim'), d=document.getElementById('pjDrawer');
   if(s) s.classList.remove('is-open');
@@ -2104,6 +2105,7 @@
    if(s2&&s2.parentNode) s2.parentNode.removeChild(s2);
    if(d2&&d2.parentNode) d2.parentNode.removeChild(d2);
   },320);
+  if(had && !fromBack) OV.done('project');
  }
  function pjOpenDrawer(id){
   var p=FD.getProject(id); if(!p) return;
@@ -2117,6 +2119,7 @@
   pjDrawerFill();
   lockScroll('drawer');
   setTimeout(function(){ s.classList.add('is-open'); d.classList.add('is-open'); },12);
+  OV.open('project', function(){ pjCloseDrawer(true); });
  }
  function pjDrawerFill(){
   var d=document.getElementById('pjDrawer'); if(!d) return;
@@ -3560,6 +3563,30 @@
     avApply();
     if(typeof flash==='function') flash('Picture updated');
   }
+  /* A picture you cannot remove is a trap. Tapping an existing one offers both. */
+  function avMenu(){
+    var m=document.getElementById('avMenu');
+    if(!m){
+      m=document.createElement('div');
+      m.className='wdp'; m.id='avMenu';
+      document.body.appendChild(m);
+    }
+    m.innerHTML='<div class="wdp__box" role="dialog" aria-modal="true">'
+      + '<div class="wdp__t">Your picture</div>'
+      + '<div class="wsel__list">'
+        + '<button class="wsel__o" data-avmenu="change"><svg class="wsel__tick" viewBox="0 0 24 24" style="opacity:1;stroke:var(--text-3)"><path d="M4 16.5V19h2.5L17 8.5 14.5 6 4 16.5Z" stroke-linejoin="round"/></svg><span>Choose a different photo</span></button>'
+        + '<button class="wsel__o" data-avmenu="remove"><svg class="wsel__tick" viewBox="0 0 24 24" style="opacity:1;stroke:var(--danger,#d9534f)"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg><span style="color:var(--danger,#d9534f)">Remove photo</span></button>'
+      + '</div>'
+      + '<div class="wdp__acts"><button class="btn" data-avmenu="close">Cancel</button></div>'
+      + '</div>';
+    m.classList.add('is-on');
+    OV.open('avmenu', function(){ avMenuClose(true); });
+  }
+  function avMenuClose(fromBack){
+    var m=document.getElementById('avMenu');
+    if(m) m.classList.remove('is-on');
+    if(!fromBack) OV.done('avmenu');
+  }
   function avPickPhoto(){
     try{
       var inp=document.createElement('input');
@@ -3697,7 +3724,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4984,7 +5011,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '73 \u00b7 back-fixed';
+  var APP_VERSION = '74 \u00b7 layers';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -6816,6 +6843,7 @@
  }
  function pjModalShow(){
   lockScroll('modal');
+  OV.open('modal', function(){ closeModal(true); });
   try{ pjCloseMenu(); }catch(e){}
   try{ pjKillDrawer(); }catch(e){}
   $('#modal').classList.add('open');
@@ -6863,7 +6891,11 @@
  dlg.onkeydown=function(e){ if(e.key==='Enter' && e.target.tagName!=='TEXTAREA' && e.target.type!=='checkbox' && !e.target.closest('[data-stw]')){ e.preventDefault(); submitModal(); } };
  setTimeout(function(){ var f=dlg.querySelector('input:not([type=file]):not([type=checkbox]),select,textarea'); if(f) f.focus({preventScroll:true}); },50);
  }
- function closeModal(){ $('#modal').classList.remove('open'); $('#modalDialog').innerHTML=''; modalCfg=null; unlockScroll('modal'); }
+ function closeModal(fromBack){
+  $('#modal').classList.remove('open'); $('#modalDialog').innerHTML='';
+  modalCfg=null; unlockScroll('modal');
+  if(!fromBack) OV.done('modal');
+ }
  function clearFieldErrors(){
  $$('#modalForm .fld--err').forEach(function(f){ f.classList.remove('fld--err'); });
  $$('#modalForm .fld__err').forEach(function(e){ e.remove(); });
@@ -8408,7 +8440,13 @@
  if(e.target.closest('[data-action="av-photo-rm"]')){ avClearPhoto(); return; }
  if(e.target.closest('[data-action="av-cancel"]')){ cropClose(); return; }
  if(e.target.closest('[data-action="av-save"]')){ cropSave(); return; }
- if(e.target.closest('[data-action="avatar"]')){ avPickPhoto(); return; }
+ if(e.target.closest('[data-action="avatar"]')){
+   if(avPhoto()) avMenu(); else avPickPhoto();
+   return;
+ }
+ if(e.target.closest('[data-avmenu="change"]')){ avMenuClose(); avPickPhoto(); return; }
+ if(e.target.closest('[data-avmenu="remove"]')){ avMenuClose(); avClearPhoto(); return; }
+ if(e.target.closest('[data-avmenu="close"]') || e.target.id==='avMenu'){ avMenuClose(); return; }
  if(e.target.closest('[data-auth-open]')){ openAuth(false); return; }
  if(e.target.closest('[data-acct-delete]')){ acctDelete(); return; }
  if(e.target.closest('[data-auth-signout]')){ doSignOut(); return; }
@@ -9691,6 +9729,15 @@
     return '<span class="trx__exp trx__exp--ok">Valid \u00b7 '+fmtDate(dateStr)+'</span>';
   }
 
+  /* A bare date field is an empty box with a mystery chevron. This is the same
+     shape as the Time button, so both read as "tap me to choose". */
+  function trdDateBtn(id, val, label){
+    return '<button type="button" class="wdate__btn" data-wdate="'+id+'">'
+      + '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'
+      + '<span data-wdateval="'+id+'">'+(val? esc(fmtDate(val)) : label)+'</span>'
+      + '</button>'
+      + '<input type="date" class="itn__hidden" id="'+id+'" value="'+(val||'')+'" tabindex="-1" aria-hidden="true">';
+  }
   function trdTabBookings(t){
     var list=(t.bookings||[]).slice().sort(function(a,b){ return String(a.date||'').localeCompare(String(b.date||'')); });
     var body = list.length
@@ -9712,7 +9759,7 @@
     return body + '<div class="trx__add">'
       + '<input class="input" type="text" placeholder="What is booked?" id="bkName">'
       + '<select class="input" id="bkKind" aria-label="Kind">'+TRX_BOOKS.map(function(k){return '<option>'+k+'</option>';}).join('')+'</select>'
-      + '<input class="input" type="date" id="bkDate" aria-label="Date">'
+      + trdDateBtn('bkDate','','When is it?')
       + '<button class="btn btn--primary" data-bkadd>Add</button>'
       + '<input class="input" type="text" placeholder="Confirmation number (optional)" id="bkRef" style="grid-column:1/-1">'
       + '</div>';
@@ -9740,7 +9787,7 @@
     return body + '<div class="trx__add">'
       + '<input class="input" type="text" placeholder="Document name" id="dcName">'
       + '<select class="input" id="dcKind" aria-label="Kind">'+TRX_DOCS.map(function(k){return '<option>'+k+'</option>';}).join('')+'</select>'
-      + '<input class="input" type="date" id="dcExp" aria-label="Expiry">'
+      + trdDateBtn('dcExp','','Expires on')
       + '<button class="btn btn--primary" data-dcadd>Add</button>'
       + '<input class="input" type="text" placeholder="Whose is it? (optional)" id="dcWho" style="grid-column:1/-1">'
       + '</div>';
@@ -10026,6 +10073,19 @@
           var f=document.querySelector('[data-itntitle="'+dv+'"]');
           if(f) f.focus({preventScroll:true});
         }, 60);
+      }
+      return;
+    }
+    var wdb=e.target.closest('[data-wdate]');
+    if(wdb){
+      var fid=wdb.getAttribute('data-wdate');
+      var fin=document.getElementById(fid);
+      if(fin){
+        WDP.open(fin);
+        fin.addEventListener('change', function(){
+          var lb=document.querySelector('[data-wdateval="'+fid+'"]');
+          if(lb) lb.textContent = fin.value ? fmtDate(fin.value) : lb.textContent;
+        }, {once:true});
       }
       return;
     }

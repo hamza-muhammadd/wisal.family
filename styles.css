@@ -4545,3 +4545,33 @@ input,button,select,textarea,a{-webkit-tap-highlight-color:transparent}
   .wdp,.tjread,.trd,.wdp__box,.tjread__box,.trd__cover,.trd__ready{animation:none;transition:none}
   .wsel__o:active,.wdp__d:active,.btn:active{transform:none}
 }
+
+/* ==================== DATE CONTROLS THAT EXPLAIN THEMSELVES ====================
+   An empty date box with a chevron tells nobody anything. */
+.wdate__btn{display:inline-flex;align-items:center;gap:9px;width:100%;
+  padding:13px 15px;border-radius:var(--r-md);border:1px solid var(--glass-hair);
+  background:var(--surface-2);color:var(--text-2);font:inherit;font-size:.92rem;font-weight:560;
+  cursor:pointer;text-align:left;transition:border-color .16s,color .16s,background .16s}
+.wdate__btn:hover{border-color:var(--border-strong);color:var(--text);background:var(--surface)}
+.wdate__btn svg{width:17px;height:17px;flex:none;fill:none;stroke:var(--brand);stroke-width:1.9}
+.wdate__btn span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* the 40 native date fields elsewhere: make the hint readable, never blank */
+input[type="date"],input[type="time"],input[type="datetime-local"]{position:relative}
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-year-field,
+::-webkit-datetime-edit-hour-field,
+::-webkit-datetime-edit-minute-field{color:var(--text)}
+input[type="date"]:not(:focus)::-webkit-datetime-edit-day-field:not([aria-valuenow]),
+input[type="date"]:not(:focus)::-webkit-datetime-edit-month-field:not([aria-valuenow]),
+input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-valuenow]){
+  color:var(--text-3)}
+::-webkit-datetime-edit-text{color:var(--text-3)}
+
+/* ==================== PROFILE PICTURE ====================
+   Empty means empty — a soft person mark, and a quiet ring inviting a tap. */
+.brand__logo{position:relative;transition:box-shadow .2s var(--ease)}
+.brand__logo:hover{box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 22%,transparent)}
+.avphoto__pv{position:relative}
+.wsel__o svg[style*="danger"]{opacity:1}
