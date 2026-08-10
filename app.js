@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','69'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','70'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3691,7 +3691,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4978,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '69 \u00b7 trip-layout';
+  var APP_VERSION = '70 \u00b7 calm-itinerary';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9373,7 +9373,7 @@
     ['insurance','Travel insurance'], ['currency','Currency exchanged'],
     ['transfer','Airport transfer'], ['docs','Documents copied']
   ];
-  var trdId=null, trdTab='overview';
+  var trdId=null, trdTab='overview', trdDayOpen=null;
 
   function trdTrip(){ try{ return (FD.data.travel.trips||[]).filter(function(t){return t.id===trdId;})[0]||null; }catch(e){ return null; } }
   function trdPrepOf(t){ if(!t.prep) t.prep={}; return t.prep; }
@@ -9478,9 +9478,16 @@
     if(!days.length) return '<div class="itn__empty">Add a departure and return date to build the itinerary.</div>';
     return days.map(function(d,i){
       var evs=trdEvents(t,d);
-      return '<div class="itn__day">'
-        + '<div class="itn__dayh"><span class="itn__dayn">Day '+(i<9?'0':'')+(i+1)+'</span>'
-          + '<span class="itn__dayd">'+esc(fmtDate(d))+'</span></div>'
+      var open = (trdDayOpen===d);
+      /* The add form is folded away by default. Thirty days of empty inputs is
+         noise; the plan itself is the thing worth seeing at a glance. */
+      return '<div class="itn__day'+(open?' is-open':'')+'">'
+        + '<button class="itn__dayh" data-itnday="'+d+'">'
+          + '<span class="itn__dayn">Day '+(i<9?'0':'')+(i+1)+'</span>'
+          + '<span class="itn__dayd">'+esc(fmtDate(d))+'</span>'
+          + '<span class="itn__count">'+(evs.length? evs.length+(evs.length===1?' plan':' plans') : 'Nothing yet')+'</span>'
+          + '<span class="itn__plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></span>'
+        + '</button>'
         + (evs.length ? '<div class="itn__line">' + evs.map(function(ev){
               return '<div class="itn__ev">'
                 + '<span class="itn__t">'+esc(fmt12(ev.time)||'\u2014')+'</span>'
@@ -9489,12 +9496,12 @@
                 + '<button class="itn__del" data-itndel="'+ev.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
               + '</div>';
             }).join('') + '</div>' : '')
-        + '<div class="itn__add">'
+        + '<div class="itn__addwrap"><div class="itn__add">'
           + '<button type="button" class="itn__time" data-itnclock="'+d+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8" stroke-linecap="round"/></svg><span data-itntimeval="'+d+'">Time</span></button>'
           + '<input type="time" class="itn__hidden" data-itntime="'+d+'" tabindex="-1" aria-hidden="true">'
           + '<input class="input" type="text" placeholder="Add something for this day" data-itntitle="'+d+'">'
           + '<button class="btn" data-itnadd="'+d+'">Add</button>'
-        + '</div>'
+        + '</div></div>'
       + '</div>';
     }).join('');
   }
@@ -9694,7 +9701,7 @@
     var list=(t.journal||[]).slice().sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
     var body = list.length
       ? '<div class="trj__wrap">'+list.map(function(j){
-          return '<div class="trj__e">'
+          return '<div class="trj__e" data-tjopen="'+j.id+'">'
             + '<button class="trj__x" data-trxdel="journal:'+j.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
             + '<div class="trj__d">'+esc(fmtDate(j.date))+'</div>'
             + '<div class="trj__t">'+esc(j.text)+'</div>'
@@ -9711,6 +9718,37 @@
       + '</div></div>';
   }
   var trdPhotoBuf = null;
+
+  /* ---- Reading one journal entry ----
+     The card shows a taste; this shows the whole day. */
+  function trdJournalRead(id){
+    var t=trdTrip(); if(!t) return;
+    var j=(t.journal||[]).filter(function(x){ return x.id===id; })[0];
+    if(!j) return;
+    var host=document.getElementById('tjRead');
+    if(!host){
+      host=document.createElement('div');
+      host.className='tjread'; host.id='tjRead';
+      document.body.appendChild(host);
+    }
+    var words=(j.text||'').trim() ? (j.text.trim().split(/\s+/).length) : 0;
+    host.innerHTML='<div class="tjread__box" role="dialog" aria-modal="true">'
+      + '<button class="tjread__x" data-tjclose aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+      + (j.photo? '<div class="tjread__ph"><img src="'+j.photo+'" alt=""></div>' : '')
+      + '<div class="tjread__body">'
+        + '<div class="tjread__d">'+esc(fmtDate(j.date))+'</div>'
+        + '<div class="tjread__place">'+esc(t.dest||t.name||'This journey')+'</div>'
+        + (j.text? '<div class="tjread__t">'+esc(j.text)+'</div>' : '<div class="tjread__t tjread__t--none">No words for this one \u2014 just the picture.</div>')
+        + '<div class="tjread__meta">'+(words? words+' word'+(words===1?'':'s') : 'Photo only')+'</div>'
+      + '</div></div>';
+    host.classList.add('is-on');
+    document.body.style.overflow='hidden';
+  }
+  function trdJournalClose(){
+    var h=document.getElementById('tjRead');
+    if(h) h.classList.remove('is-on');
+    document.body.style.overflow = trdId ? 'hidden' : '';
+  }
 
   function trdSoon(what){
     return '<div class="trd__soon">'+what+' arrives in the next step.<br>Everything you add elsewhere stays exactly where it is.</div>';
@@ -9783,6 +9821,8 @@
     if(e.target.closest('[data-trdclose]')){ trdClose(); return; }
     var tb=e.target.closest('[data-trdtab]');
     if(tb){ trdTab=tb.getAttribute('data-trdtab'); trdRender(); return; }
+    if(e.target.closest('[data-tjclose]')){ trdJournalClose(); return; }
+    if(e.target.id==='tjRead'){ trdJournalClose(); return; }
     /* one delete route for bookings, documents and journal */
     var trx=e.target.closest('[data-trxdel]');
     if(trx){
@@ -9868,6 +9908,10 @@
       try{ FD.save(); }catch(_){}
       trdRender(); return;
     }
+    var tjo=e.target.closest('[data-tjopen]');
+    if(tjo && !e.target.closest('button') && !e.target.closest('img')){
+      trdJournalRead(tjo.getAttribute('data-tjopen')); return;
+    }
     var pkt=e.target.closest('[data-pkto]');
     if(pkt){
       var it=FD.getPack(pkt.getAttribute('data-pkto'));
@@ -9888,6 +9932,19 @@
       var tp2=trdTrip(); if(!tp2) return;
       TRD_ESSENTIALS.forEach(function(x){ FD.addPack({ tripId:tp2.id, cat:x[0], name:x[1], done:false }); });
       trdRender(); return;
+    }
+    var idy=e.target.closest('[data-itnday]');
+    if(idy){
+      var dv=idy.getAttribute('data-itnday');
+      trdDayOpen = (trdDayOpen===dv) ? null : dv;
+      trdRender();
+      if(trdDayOpen){
+        setTimeout(function(){
+          var f=document.querySelector('[data-itntitle="'+dv+'"]');
+          if(f) f.focus();
+        }, 60);
+      }
+      return;
     }
     var ic=e.target.closest('[data-itnclock]');
     if(ic){
@@ -9913,7 +9970,9 @@
       if(!t3.itinerary) t3.itinerary=[];
       t3.itinerary.push({ id:'ev'+Date.now()+Math.random().toString(36).slice(2,6),
                           day:day, time:(tm&&tm.value)||'', title:title, note:'' });
+      if(ti) ti.value='';
       try{ FD.save(); }catch(_){}
+      trdDayOpen=day;
       trdRender();
       return;
     }
@@ -9970,7 +10029,9 @@
   });
 
   document.addEventListener('keydown', function(e){
-    if(e.key==='Escape' && trdId) trdClose();
+    if(e.key==='Escape'){ var r=document.getElementById('tjRead');
+      if(r && r.classList.contains('is-on')){ trdJournalClose(); return; }
+      if(trdId) trdClose(); }
     if(e.key==='Enter' && e.target && e.target.id==='pkName'){
       var b=document.querySelector('[data-pkadd]'); if(b){ e.preventDefault(); b.click(); }
     }
