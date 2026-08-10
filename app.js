@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','71'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','72'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3611,11 +3611,17 @@
       var z=document.getElementById('avZoom'); if(z) z.value=100;
       var box=document.getElementById('avCrop'); if(box) box.classList.add('is-on');
       cropDraw();
+      OV.open('crop', function(){ cropClose(true); });
     };
     im.onerror=function(){ if(typeof flash==='function') flash('Could not read that picture'); };
     im.src=src;
   }
-  function cropClose(){ var b=document.getElementById('avCrop'); if(b) b.classList.remove('is-on'); _cropImg=null; }
+  function cropClose(fromBack){
+    var b=document.getElementById('avCrop');
+    if(b) b.classList.remove('is-on');
+    _cropImg=null;
+    if(!fromBack) OV.done('crop');
+  }
   function cropSave(){
     var cv=document.getElementById('avCanvas'); if(!cv||!_cropImg){ cropClose(); return; }
     var durl;
@@ -3691,7 +3697,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4978,7 +4984,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '71 \u00b7 no-jump';
+  var APP_VERSION = '72 \u00b7 back-works';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9100,6 +9106,35 @@
  }
  applyNavGroups();
  navigate(VIEWS.indexOf(start)!==-1?start:'home', false);
+  /* ==================== BACK GOES BACK, NOT OUT ====================
+     A swipe back inside a trip used to close the whole app. Each overlay now
+     puts an entry in history, so the phone's back gesture peels off one layer
+     at a time and only leaves the app when nothing is open. */
+  var OV = {
+    stack: [],
+    open: function(name, closeFn){
+      /* already open — do not stack it twice */
+      for(var i=0;i<this.stack.length;i++) if(this.stack[i].name===name) return;
+      this.stack.push({ name:name, close:closeFn });
+      try{ history.pushState({ wisalOverlay:name }, ''); }catch(e){}
+    },
+    /* called when our own close button ran: drop the layer and rewind history */
+    done: function(name){
+      var i=-1;
+      for(var k=this.stack.length-1;k>=0;k--) if(this.stack[k].name===name){ i=k; break; }
+      if(i<0) return;
+      this.stack.splice(i,1);
+      try{ history.back(); }catch(e){}
+    }
+  };
+  window.addEventListener('popstate', function(){
+    var top=OV.stack.pop();
+    if(top && typeof top.close==='function'){
+      /* true tells the closer that history has already moved */
+      try{ top.close(true); }catch(e){}
+    }
+  });
+
   /* ==================== WISAL SELECT ====================
      Same trick as the date picker: keep the native <select> in the DOM so every
      existing read of .value keeps working, but take over the tap and show our
@@ -9130,8 +9165,13 @@
       this.el.classList.add('is-on');
       var on=this.el.querySelector('.is-sel');
       if(on) on.scrollIntoView({block:'center'});
+      OV.open('select', function(){ WSEL.close(true); });
     },
-    close:function(){ if(this.el) this.el.classList.remove('is-on'); this.sel=null; },
+    close:function(fromBack){
+      if(this.el) this.el.classList.remove('is-on');
+      this.sel=null;
+      if(!fromBack) OV.done('select');
+    },
     pick:function(i){
       if(!this.sel) return;
       this.sel.selectedIndex=i;
@@ -9199,8 +9239,13 @@
       }
       this.jump=false;
       this.mount().classList.add('is-on'); this.paint();
+      OV.open('picker', function(){ WDP.close(true); });
     },
-    close:function(){ if(this.el) this.el.classList.remove('is-on'); this.input=null; },
+    close:function(fromBack){
+      if(this.el) this.el.classList.remove('is-on');
+      this.input=null;
+      if(!fromBack) OV.done('picker');
+    },
     label:function(){
       if(this.mode==='time') return this.pad(this.h)+':'+this.pad(this.m)+' '+this.mer;
       if(!this.sel) return 'Pick a date';
@@ -9743,11 +9788,13 @@
       + '</div></div>';
     host.classList.add('is-on');
     document.body.style.overflow='hidden';
+    OV.open('journal', function(){ trdJournalClose(true); });
   }
-  function trdJournalClose(){
+  function trdJournalClose(fromBack){
     var h=document.getElementById('tjRead');
     if(h) h.classList.remove('is-on');
     document.body.style.overflow = trdId ? 'hidden' : '';
+    if(!fromBack) OV.done('journal');
   }
 
   function trdSoon(what){
@@ -9836,13 +9883,15 @@
     try{ host.querySelector('.trd__scroll').scrollTop=0; }catch(e){}
     trdDayOpen=null;
     document.body.style.overflow='hidden';
+    OV.open('trip', function(){ trdClose(true); });
   }
-  function trdClose(){
+  function trdClose(fromBack){
     var host=document.getElementById('trdView');
     if(host) host.classList.remove('is-on');
     document.body.style.overflow='';
     trdId=null; trdPhotoBuf=null;
     try{ renderTravelTrips(); }catch(e){}
+    if(!fromBack) OV.done('trip');
   }
 
   document.addEventListener('click', function(e){

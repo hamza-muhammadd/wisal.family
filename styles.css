@@ -4484,3 +4484,33 @@ input,button,select,textarea,a{-webkit-tap-highlight-color:transparent}
   .trd__body{animation:none}
   .itn__addwrap{transition:none}
 }
+
+/* ==================== TEXT NEVER RUNS TOGETHER ====================
+   A <span> is inline, so two of them inside a third sit side by side and their
+   words touch. Every stacked label/meta pair in the trip views is a block with
+   its own line. This is the same fault that merged "for food" and "Insurance"
+   in the budget, so it is fixed at the source here for all of them. */
+.trx__body{display:flex;flex-direction:column;gap:4px}
+.trx__t,.trx__m{display:block;line-height:1.4}
+.trx__m{margin-top:0}
+.trx__top{gap:13px;align-items:flex-start}
+.trx__exp{align-self:flex-start;margin-top:2px}
+
+/* the journal card: picture, words and edges all keep their distance */
+.trj__e{padding:16px 16px 18px}
+.trj__t{margin-bottom:2px}
+.trj__ph{margin-top:14px;margin-bottom:2px}
+.trj__wrap{margin-bottom:18px}
+.trj__wrap+.trj__add,.itn__empty+.trj__add{margin-top:16px}
+
+/* the reader: nothing flush against the panel edge */
+.tjread__ph{border-radius:24px 24px 0 0}
+.tjread__body{padding:24px}
+.tjread__place{margin-bottom:18px}
+
+/* document and booking cards keep a gap between themselves and the form */
+.trx__c{padding:16px}
+.trx__ref{margin-top:12px}
+.trx__shot,.trx__shotimg{margin-top:14px}
+.trx__list{gap:12px}
+.trx__list+.trx__add{margin-top:18px}
