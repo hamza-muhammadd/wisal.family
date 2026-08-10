@@ -4478,7 +4478,6 @@ input,button,select,textarea,a{-webkit-tap-highlight-color:transparent}
   transition:background .18s var(--ease),border-color .18s var(--ease),
              color .16s var(--ease),transform .18s var(--ease),opacity .18s var(--ease)}
 .trd__barfill,.tvpk__barf,.bdg__pctf{transition:width .5s var(--ease)}
-.trd__body{animation:trdFade .22s var(--ease)}
 @keyframes trdFade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){
   .trd__body{animation:none}
@@ -4531,9 +4530,13 @@ input,button,select,textarea,a{-webkit-tap-highlight-color:transparent}
 /* the trip view itself arrives rather than blinks into place */
 .trd{opacity:0;transition:opacity .24s var(--ease)}
 .trd.is-on{opacity:1}
-.trd.is-on .trd__cover{animation:trdCover .42s cubic-bezier(.22,1,.32,1)}
+/* Only while the trip is arriving. trdRender() rebuilds this markup on every
+   tap, so an animation left on the element itself replayed each time — that was
+   the flicker. The class is removed once the entrance is done. */
+.trd.is-entering .trd__cover{animation:trdCover .42s cubic-bezier(.22,1,.32,1)}
 @keyframes trdCover{from{transform:scale(1.035);opacity:.4}to{transform:none;opacity:1}}
-.trd.is-on .trd__ready{animation:sheetUp .34s cubic-bezier(.22,1,.32,1) .04s backwards}
+.trd.is-entering .trd__ready{animation:sheetUp .34s cubic-bezier(.22,1,.32,1) .04s backwards}
+.trd.is-entering .trd__body{animation:trdFade .22s var(--ease)}
 
 /* choices respond the moment they are touched */
 .wsel__o:active,.wdp__d:active,.wdp__o:active,.trd__tab:active,
@@ -4585,3 +4588,11 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 .avt--none svg{width:60%;height:60%;display:block}
 .brand__logo:hover .avt--none{color:var(--brand);
   background:color-mix(in srgb,var(--brand) 14%,var(--surface-2))}
+
+/* ==================== NO REPLAYED ENTRANCES ====================
+   .reveal and .subpanel animate on entry, but a section that re-renders after
+   an edit recreates those elements and the animation runs again — which reads
+   as a flicker on every tap. Once a view is settled, entrances are silent. */
+.app.is-settled .reveal{animation:none;opacity:1;transform:none}
+.app.is-settled .subpanel{animation:none}
+.app.is-settled #setGrid .set__card.pane-on{animation:none}

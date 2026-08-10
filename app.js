@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','76'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','77'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -92,6 +92,13 @@
  function markActiveGroup(view){ var item=document.querySelector('.nav__item[data-view="'+view+'"]'); var grp=item?item.closest('.nav__group'):null; $$('.nav__group').forEach(function(g){ g.classList.toggle('is-activegroup', g===grp); }); }
  var currentView='home';
  function navigate(view, push){
+  /* Entrance animations belong to the moment a view appears. Once it has
+     settled, later redraws must not replay them. */
+  try{
+    app.classList.remove('is-settled');
+    clearTimeout(window.__settleT);
+    window.__settleT=setTimeout(function(){ app.classList.add('is-settled'); }, 420);
+  }catch(e){}
     if(view==='dashboard') view='home';  // My Day merged into Home
  if(VIEWS.indexOf(view)===-1) view='home';
  currentView=view;
@@ -3728,7 +3735,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5015,7 +5022,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '76 \u00b7 avatar-person';
+  var APP_VERSION = '77 \u00b7 avatar-final';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9934,7 +9941,8 @@
       document.body.appendChild(host);
     }
     trdRender();
-    host.classList.add('is-on');
+    host.classList.add('is-on','is-entering');
+    setTimeout(function(){ host.classList.remove('is-entering'); }, 520);
     try{ host.querySelector('.trd__scroll').scrollTop=0; }catch(e){}
     trdDayOpen=null;
     document.body.style.overflow='hidden';
