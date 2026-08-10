@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','72'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','73'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3697,7 +3697,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4984,7 +4984,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '72 \u00b7 back-works';
+  var APP_VERSION = '73 \u00b7 back-fixed';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9112,25 +9112,29 @@
      at a time and only leaves the app when nothing is open. */
   var OV = {
     stack: [],
+    /* history.back() fires popstate. Without this counter the app could not tell
+       its own rewind from the user's back gesture, so closing a dropdown also
+       closed the trip behind it. Each rewind we ask for is skipped once. */
+    skip: 0,
     open: function(name, closeFn){
-      /* already open — do not stack it twice */
       for(var i=0;i<this.stack.length;i++) if(this.stack[i].name===name) return;
       this.stack.push({ name:name, close:closeFn });
       try{ history.pushState({ wisalOverlay:name }, ''); }catch(e){}
     },
-    /* called when our own close button ran: drop the layer and rewind history */
     done: function(name){
       var i=-1;
       for(var k=this.stack.length-1;k>=0;k--) if(this.stack[k].name===name){ i=k; break; }
       if(i<0) return;
       this.stack.splice(i,1);
-      try{ history.back(); }catch(e){}
+      this.skip++;
+      try{ history.back(); }
+      catch(e){ this.skip=Math.max(0,this.skip-1); }
     }
   };
   window.addEventListener('popstate', function(){
+    if(OV.skip>0){ OV.skip--; return; }   /* our own rewind, not a back gesture */
     var top=OV.stack.pop();
     if(top && typeof top.close==='function'){
-      /* true tells the closer that history has already moved */
       try{ top.close(true); }catch(e){}
     }
   });

@@ -4514,3 +4514,34 @@ input,button,select,textarea,a{-webkit-tap-highlight-color:transparent}
 .trx__shot,.trx__shotimg{margin-top:14px}
 .trx__list{gap:12px}
 .trx__list+.trx__add{margin-top:18px}
+
+/* ==================== BUTTER-SMOOTH LAYERS ====================
+   Every sheet fades its backdrop and glides its panel in, and leaves the same
+   way. Nothing appears or vanishes abruptly. */
+.wdp,.tjread{opacity:0;transition:opacity .22s var(--ease)}
+.wdp.is-on,.tjread.is-on{opacity:1}
+.wdp__box{will-change:transform,opacity}
+.wdp.is-on .wdp__box{animation:sheetUp .3s cubic-bezier(.22,1,.32,1)}
+@keyframes sheetUp{from{transform:translateY(22px);opacity:0}to{transform:none;opacity:1}}
+@media (min-width:640px){
+  @keyframes sheetUp{from{transform:scale(.965);opacity:0}to{transform:none;opacity:1}}
+}
+.tjread.is-on .tjread__box{animation:sheetUp .3s cubic-bezier(.22,1,.32,1)}
+
+/* the trip view itself arrives rather than blinks into place */
+.trd{opacity:0;transition:opacity .24s var(--ease)}
+.trd.is-on{opacity:1}
+.trd.is-on .trd__cover{animation:trdCover .42s cubic-bezier(.22,1,.32,1)}
+@keyframes trdCover{from{transform:scale(1.035);opacity:.4}to{transform:none;opacity:1}}
+.trd.is-on .trd__ready{animation:sheetUp .34s cubic-bezier(.22,1,.32,1) .04s backwards}
+
+/* choices respond the moment they are touched */
+.wsel__o:active,.wdp__d:active,.wdp__o:active,.trd__tab:active,
+.itn__dayh:active,.pk__i:active{transform:scale(.985)}
+.btn{transition:transform .14s var(--ease),background .16s,border-color .16s,box-shadow .18s}
+.btn:active{transform:scale(.975)}
+
+@media (prefers-reduced-motion:reduce){
+  .wdp,.tjread,.trd,.wdp__box,.tjread__box,.trd__cover,.trd__ready{animation:none;transition:none}
+  .wsel__o:active,.wdp__d:active,.btn:active{transform:none}
+}
