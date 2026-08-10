@@ -4575,3 +4575,13 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 .brand__logo:hover{box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 22%,transparent)}
 .avphoto__pv{position:relative}
 .wsel__o svg[style*="danger"]{opacity:1}
+
+/* ---- Empty profile slot ----
+   A muted person mark on a quiet field: recognisable anywhere, and clearly
+   an invitation rather than a brand. */
+.avt--none{display:grid;place-items:center;width:100%;height:100%;
+  background:color-mix(in srgb,var(--text-3) 14%,var(--surface-2));
+  color:var(--text-3);border-radius:inherit;transition:color .18s,background .18s}
+.avt--none svg{width:60%;height:60%;display:block}
+.brand__logo:hover .avt--none{color:var(--brand);
+  background:color-mix(in srgb,var(--brand) 14%,var(--surface-2))}
