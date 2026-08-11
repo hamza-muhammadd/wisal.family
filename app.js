@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','78'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','79'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3739,7 +3739,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5026,7 +5026,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '78 \u00b7 journey-map';
+  var APP_VERSION = '79 \u00b7 real-map';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9757,54 +9757,34 @@
      A hand-drawn world in the app's own palette. No tiles, no API key, no
      network — it works on a plane. Coordinates are equirectangular, so a
      place turns into a pin with plain arithmetic. */
-  var TV_PLACES = {
-    'bangladesh':[23.7,90.4],'dhaka':[23.8,90.4],'chittagong':[22.4,91.8],'coxs bazar':[21.4,92.0],
-    'sylhet':[24.9,91.9],'india':[22.0,79.0],'delhi':[28.6,77.2],'kolkata':[22.6,88.4],'mumbai':[19.1,72.9],
-    'pakistan':[30.4,69.3],'nepal':[28.4,84.1],'sri lanka':[7.9,80.8],'maldives':[3.2,73.2],
-    'saudi arabia':[23.9,45.1],'makkah':[21.4,39.8],'mecca':[21.4,39.8],'madinah':[24.5,39.6],'medina':[24.5,39.6],
-    'jeddah':[21.5,39.2],'uae':[23.4,53.8],'dubai':[25.2,55.3],'abu dhabi':[24.5,54.4],'qatar':[25.4,51.2],
-    'doha':[25.3,51.5],'kuwait':[29.3,47.5],'oman':[21.5,55.9],'bahrain':[26.1,50.6],
-    'turkey':[38.9,35.2],'istanbul':[41.0,28.9],'ankara':[39.9,32.9],'egypt':[26.8,30.8],'cairo':[30.0,31.2],
-    'jordan':[30.6,36.2],'palestine':[31.9,35.2],'jerusalem':[31.8,35.2],'lebanon':[33.9,35.9],
-    'morocco':[31.8,-7.1],'tunisia':[33.9,9.5],'algeria':[28.0,1.7],'libya':[26.3,17.2],
-    'malaysia':[4.2,101.9],'kuala lumpur':[3.1,101.7],'indonesia':[-0.8,113.9],'jakarta':[-6.2,106.8],
-    'bali':[-8.4,115.2],'singapore':[1.35,103.8],'thailand':[15.9,101.0],'bangkok':[13.8,100.5],
-    'china':[35.9,104.2],'japan':[36.2,138.3],'tokyo':[35.7,139.7],'korea':[35.9,127.8],'seoul':[37.6,127.0],
-    'uk':[55.4,-3.4],'london':[51.5,-0.1],'england':[52.4,-1.5],'france':[46.2,2.2],'paris':[48.9,2.35],
-    'germany':[51.2,10.5],'berlin':[52.5,13.4],'italy':[41.9,12.6],'rome':[41.9,12.5],'milan':[45.5,9.2],
-    'spain':[40.5,-3.7],'madrid':[40.4,-3.7],'barcelona':[41.4,2.2],'portugal':[39.4,-8.2],
-    'netherlands':[52.1,5.3],'switzerland':[46.8,8.2],'greece':[39.1,21.8],'russia':[61.5,105.3],
-    'usa':[37.1,-95.7],'new york':[40.7,-74.0],'california':[36.8,-119.4],'canada':[56.1,-106.3],
-    'toronto':[43.7,-79.4],'mexico':[23.6,-102.6],'brazil':[-14.2,-51.9],'argentina':[-38.4,-63.6],
-    'australia':[-25.3,133.8],'sydney':[-33.9,151.2],'new zealand':[-40.9,174.9],
-    'south africa':[-30.6,22.9],'kenya':[-0.02,37.9],'nigeria':[9.1,8.7],'ethiopia':[9.1,40.5]
-  };
+  /* ---- Real geography ----
+     world.js holds Natural Earth coastlines; places.js holds 5,400 real
+     coordinates. Both are plain data files loaded before this one, so the map
+     works offline and needs no API key. */
+  function tvPlaceDB(){ return (window.WISAL_PLACES||{p:{},a:{}}); }
+  function tvNorm(t){
+    return String(t||'').toLowerCase()
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  }
   function tvCoords(dest){
-    if(!dest) return null;
-    var q=String(dest).toLowerCase().replace(/[^a-z\s]/g,' ').trim();
-    if(TV_PLACES[q]) return TV_PLACES[q];
-    /* try each word, then any name contained in the text */
-    var parts=q.split(/[\s,]+/);
-    for(var i=0;i<parts.length;i++) if(TV_PLACES[parts[i]]) return TV_PLACES[parts[i]];
-    for(var k in TV_PLACES) if(q.indexOf(k)>=0) return TV_PLACES[k];
+    var db=tvPlaceDB(), q=tvNorm(dest);
+    if(!q) return null;
+    var direct = db.p[q] || (db.a[q] && db.p[db.a[q]]);
+    if(direct) return direct;
+    /* "Cairo, Egypt" and "trip to Rome" should both find their place */
+    var words=q.split(' ');
+    for(var n=Math.min(3,words.length); n>=1; n--){
+      for(var i=0;i+n<=words.length;i++){
+        var frag=words.slice(i,i+n).join(' ');
+        var hit = db.p[frag] || (db.a[frag] && db.p[db.a[frag]]);
+        if(hit) return hit;
+      }
+    }
     return null;
   }
-  function tvXY(lat,lng){
-    return { x:(lng+180)/360*1000, y:(90-lat)/180*500 };
-  }
-  /* Simplified continents on an equirectangular grid — stylised on purpose, so
-     it reads as an illustration rather than a bad atlas. */
-  var TV_LAND = [
-    'M138 96l34-14 46 4 40-12 44 10 26 18-8 26-30 16-16 30-26 10-20 26-24-6-14-28-30-14-18-30-4-24z',
-    'M232 196l30-6 26 10 18 26-6 30-16 24-14 34-20 26-18-6-8-30-14-26-2-38 10-26 14-18z',
-    'M470 118l30-16 40-4 34 8 22-12 34 6 10 22-14 20-30 8-20 18-28 4-24 14-30-6-18-22-6-24z',
-    'M486 196l34-8 30 6 24 20 10 30-6 34-18 30-16 34-20 20-16-10-6-32-14-28-8-36 6-38 4-22z',
-    'M596 152l40-20 56-6 62 8 48 18 30 26-10 30-38 20-44 8-40 22-46 4-38-16-24-30-6-34 10-30z',
-    'M690 244l26-10 30 6 24 18 6 26-14 24-24 14-24-6-16-24-8-26 4-22z',
-    'M812 296l40-14 46 6 30 22 6 30-20 26-38 16-40-6-28-22-8-30 12-28z',
-    'M148 60l70-18 90 6 70 18-14 22-64 10-70-4-62-14-20-20z',
-    'M600 66l90-24 130 8 96 26-22 26-96 14-110-6-78-18-10-26z'
-  ];
+  function tvXY(lat,lng){ return { x:(lng+180)/360*2000, y:(90-lat)/180*1000 }; }
+
   function trdMapHTML(){
     var trips=(FD.data.travel.trips||[]);
     var pins=[], seen={}, placed=0;
@@ -9819,16 +9799,16 @@
       pins.push({ x:p.x, y:p.y, st:st, name:t.dest, id:t.id });
     });
     var missing = trips.length - placed;
-    var land = TV_LAND.map(function(d){ return '<path d="'+d+'"/>'; }).join('');
+    var land = window.WISAL_WORLD ? '<path d="'+window.WISAL_WORLD+'"/>' : '';
     var dots = pins.map(function(p){
       return '<g class="tvmap__pin tvmap__pin--'+p.st+'" data-tvopen="'+p.id+'" transform="translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')">'
-        + '<circle class="tvmap__halo" r="16"/>'
-        + '<circle class="tvmap__dot" r="6"/>'
+        + '<circle class="tvmap__halo" r="22"/>'
+        + '<circle class="tvmap__dot" r="9"/>'
         + '<title>'+esc(p.name)+'</title>'
       + '</g>';
     }).join('');
     return '<div class="tvmap">'
-      + '<svg viewBox="0 0 1000 500" class="tvmap__svg" role="img" aria-label="Map of your journeys">'
+      + '<svg viewBox="0 0 2000 1000" class="tvmap__svg" role="img" aria-label="Map of your journeys">'
         + '<g class="tvmap__land">'+land+'</g>'
         + dots
       + '</svg>'

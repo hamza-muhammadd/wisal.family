@@ -1028,6 +1028,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" async defer></script>
+<!-- Map data must be in memory before app.js runs, so these are not
+     deferred: a deferred script would execute after app.js and the world
+     would be missing on first paint. -->
+<script src="/world.js"></script>
+<script src="/places.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
