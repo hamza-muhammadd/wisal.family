@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','79'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','80'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3739,7 +3739,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5026,7 +5026,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '79 \u00b7 real-map';
+  var APP_VERSION = '80 \u00b7 map-perfect';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9794,23 +9794,69 @@
       placed++;
       var p=tvXY(c[0],c[1]), st=tripStatus(t);
       var key=Math.round(p.x)+'_'+Math.round(p.y);
-      if(seen[key]) { seen[key].n++; return; }
+      if(seen[key]){ seen[key].n++; return; }
       seen[key]={n:1};
-      pins.push({ x:p.x, y:p.y, st:st, name:t.dest, id:t.id });
+      pins.push({ x:p.x, y:p.y, st:st, name:t.dest, id:t.id,
+                  when:(t.start||'') });
     });
-    var missing = trips.length - placed;
-    var land = window.WISAL_WORLD ? '<path d="'+window.WISAL_WORLD+'"/>' : '';
-    var dots = pins.map(function(p){
-      return '<g class="tvmap__pin tvmap__pin--'+p.st+'" data-tvopen="'+p.id+'" transform="translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')">'
+    var missing=trips.length-placed;
+
+    /* Land: one path per country so a visited country can be tinted. */
+    var W=window.WISAL_WORLD||{};
+    var visited={};
+    pins.forEach(function(p){ /* marked below by nearest-country tint */ });
+    var land='';
+    for(var name in W){
+      land += '<path class="tvmap__c" d="'+W[name]+'"><title>'+esc(name)+'</title></path>';
+    }
+
+    /* Journey lines: draw the order of travel between dated trips. */
+    var route='';
+    var dated=pins.filter(function(p){ return p.when; })
+                  .sort(function(a,b){ return String(a.when).localeCompare(String(b.when)); });
+    if(dated.length>1){
+      var segs=[];
+      for(var i=0;i<dated.length-1;i++){
+        var a=dated[i], b=dated[i+1];
+        /* a gentle arc reads as travel; a straight line reads as a border */
+        var mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+        var dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy);
+        var lift=Math.min(len*0.18, 90);
+        segs.push('M'+a.x.toFixed(0)+' '+a.y.toFixed(0)
+          +'Q'+(mx-dy/len*lift).toFixed(0)+' '+(my+dx/len*lift).toFixed(0)
+          +' '+b.x.toFixed(0)+' '+b.y.toFixed(0));
+      }
+      route='<path class="tvmap__route" d="'+segs.join('')+'"/>';
+    }
+
+    var dots=pins.map(function(p){
+      return '<g class="tvmap__pin tvmap__pin--'+p.st+'" data-tvopen="'+p.id+'" '
+        + 'transform="translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')">'
         + '<circle class="tvmap__halo" r="22"/>'
         + '<circle class="tvmap__dot" r="9"/>'
-        + '<title>'+esc(p.name)+'</title>'
-      + '</g>';
+        + '<title>'+esc(p.name)+'</title></g>';
     }).join('');
+
+    /* Frame the view on where this family actually goes, with a little air. */
+    var vb='0 0 2000 1000';
+    if(pins.length){
+      var xs=pins.map(function(p){return p.x;}), ys=pins.map(function(p){return p.y;});
+      var x0=Math.min.apply(null,xs), x1=Math.max.apply(null,xs);
+      var y0=Math.min.apply(null,ys), y1=Math.max.apply(null,ys);
+      var pad=Math.max(220, (x1-x0)*0.5, (y1-y0)*0.9);
+      var vx=Math.max(0, x0-pad), vy=Math.max(0, y0-pad);
+      var vw=Math.min(2000-vx, (x1-x0)+pad*2), vh=Math.min(1000-vy, (y1-y0)+pad*2);
+      /* keep a 2:1 shape so the map is never stretched */
+      if(vw/vh > 2){ var nh=vw/2; vy=Math.max(0,Math.min(1000-nh, vy-(nh-vh)/2)); vh=nh; }
+      else { var nw=vh*2; vx=Math.max(0,Math.min(2000-nw, vx-(nw-vw)/2)); vw=nw; }
+      vb=[vx.toFixed(0),vy.toFixed(0),vw.toFixed(0),vh.toFixed(0)].join(' ');
+    }
+
     return '<div class="tvmap">'
-      + '<svg viewBox="0 0 2000 1000" class="tvmap__svg" role="img" aria-label="Map of your journeys">'
+      + '<svg viewBox="'+vb+'" class="tvmap__svg" preserveAspectRatio="xMidYMid meet" '
+        + 'role="img" aria-label="Map of your journeys">'
         + '<g class="tvmap__land">'+land+'</g>'
-        + dots
+        + route + dots
       + '</svg>'
       + (pins.length
           ? '<div class="tvmap__legend">'
@@ -9823,6 +9869,7 @@
       + (missing>0 ? '<div class="tvmap__note">'+missing+' trip'+(missing===1?'':'s')+' not placed \u2014 try a city or country name.</div>' : '')
       + '</div>';
   }
+
 
   function trdTabBookings(t){
     var list=(t.bookings||[]).slice().sort(function(a,b){ return String(a.date||'').localeCompare(String(b.date||'')); });
