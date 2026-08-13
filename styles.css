@@ -4694,3 +4694,46 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 .trd__step--done .trd__steptx{color:var(--ok,#2C7F6B)}
 .trd__also{display:block;margin-top:9px;font-size:.8rem;color:var(--text-3);
   font-family:var(--mono);letter-spacing:.02em;overflow-wrap:anywhere}
+
+/* ==================== TRIP CARDS: ONE SHAPE ====================
+   Cards were growing to fit their contents, so a card with a photo and a note
+   towered over one without, and the grid turned into a staircase. Now every
+   card has the same skeleton: cover, title block, chips, note, actions — and
+   the actions always sit on the same line. */
+#tvTrips .cklist{align-items:stretch}
+.tvcard{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.rcard__photo{flex:none;height:170px;overflow:hidden;background:var(--surface-2)}
+.rcard__photo img{width:100%;height:100%;object-fit:cover;display:block}
+/* no photo: a calm monogram instead of a hole */
+.rcard__photo--none{display:grid;place-items:center;
+  background:linear-gradient(155deg,color-mix(in srgb,var(--brand) 20%,var(--surface-2)),var(--surface-2))}
+.rcard__photo--none span{font-size:2.6rem;font-weight:760;letter-spacing:-.03em;
+  color:color-mix(in srgb,var(--brand) 55%,transparent)}
+.tvcard .rcard__body{flex:1;display:flex;flex-direction:column;gap:10px;padding:15px 16px 14px}
+.tvcard .lncard__top{align-items:flex-start;gap:10px}
+.tvcard .rcard__t{font-size:1.06rem;line-height:1.3;overflow-wrap:anywhere}
+.tvcard .lncard__s{margin-top:3px}
+.tvcard .tvpill{flex:none;white-space:nowrap}
+/* the note may vary in length, but it must not push the buttons around */
+.tvcard .lncard__note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;font-size:.86rem;line-height:1.5;color:var(--text-2)}
+/* actions pinned to the bottom of every card, always level */
+.tvcard .lncard__acts{margin-top:auto;padding-top:12px;border-top:1px solid var(--glass-hair)}
+.tvcard .chiplist{min-height:0}
+@media (min-width:1000px){
+  .rcard__photo{height:190px}
+}
+
+/* ---- Every card grid in the app, evened out ----
+   align-items:start let each card keep its own height, which is what made the
+   rows look ragged. Stretching them and pinning the actions to the bottom gives
+   each grid one clean baseline. */
+.jlist,.trj__wrap,.trx__list--docs{align-items:stretch}
+.jlist>*,.trj__wrap>*,.trx__list--docs>*{display:flex;flex-direction:column;height:100%}
+.jentry--cover .jentry__in{flex:1;display:flex;flex-direction:column}
+.jentry .jentry__acts{margin-top:auto;padding-top:12px}
+.trj__e .trj__t{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.trx__list--docs .trx__c{display:flex;flex-direction:column}
+.trx__list--docs .trx__shot,.trx__list--docs .trx__shotimg{margin-top:auto}
+/* journal entry text on the card is a taste, the reader shows the whole thing */
+.jentry__body{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
