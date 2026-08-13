@@ -4737,3 +4737,43 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 .trx__list--docs .trx__shot,.trx__list--docs .trx__shotimg{margin-top:auto}
 /* journal entry text on the card is a taste, the reader shows the whole thing */
 .jentry__body{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ==================== BREATHING ROOM, EVERYWHERE ====================
+   Pinning actions to the bottom with margin-top:auto silently replaced the
+   spacing they used to have, and dropped their divider. Every stacked block in
+   a card now keeps a minimum of its own space, whether or not it is pinned. */
+
+/* --- journal cards --- */
+.jentry__acts{margin-top:auto!important;padding-top:14px;
+  border-top:1px solid var(--border);gap:8px}
+.jentry--cover .jentry__in>*+*{margin-top:11px}
+.jentry__body{margin-top:0}
+.jtags{margin-top:0}
+.jentry__title{line-height:1.35}
+.jentry__meta{margin-top:4px}
+
+/* --- trip cards --- */
+.tvcard .lncard__acts{margin-top:auto!important;padding-top:13px;
+  border-top:1px solid var(--glass-hair);gap:8px}
+.tvcard .rcard__body>*+*{margin-top:0}
+
+/* --- documents, bookings, trip journal --- */
+.trx__list--docs .trx__shot,.trx__list--docs .trx__shotimg{margin-top:auto!important;
+  margin-bottom:0}
+.trx__c>*+*{margin-top:12px}
+.trj__e>*+*{margin-top:11px}
+.trj__d{margin-bottom:0}
+
+/* --- anywhere a row of buttons closes a card --- */
+.set__card>*+*{margin-top:12px}
+.fcard>*+*{margin-top:12px}
+.fcard__h{margin-bottom:0}
+.vrow+.vrow{margin-top:8px}
+
+/* --- generic safety: stacked text inside any card keeps a line of air --- */
+.lncard__hl>*+*{margin-top:4px}
+.rcard__body .lncard__note{margin-top:2px}
+
+/* the two remaining pinned rows had no padding of their own */
+#commWrap .chat>.composer{padding-top:10px}
+.plw-add{margin-top:auto;padding-top:12px}
