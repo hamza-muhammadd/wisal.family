@@ -4652,3 +4652,45 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 @media (prefers-reduced-motion:reduce){
   .tvmap__pin--ongoing .tvmap__halo,.tvmap__route{animation:none}
 }
+
+/* ==================== TRAVEL THAT THINKS ====================
+   Suggestions are offers, never impositions: quiet until useful, one tap to
+   accept, and they disappear once the family has answered for themselves. */
+.sug{margin:14px 0 4px;padding:16px 17px;border-radius:var(--r-lg);
+  background:linear-gradient(155deg,color-mix(in srgb,var(--brand) 10%,var(--surface)),var(--surface));
+  border:1px solid color-mix(in srgb,var(--brand) 26%,transparent)}
+.sug__h{display:flex;align-items:center;gap:9px;font-size:.92rem;font-weight:620;
+  color:var(--text);margin-bottom:6px}
+.sug__ic{flex:none;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--brand) 16%,transparent);color:var(--brand)}
+.sug__ic svg{width:13px;height:13px}
+.sug__p{font-size:.85rem;color:var(--text-2);line-height:1.55;margin:0 0 12px}
+.sug__chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 13px}
+.sug__chips>*{flex:none}
+.sug__chip{border:1px solid var(--glass-hair);background:var(--surface-2);
+  color:var(--text-2);font:inherit;font-size:.84rem;padding:8px 13px;border-radius:999px;
+  cursor:pointer;transition:all .16s var(--ease)}
+.sug__chip:hover{border-color:color-mix(in srgb,var(--brand) 45%,transparent);
+  color:var(--brand);transform:translateY(-1px)}
+.sug__chip:active{transform:scale(.96)}
+.sug__all{width:100%;justify-content:center}
+
+/* ---- the single next step ---- */
+.trd__step{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.trd__stepdot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--text-3)}
+.trd__steptx{flex:1;min-width:0;font-weight:620;color:var(--text)}
+.trd__stepgo{flex:none;border:1px solid var(--glass-hair);background:var(--surface-2);
+  color:var(--brand);font:inherit;font-size:.82rem;font-weight:620;padding:7px 14px;
+  border-radius:999px;cursor:pointer;transition:all .16s var(--ease)}
+.trd__stepgo:hover{border-color:color-mix(in srgb,var(--brand) 45%,transparent);
+  background:color-mix(in srgb,var(--brand) 10%,transparent)}
+.trd__stepgo:active{transform:scale(.97)}
+.trd__step--urgent .trd__stepdot{background:var(--danger,#d9534f);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--danger,#d9534f) 18%,transparent)}
+.trd__step--urgent .trd__steptx{color:var(--danger,#d9534f)}
+.trd__step--warn .trd__stepdot{background:var(--warn,#BE8E3C)}
+.trd__step--calm .trd__stepdot{background:var(--brand)}
+.trd__step--done .trd__stepdot{background:var(--ok,#2C7F6B)}
+.trd__step--done .trd__steptx{color:var(--ok,#2C7F6B)}
+.trd__also{display:block;margin-top:9px;font-size:.8rem;color:var(--text-3);
+  font-family:var(--mono);letter-spacing:.02em;overflow-wrap:anywhere}

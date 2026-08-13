@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','80'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','81'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3739,7 +3739,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5026,7 +5026,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '80 \u00b7 map-perfect';
+  var APP_VERSION = '81 \u00b7 travel-thinks';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9522,7 +9522,15 @@
     return d>0? d : null;
   }
 
+  function trdKindLabel(t){
+    var k=trdKind(t);
+    return k==='umrah' ? 'pilgrimage'
+         : k==='short' ? 'short trip'
+         : k==='domestic' ? 'trip inside the country'
+         : k==='long' ? 'long journey' : 'journey abroad';
+  }
   function trdIco(name){
+    if(name==='spark') return '<svg viewBox="0 0 24 24"><path d="M12 3.2l1.9 4.6 4.9.5-3.6 3.4.9 4.9L12 14.2l-4.1 2.4.9-4.9L5.2 8.3l4.9-.5z" fill="currentColor" stroke="none"/></svg>';
     if(name==='back') return '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     return '<svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
@@ -9578,7 +9586,15 @@
   function trdTabItinerary(t){
     var days=trdDays(t);
     if(!days.length) return '<div class="itn__empty">Add a departure and return date to build the itinerary.</div>';
-    return days.map(function(d,i){
+    var sug=trdSuggestDays(t);
+    var head = (sug.length && !(t.itinerary||[]).length)
+      ? '<div class="sug"><div class="sug__h"><span class="sug__ic">'+trdIco('spark')+'</span>'
+        + '<span>Start with the shape of the journey</span></div>'
+        + '<p class="sug__p">Arrival, settling in and the trip home, on the right days. '
+        + 'Change anything afterwards.</p>'
+        + '<button class="btn btn--primary sug__all" data-itnsug>Sketch '+sug.length+' moments</button></div>'
+      : '';
+    return head + days.map(function(d,i){
       var evs=trdEvents(t,d);
       var open = (trdDayOpen===d);
       /* The add form is folded away by default. Thirty days of empty inputs is
@@ -9629,7 +9645,13 @@
       + '<div class="bdg__set">'
         + '<input class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="Set a budget for this trip" value="'+(est||'')+'" id="bdgEst">'
         + '<button class="btn" data-bdgset>Save budget</button>'
-      + '</div>';
+      + '</div>'
+      + (est ? '' :
+          '<div class="sug"><div class="sug__h"><span class="sug__ic">'+trdIco('spark')+'</span>'
+          + '<span>A starting figure for a '+trdKindLabel(t)+'</span></div>'
+          + '<p class="sug__p">Based on '+(trdNights(t)||1)+' night'+((trdNights(t)||1)===1?'':'s')
+          + ' and '+Math.max(1,(t.travelers||[]).length||2)+' travelling. Adjust it to your own numbers.</p>'
+          + '<button class="btn btn--primary sug__all" data-bdgsug="'+trdSuggestBudget(t)+'">Use '+fmtMoney(trdSuggestBudget(t))+'</button></div>');
 
     var catList = cats.length
       ? '<div class="trd__secH">Where it went</div><div class="bdg__cat">'
@@ -9704,7 +9726,19 @@
         }).join('')
       : '<div class="itn__empty">Nothing packed yet. Add the essentials below, then anything else you need.</div>';
 
-    var add = '<div class="pk__add">'
+    var sug = trdSuggestPack(t);
+    var sugBox = sug.length
+      ? '<div class="sug"><div class="sug__h"><span class="sug__ic">'+trdIco('spark')+'</span>'
+        + '<span>For a '+trdKindLabel(t)+', you will probably want</span></div>'
+        + '<div class="sug__chips">'
+        + sug.slice(0,10).map(function(x,i){
+            return '<button class="sug__chip" data-pksug="'+i+'">'+esc(x[1])+'</button>';
+          }).join('')
+        + '</div>'
+        + '<button class="btn btn--primary sug__all" data-pksugall>Add all '+Math.min(sug.length,10)+'</button>'
+        + '</div>'
+      : '';
+    var add = sugBox + '<div class="pk__add">'
       + '<input class="input" type="text" placeholder="Add something to pack" id="pkName">'
       + '<select class="input" id="pkCat" aria-label="Category">'+TRD_PACKCATS.map(function(c){ return '<option>'+c+'</option>'; }).join('')+'</select>'
       + '<button class="btn btn--primary" data-pkadd>Add</button>'
@@ -9871,6 +9905,115 @@
   }
 
 
+  /* ==================== TRAVEL THAT THINKS ====================
+     The trip already knows where it is going, when, for how long and with whom.
+     Everything below is derived from that, so the family types less and the app
+     works more. Nothing here overwrites what a person entered by hand. */
+
+  /* --- what kind of journey is this? --- */
+  function trdKind(t){
+    var d=tvNorm(t.dest||''), n=trdNights(t)||0;
+    var HAJJ=['makkah','madinah','jeddah','mecca','medina'];
+    for(var i=0;i<HAJJ.length;i++) if(d.indexOf(HAJJ[i])>=0) return 'umrah';
+    var c=tvCoords(t.dest);
+    var home=tvCoords('bangladesh');
+    var far = (c&&home) ? Math.abs(c[1]-home[1])>12 || Math.abs(c[0]-home[0])>10 : false;
+    if(!far && n<=2) return 'short';
+    if(!far) return 'domestic';
+    return n>=14 ? 'long' : 'abroad';
+  }
+
+  /* --- packing suggestions that fit the journey --- */
+  var TRD_PACKSETS = {
+    base:[['Documents','Tickets'],['Personal','Toiletries'],['Personal','Medication'],
+          ['Tech','Charger'],['Tech','Power bank'],['Clothing','Shoes']],
+    domestic:[['Clothing','Change of clothes'],['Personal','Water bottle']],
+    abroad:[['Documents','Passport'],['Documents','Visa'],['Documents','Travel insurance'],
+            ['Documents','Hotel booking'],['Personal','Adapter plug'],['Clothing','Jacket']],
+    long:[['Personal','Laundry bag'],['Personal','First aid kit'],['Clothing','Extra shoes']],
+    umrah:[['Religious','Ihram'],['Religious','Prayer mat'],['Religious','Tasbih'],
+           ['Religious','Quran'],['Personal','Unscented soap'],['Personal','Slippers']],
+    family:[['Family','Snacks'],['Family','Wet wipes'],['Family','Toys or books']]
+  };
+  function trdSuggestPack(t){
+    var kind=trdKind(t), out=TRD_PACKSETS.base.slice();
+    if(kind==='domestic'||kind==='short') out=out.concat(TRD_PACKSETS.domestic);
+    else out=out.concat(TRD_PACKSETS.abroad);
+    if(kind==='long') out=out.concat(TRD_PACKSETS.long);
+    if(kind==='umrah') out=out.concat(TRD_PACKSETS.umrah);
+    var who=(t.travelers||[]);
+    if(!who.length || who.length>2) out=out.concat(TRD_PACKSETS.family);
+    /* never suggest something already on the list */
+    var have={};
+    trdPackItems(t).forEach(function(p){ have[tvNorm(p.name||'')]=1; });
+    return out.filter(function(x){ return !have[tvNorm(x[1])]; });
+  }
+
+  /* --- an itinerary skeleton, not a filled diary --- */
+  function trdSuggestDays(t){
+    var days=trdDays(t); if(days.length<2) return [];
+    var kind=trdKind(t), last=days.length-1, out=[];
+    var far = kind!=='domestic' && kind!=='short';
+    out.push({day:days[0], time:'06:00', title:'Leave home'});
+    if(far) out.push({day:days[0], time:'09:00', title:'Airport \u00b7 check in'});
+    out.push({day:days[0], time:far?'16:00':'12:00', title:'Arrive \u00b7 '+(t.dest||'destination')});
+    out.push({day:days[0], time:far?'18:00':'14:00', title:'Settle in'});
+    if(kind==='umrah'){
+      out.push({day:days[0], time:'20:00', title:'First visit to the Haram'});
+      if(days[1]) out.push({day:days[1], time:'04:30', title:'Fajr at the Haram'});
+    }
+    if(last>=1){
+      out.push({day:days[last], time:far?'09:00':'11:00', title:'Pack and check out'});
+      out.push({day:days[last], time:far?'12:00':'14:00', title:'Journey home'});
+    }
+    /* skip anything already planned for that day */
+    var taken={};
+    (t.itinerary||[]).forEach(function(e){ taken[e.day+'|'+tvNorm(e.title)]=1; });
+    return out.filter(function(x){ return !taken[x.day+'|'+tvNorm(x.title)]; });
+  }
+
+  /* --- a budget shaped by where and how long --- */
+  function trdSuggestBudget(t){
+    var n=trdNights(t)||1, kind=trdKind(t);
+    var perNight = kind==='domestic'||kind==='short' ? 2500
+                 : kind==='umrah' ? 9000
+                 : kind==='long' ? 7000 : 8000;
+    var travel = kind==='domestic'||kind==='short' ? 3000
+               : kind==='umrah' ? 90000 : 65000;
+    var people = Math.max(1,(t.travelers||[]).length||2);
+    return Math.round((travel*people + perNight*n) / 500) * 500;
+  }
+
+  /* --- the one thing worth doing next --- */
+  function trdNextStep(t){
+    var r=trdReadiness(t), days=null;
+    if(t.start){
+      days=Math.round((new Date(t.start+'T00:00:00') - new Date().setHours(0,0,0,0))/86400000);
+    }
+    var expired=null, soon=null;
+    (t.docs||[]).forEach(function(d){
+      if(!d.expiry) return;
+      var k=Math.round((new Date(d.expiry+'T00:00:00') - new Date().setHours(0,0,0,0))/86400000);
+      if(k<0 && !expired) expired=d.name;
+      else if(k<=90 && !soon) soon={name:d.name, days:k};
+    });
+    if(expired) return {tone:'urgent', text:esc(expired)+' has expired', act:'docs', cta:'Open documents'};
+    if(soon && days!=null && soon.days < days)
+      return {tone:'urgent', text:esc(soon.name)+' expires before you travel', act:'docs', cta:'Open documents'};
+    if(!(t.docs||[]).length && trdKind(t)!=='domestic' && trdKind(t)!=='short')
+      return {tone:'warn', text:'No passport or visa saved yet', act:'docs', cta:'Add documents'};
+    if(!(t.bookings||[]).length)
+      return {tone:'warn', text:'Nothing is booked yet', act:'bookings', cta:'Add a booking'};
+    if(!r.pack.total)
+      return {tone:'calm', text:'Packing has not started', act:'packing', cta:'Build the list'};
+    if(r.pack.total && r.pack.done<r.pack.total && days!=null && days<=3)
+      return {tone:'warn', text:(r.pack.total-r.pack.done)+' things still to pack', act:'packing', cta:'Finish packing'};
+    if(!(parseFloat(t.budget)||0))
+      return {tone:'calm', text:'No budget set for this trip', act:'budget', cta:'Set a budget'};
+    if(r.pc>=100) return {tone:'done', text:'Everything is ready', act:'', cta:''};
+    return {tone:'calm', text:'Keep going \u2014 '+(100-r.pc)+'% left', act:'overview', cta:'See what is left'};
+  }
+
   function trdTabBookings(t){
     var list=(t.bookings||[]).slice().sort(function(a,b){ return String(a.date||'').localeCompare(String(b.date||'')); });
     var body = list.length
@@ -10018,9 +10161,16 @@
     var st=tripStatus(t), cd=tvCountdown(t);
     var hasPhoto = !!t.photo;
     var cover = hasPhoto ? '<img src="'+t.photo+'" alt="">' : '';
-    var hint = left.length
-      ? '<b>'+left.length+' left:</b> '+esc(left.slice(0,3).join(' \u00b7 '))+(left.length>3?' \u00b7 \u2026':'')
-      : '<b>Everything is ready.</b> Have a safe journey.';
+    /* One clear next step beats a list of everything outstanding. */
+    var step=trdNextStep(t);
+    var hint = '<span class="trd__step trd__step--'+step.tone+'">'
+      + '<span class="trd__stepdot"></span>'
+      + '<span class="trd__steptx">'+step.text+'</span>'
+      + (step.cta ? '<button class="trd__stepgo" data-trdgo="'+step.act+'">'+step.cta+'</button>' : '')
+      + '</span>'
+      + (left.length>1
+          ? '<span class="trd__also">'+esc(left.slice(0,3).join(' \u00b7 '))+(left.length>3?' \u00b7 +'+(left.length-3):'')+'</span>'
+          : '');
 
     host.innerHTML =
       '<div class="trd__scroll">'
@@ -10174,6 +10324,38 @@
     if(tjo && !e.target.closest('button') && !e.target.closest('img')){
       trdJournalRead(tjo.getAttribute('data-tjopen')); return;
     }
+    /* --- accepting a suggestion --- */
+    var pks=e.target.closest('[data-pksug]');
+    if(pks){
+      var tS=trdTrip(); if(!tS) return;
+      var item=trdSuggestPack(tS)[parseInt(pks.getAttribute('data-pksug'),10)];
+      if(item) FD.addPack({ tripId:tS.id, cat:item[0], name:item[1], done:false });
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-pksugall]')){
+      var tA=trdTrip(); if(!tA) return;
+      trdSuggestPack(tA).slice(0,10).forEach(function(x){
+        FD.addPack({ tripId:tA.id, cat:x[0], name:x[1], done:false });
+      });
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-itnsug]')){
+      var tI=trdTrip(); if(!tI) return;
+      if(!tI.itinerary) tI.itinerary=[];
+      trdSuggestDays(tI).forEach(function(x,i){
+        tI.itinerary.push({ id:'ev'+Date.now()+i+Math.random().toString(36).slice(2,5),
+          day:x.day, time:x.time, title:x.title, note:'' });
+      });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var bsg=e.target.closest('[data-bdgsug]');
+    if(bsg){
+      var tB=trdTrip(); if(!tB) return;
+      tB.budget=parseFloat(bsg.getAttribute('data-bdgsug'))||0;
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
     var pkt=e.target.closest('[data-pkto]');
     if(pkt){
       var it=FD.getPack(pkt.getAttribute('data-pkto'));
@@ -10194,6 +10376,12 @@
       var tp2=trdTrip(); if(!tp2) return;
       TRD_ESSENTIALS.forEach(function(x){ FD.addPack({ tripId:tp2.id, cat:x[0], name:x[1], done:false }); });
       trdRender(); return;
+    }
+    var tgo=e.target.closest('[data-trdgo]');
+    if(tgo){
+      var to=tgo.getAttribute('data-trdgo');
+      if(to){ trdTab=to; trdRender(); }
+      return;
     }
     var idy=e.target.closest('[data-itnday]');
     if(idy){
