@@ -4777,3 +4777,25 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 /* the two remaining pinned rows had no padding of their own */
 #commWrap .chat>.composer{padding-top:10px}
 .plw-add{margin-top:auto;padding-top:12px}
+
+/* ==================== DOCUMENT & BOOKING CARDS — FINAL SPACING ====================
+   Three later rules had quietly overridden earlier ones: .trx__body's gap fell
+   to 4px, .trx__exp's 9px became 2px, and margin-top:auto pulled the photo
+   button flush against the badge. Declared last, together, so the card has one
+   consistent rhythm instead of whatever won by accident. */
+.trx__c{padding:17px}
+.trx__top{align-items:flex-start;gap:13px}
+.trx__body{display:flex;flex-direction:column;gap:7px}
+.trx__t{font-size:1rem;font-weight:640;line-height:1.35}
+.trx__m{margin:0;line-height:1.45}
+.trx__exp{align-self:flex-start;margin:3px 0 0;padding:6px 12px}
+/* the photo button is a separate action, not part of the details above it */
+.trx__shot{width:100%;justify-content:center;margin-top:16px!important;padding:12px}
+.trx__shotimg{margin-top:16px!important;margin-bottom:0}
+/* when cards are stretched in a grid, the action still sits at the foot —
+   but with real space above it, never touching */
+.trx__list--docs .trx__c{display:flex;flex-direction:column}
+.trx__list--docs .trx__shot,
+.trx__list--docs .trx__shotimg{margin-top:auto!important}
+.trx__list--docs .trx__top{margin-bottom:16px}
+.trx__ref{margin-top:14px}
