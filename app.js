@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','84'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','85'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -8,7 +8,29 @@
  var Store = {
  _m: {},
  get: function(k,fb){ try{ var v=localStorage.getItem(k); return v===null?fb:JSON.parse(v); }catch(e){ return (k in this._m)?this._m[k]:fb; } },
- set: function(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ this._m[k]=v; } },
+ /* A failed write used to fall back to memory and vanish on reload — the family
+    would believe a journal entry was saved when it was not. Now the fallback
+    still happens (so the session keeps working) but the person is told. */
+ set: function(k,v){
+   try{ localStorage.setItem(k,JSON.stringify(v)); this._full=false; }
+   catch(e){
+     this._m[k]=v;
+     if(!this._full){
+       this._full=true;
+       try{
+         if(typeof flash==='function')
+           flash('This device is out of storage. Recent changes are not saved \u2014 remove some photos, then try again.', 9000);
+       }catch(_){}
+       try{ console.warn('Wisal: localStorage quota exceeded'); }catch(_){}
+     }
+   }
+ },
+ bytes: function(){
+   var n=0;
+   try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i);
+     if(k&&k.indexOf('fw.')===0) n+=k.length+(localStorage.getItem(k)||'').length; } }catch(e){}
+   return n;
+ },
  clearAll: function(){ try{ var rm=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf('fw.')===0) rm.push(k); } rm.forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} this._m={}; }
  };
  var K = { theme:'fw.theme', family:'fw.family', collapsed:'fw.collapsed', view:'fw.view' };
@@ -3669,10 +3691,41 @@
     _cropImg=null;
     if(!fromBack) OV.done('crop');
   }
+  /* Everything a family saves lives in one JSON blob: localStorage on the device
+     and one row in the cloud. A single 1280px photo at q0.92 becomes ~1.3 MB of
+     base64 in that blob, and four of them fill the 5 MB browser quota. Photos
+     are therefore fitted to a byte budget rather than saved at full quality. */
+  function cropEncode(cv, maxSide, budgetKB){
+    /* Scale to the size the picture is actually displayed at first — a card is
+       never 1280px wide — then step quality down until it fits the budget. */
+    var work=cv;
+    if(cv.width > maxSide){
+      var c2=document.createElement('canvas'); c2.width=c2.height=maxSide;
+      var x2=c2.getContext('2d');
+      x2.imageSmoothingEnabled=true; x2.imageSmoothingQuality='high';
+      x2.drawImage(cv,0,0,maxSide,maxSide);
+      work=c2;
+    }
+    var durl=null, side=work.width;
+    for(var pass=0; pass<14; pass++){
+      for(var q=0.82; q>=0.42; q-=0.1){
+        try{ durl=work.toDataURL('image/jpeg', q); }catch(e){ return null; }
+        if(durl.length/1024 <= budgetKB) return durl;
+      }
+      side=Math.round(side*0.78);
+      if(side < 320) return durl;   /* keep something rather than nothing */
+      var sm=document.createElement('canvas'); sm.width=sm.height=side;
+      var sx=sm.getContext('2d');
+      sx.imageSmoothingEnabled=true; sx.imageSmoothingQuality='high';
+      sx.drawImage(work,0,0,side,side);
+      work=sm;
+    }
+    return durl;
+  }
   function cropSave(){
     var cv=document.getElementById('avCanvas'); if(!cv||!_cropImg){ cropClose(); return; }
-    var durl;
-    try{ durl=cv.toDataURL('image/jpeg',0.92); }catch(e){ durl=null; }
+    /* an avatar is shown at 46px; a journal photo fills a card */
+    var durl = _cropCb ? cropEncode(cv, 1100, 260) : cropEncode(cv, 512, 70);
     if(!durl){ cropClose(); return; }
     var cb=_cropCb;
     cropClose();
@@ -3744,7 +3797,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5031,7 +5084,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '84 \u00b7 spacing-final';
+  var APP_VERSION = '85 \u00b7 audit-p0';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -5557,7 +5610,9 @@
 
  /* ---- Toast ---- */
  var toastT;
- function flash(msg){ var t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('show'); },1700); }
+ /* ms is optional: a confirmation can pass in a blink, but a warning about lost
+    data has to stay long enough to be read. */
+ function flash(msg, ms){ var t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('show'); }, ms||1700); }
 
  /* ---- Reveal replay ---- */
  function reveal(scope){
