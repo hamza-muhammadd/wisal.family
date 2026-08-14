@@ -306,3 +306,151 @@ whether it is wanted.
 ## Deployment
 
 `app.js` · `styles.css` · `sw.js` → **87 · tasks**. No migration.
+
+---
+
+# Build 88 · Emergency · Templates · Storage
+
+Three of the five deferred P2 items, chosen because each answers a question a
+family actually has.
+
+## Emergency (new tab)
+
+The one screen that matters when something goes wrong abroad. **Local police,
+ambulance and fire numbers ship with the app** — no network, no lookup, which is
+exactly the moment they are needed. 56 countries covered, including all of
+Europe on 112.
+
+Resolution is layered: exact country name → alias ("UAE", "uk") → country named
+inside the text ("Rome, Italy") → and finally **nearest country by coordinates**,
+so a bare "Dhaka" or "Makkah" still finds the right numbers. Verified across
+nine destinations. An unrecognised place says so plainly rather than showing
+numbers for the wrong country.
+
+Below that, a family adds their own contacts — hotel, doctor, embassy, someone
+at home — each with a one-tap Call.
+
+## Packing templates
+
+A family that packs the same way each time should not rebuild the list. Saving
+stores the item names, never the ticks, so a reused list always starts unpacked.
+Applying a template **skips anything already there** and says how many were
+added — or that everything was already present.
+
+## Storage figure
+
+The audit flagged this as the remaining risk: a family could only learn the
+quota existed when a save failed. Settings → About now shows real usage, and
+turns amber past 3.8 MB with a note that removing photos will help.
+
+## QA
+
+| Case | Result |
+|---|---|
+| "Bangladesh" / "italy" | direct match ✅ |
+| "Rome, Italy" / "Cairo Egypt" | country found inside the text ✅ |
+| "UAE" / "uk" | alias resolved ✅ |
+| "Dhaka" / "Makkah" / "Tokyo" | nearest-country fallback correct ✅ |
+| "Nowhereland" / empty | guidance, never wrong numbers ✅ |
+| Template with duplicates | adds only what is missing ✅ |
+| Template already fully applied | adds nothing, says so ✅ |
+| Storage 0 KB → 4.8 MB | formats correctly, warns past 3.8 MB ✅ |
+
+11 renderers checked for tag balance. No bare `.focus()` anywhere.
+
+## Still deferred
+
+Itinerary events with end time, location and cost · multi-currency preserving
+the original amount. Both are worth doing once a real trip shows they are
+wanted; neither blocks anything today.
+
+## Deployment
+
+`app.js` · `styles.css` · `sw.js` → **88 · emergency**. No migration; trips
+without contacts or templates simply show their empty states.
+
+---
+
+# Build 90 · The last three steps
+
+## §25 AI-readiness — the assistant can now see the journey
+
+The assistant could already *create* a trip, but it could not *see* one. Its
+snapshot held a destination and two dates and nothing else, so "am I ready?"
+was unanswerable.
+
+It now receives, per trip: readiness percentage and prep count, budget against
+spend, packing progress, booking and itinerary counts, **every document with its
+expiry in days** (marked EXPIRED where relevant), every open task with date and
+owner, who still has things to pack, and the emergency contacts.
+
+Two new actions let it act as well as answer: `packitem` and `triptask`. Both
+match the trip by destination and fall back to the first trip rather than
+failing silently.
+
+The assistant can now genuinely answer: *am I ready · what am I forgetting ·
+what expires soon · who still has unfinished tasks · how much have I spent.*
+All from stored data. Nothing invented — the existing instruction to use only
+the snapshot still holds.
+
+## §11 Itinerary events — place and cost
+
+Events carry a place and a cost. Both are optional and neither changes an
+existing event.
+
+Committed money now surfaces in Budget as **"Planned on the itinerary"** with
+its share of the budget. A family can see what is already spoken for before it
+leaves the account — the gap between a budget and reality is usually made of
+exactly this.
+
+## §14 Multi-currency — without inventing rates
+
+**This is the part I refused to fake.** Live rates need an API and move daily; a
+wrong rate produces a confident lie, which is worse than no figure.
+
+So: the original amount and currency are stored exactly as entered. Foreign
+spending is listed separately with a box for the rate the family **actually
+got** — from their card statement or the exchange counter. Once entered, those
+amounts join the total. Until then they are shown apart, never guessed.
+
+Removing a rate returns that currency to "unknown". The total never silently
+includes an assumption.
+
+Twelve currencies offered, home currency read from existing Finance settings.
+
+## QA
+
+| Case | Result |
+|---|---|
+| Foreign spend, no rate | kept out of the total, listed separately ✅ |
+| Rate entered | included, arithmetic correct ✅ |
+| Rate removed | returns to separate, total drops back ✅ |
+| Home-currency-only trip | completely unaffected ✅ |
+| Itinerary with mixed / missing / string costs | totals correctly ✅ |
+| Document expiry in AI snapshot | days correct, EXPIRED flagged ✅ |
+
+11 renderers checked for tag balance across 6 tag types.
+
+---
+
+# The 30 steps — final position
+
+**Complete: 30 of 30.** Steps 11, 14 and 25 closed in this build.
+
+The one thing deliberately *not* built is automatic currency conversion, and
+that is a decision rather than a gap: it would require inventing numbers the app
+cannot verify. The design asks the family for the rate they actually paid, which
+is both honest and more accurate than any daily average.
+
+## What remains, in truth
+
+Not code. **This module has never been used on a real journey.** Travel-day mode,
+the packing suggestions, the readiness weighting — all are reasoned guesses about
+what a family needs. One real trip will correct more of them than another build
+would.
+
+## Deployment
+
+`app.js` · `styles.css` · `sw.js` · `index.html` · `world.js` · `places.js`
+→ Settings should read **90 · complete**. No migration; every new field is
+optional and absent data simply shows its empty state.

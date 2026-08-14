@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','87'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','90'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3797,7 +3797,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -4362,7 +4362,16 @@
  el.innerHTML='<p class="set__p">'+(offline?'Connect to the internet to create your Wisal account.':'One account for your family, unlocks cloud sync and shared access in the next updates.')+'</p>'
  +'<div class="field"><button class="btn btn--primary" type="button" data-auth-open'+(offline?' disabled':'')+'>Sign in / Create account</button></div>';
  }
- try{ var sm=document.getElementById('storageMode'); if(sm) sm.textContent = AUTH.user? 'This device + Cloud' : 'This device'; }catch(e){}
+ try{ var sm=document.getElementById('storageMode');
+   if(sm){
+     /* A family only learns the quota exists when a save fails. Showing the
+        figure lets them see it coming, and photos are what fill it. */
+     var kb=Store.bytes()/1024, where=AUTH.user? 'This device + Cloud' : 'This device';
+     var used = kb>1024 ? (kb/1024).toFixed(1)+' MB' : Math.round(kb)+' KB';
+     sm.textContent = where+' \u00b7 '+used+' used';
+     sm.className = kb > 3800 ? 'is-tight' : '';
+     if(kb > 3800) sm.title = 'Close to the browser limit \u2014 removing a few photos will help';
+   } }catch(e){}
  try{ var sw2=document.getElementById('sxWho'); if(sw2) sw2.textContent = AUTH.user? (AUTH.user.email||'Signed in') : 'Not signed in, tap Account'; }catch(e){}
  try{ renderSetIndex(); }catch(e){}
  }
@@ -5084,7 +5093,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '87 \u00b7 tasks';
+  var APP_VERSION = '90 \u00b7 complete';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -7654,8 +7663,45 @@
       var tripsSoon=trips.filter(function(t){ return !t.end || String(t.end)>=today; });
       if(tripsSoon.length||ideas.length||packs.length){
         var tL=[];
-        if(tripsSoon.length) tL.push('- Trips: '+_list(tripsSoon,5,function(t){ return (t.dest||'trip')+' '+(t.start||'')+(t.end?' \u2192 '+t.end:''); }));
-        if(packs.filter(function(p){return !p.done;}).length) tL.push('- Packing items left: '+packs.filter(function(p){return !p.done;}).length);
+        /* The assistant can only answer "am I ready?" if it can see readiness,
+           money, documents and who owes what — not just a destination and dates. */
+        tripsSoon.forEach(function(t){
+          var head='- '+(t.dest||'Trip')+' '+(t.start||'')+(t.end?' \u2192 '+t.end:'');
+          try{
+            var r=trdReadiness(t);
+            head += ' | '+r.pc+'% ready ('+r.done+'/'+r.total+' prep)';
+            var sp=trdSpent(t), bg=parseFloat(t.budget)||0;
+            if(bg) head += ' | budget '+sym+bg+', spent '+sym+sp;
+            else if(sp) head += ' | spent '+sym+sp;
+            if(r.pack.total) head += ' | packed '+r.pack.done+'/'+r.pack.total;
+            if((t.bookings||[]).length) head += ' | '+t.bookings.length+' booking(s)';
+            if((t.itinerary||[]).length) head += ' | '+t.itinerary.length+' planned moment(s)';
+          }catch(e){}
+          tL.push(head);
+          /* documents with dates matter most: an expiry is the one thing that
+             can stop a journey outright */
+          (t.docs||[]).forEach(function(dc){
+            if(!dc.expiry) return;
+            var days=Math.round((new Date(dc.expiry+'T00:00:00') - new Date(today+'T00:00:00'))/86400000);
+            tL.push('  · document: '+(dc.name||'document')+' ('+(dc.kind||'')+')'
+              + (days<0 ? ' EXPIRED '+Math.abs(days)+'d ago' : ' expires in '+days+'d'));
+          });
+          (t.tasks||[]).forEach(function(x){
+            if(x.done) return;
+            tL.push('  · to do: '+x.title+(x.due?' by '+x.due:'')+(x.who?' \u2014 '+x.who:''));
+          });
+          try{
+            var mine=trdPackItems(t).filter(function(p){ return !p.done; });
+            var byWho={};
+            mine.forEach(function(p){ var w=p.who||'unassigned'; byWho[w]=(byWho[w]||0)+1; });
+            var whoTxt=Object.keys(byWho).map(function(w){ return w+': '+byWho[w]; }).join(', ');
+            if(whoTxt) tL.push('  · still to pack \u2014 '+whoTxt);
+          }catch(e){}
+          (t.contacts||[]).forEach(function(c){
+            tL.push('  · contact: '+(c.name||'')+(c.role?' ('+c.role+')':'')+(c.phone?' '+c.phone:''));
+          });
+        });
+        if(packs.filter(function(p){return !p.done;}).length) tL.push('- Packing items left overall: '+packs.filter(function(p){return !p.done;}).length);
         if(ideas.length) tL.push('- Destination ideas: '+_list(ideas,8,function(x){ return (x.place||''); }));
         S.push('\n## Travel\n'+tL.join('\n'));
       }
@@ -7807,6 +7853,24 @@
 
     /* --- travel --- */
     trip:            function(a){ FD.addTrip({ dest:aiStr(a.dest)||'Trip', start:aiStr(a.start), end:aiStr(a.end), travelers:aiStr(a.travelers), note:aiStr(a.note) }); },
+    packitem:        function(a){
+      var want=String(aiStr(a.trip)||'').toLowerCase();
+      var tp=(FD.data.travel.trips||[]).filter(function(x){ return String(x.dest||'').toLowerCase()===want; })[0]
+          || (FD.data.travel.trips||[])[0];
+      if(!tp) return;
+      FD.addPack({ tripId:tp.id, name:aiStr(a.name)||'Item',
+        cat:aiStr(a.category)||'Other', who:aiStr(a.member)||'', done:false });
+    },
+    triptask:        function(a){
+      var want2=String(aiStr(a.trip)||'').toLowerCase();
+      var tt=(FD.data.travel.trips||[]).filter(function(x){ return String(x.dest||'').toLowerCase()===want2; })[0]
+          || (FD.data.travel.trips||[])[0];
+      if(!tt) return;
+      if(!tt.tasks) tt.tasks=[];
+      tt.tasks.push({ id:'tk'+Date.now()+Math.random().toString(36).slice(2,6),
+        title:aiStr(a.title)||'To do', done:false, due:aiStr(a.due)||'', who:aiStr(a.member)||'' });
+      FD.save();
+    },
     idea:            function(a){ FD.addIdea({ place:aiStr(a.place)||'Idea', note:aiStr(a.note) }); },
 
     /* --- journal --- */
@@ -7830,6 +7894,7 @@
   };
   var AI_ACT_LABEL={
     goal:'Family goal', phase:'Project phase', announcement:'Announcement', responsibility:'Responsibility', document:'Document',
+    packitem:'Packing item', triptask:'Trip task',
     planned:'Planned payment', debt:'Debt record', saving:'Savings goal',
     maint:'Maintenance job', supply:'Supply item',
     shopping:'Shopping item', recipe:'Recipe', mealplan:'Planned meal',
@@ -8088,6 +8153,8 @@
       + "[[ACTION:{\"type\":\"event\",\"title\":\"...\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM or empty\",\"reminder\":\"1 hour before|1 day before|At time|empty\",\"location\":\"...\"}]]\n"
       + "[[ACTION:{\"type\":\"appointment\",\"title\":\"...\",\"date\":\"YYYY-MM-DD\",\"time\":\"HH:MM\",\"member\":\"name or empty\",\"doctor\":\"...\",\"location\":\"...\",\"apptType\":\"Doctor|Dentist|Checkup|Appointment\"}]]\n"
       + "[[ACTION:{\"type\":\"chore\",\"title\":\"...\",\"member\":\"name or empty\"}]]\n"
+      + "[[ACTION:{\"type\":\"packitem\",\"trip\":\"exact destination\",\"name\":\"...\",\"category\":\"Documents|Clothing|Personal|Religious|Family|Tech|Other\",\"member\":\"name or empty\"}]]\n"
+      + "[[ACTION:{\"type\":\"triptask\",\"trip\":\"exact destination\",\"title\":\"...\",\"due\":\"YYYY-MM-DD or empty\",\"member\":\"name or empty\"}]]\n"
       + "[[ACTION:{\"type\":\"expense\",\"amount\":123,\"category\":\"...\",\"note\":\"...\",\"kind\":\"expense|income\"}]]\n"
       + "[[ACTION:{\"type\":\"project\",\"name\":\"...\",\"note\":\"short description or empty\"}]]\n"
       + "[[ACTION:{\"type\":\"clear_project\",\"name\":\"exact project name\",\"mode\":\"complete|delete\"}]]\n"
@@ -9526,7 +9593,8 @@
 
   var TRD_TABS_BASE = [
     ['overview','Overview'], ['itinerary','Itinerary'], ['packing','Packing'],
-    ['budget','Budget'], ['bookings','Bookings'], ['docs','Documents'], ['journal','Journal']
+    ['budget','Budget'], ['bookings','Bookings'], ['docs','Documents'],
+    ['journal','Journal'], ['sos','Emergency']
   ];
   /* A trip in progress opens on Today. Planning tabs are still there, just not
      first — nobody standing at a gate wants a budget form. */
@@ -9788,6 +9856,11 @@
               return '<div class="itn__ev">'
                 + '<span class="itn__t">'+esc(fmt12(ev.time)||'\u2014')+'</span>'
                 + '<span class="itn__c"><span class="itn__title">'+esc(ev.title)+'</span>'
+                + ((ev.place||ev.cost)
+                    ? '<span class="itn__bits">'
+                      + (ev.place? '<span class="itn__bit">'+TV_ICO.pin+esc(ev.place)+'</span>' : '')
+                      + (ev.cost? '<span class="itn__bit">'+fmtMoney(parseFloat(ev.cost)||0)+'</span>' : '')
+                      + '</span>' : '')
                 + (ev.note?'<span class="itn__note">'+esc(ev.note)+'</span>':'')+'</span>'
                 + '<button class="itn__del" data-itndel="'+ev.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
               + '</div>';
@@ -9796,6 +9869,8 @@
           + '<button type="button" class="itn__time" data-itnclock="'+d+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8" stroke-linecap="round"/></svg><span data-itntimeval="'+d+'">Time</span></button>'
           + '<input type="time" class="itn__hidden" data-itntime="'+d+'" tabindex="-1" aria-hidden="true">'
           + '<input class="input" type="text" placeholder="Add something for this day" data-itntitle="'+d+'">'
+          + '<input class="input itn__place" type="text" placeholder="Where? (optional)" data-itnplace="'+d+'">'
+          + '<input class="input itn__cost" type="number" inputmode="decimal" min="0" placeholder="Cost" data-itncost="'+d+'">'
           + '<button class="btn" data-itnadd="'+d+'">Add</button>'
         + '</div></div>'
       + '</div>';
@@ -9806,7 +9881,40 @@
   var TRD_CATS = ['Flights','Accommodation','Transport','Food','Activities','Shopping','Visa','Insurance','Gifts','Other'];
 
   function trdSpent(t){
-    return (t.expenses||[]).reduce(function(a,x){ return a + (parseFloat(x.amt)||0); }, 0);
+    /* Only amounts we can state truthfully in the home currency are totalled.
+       Foreign spending without a rate is reported separately, never guessed. */
+    return (t.expenses||[]).reduce(function(a,x){
+      var v = (typeof trdInHome==='function') ? trdInHome(t,x) : (parseFloat(x.amt)||0);
+      return a + (v==null ? 0 : v);
+    }, 0);
+  }
+  /* Money already committed on the itinerary is not spent yet, but it is spoken
+     for — a family planning a budget needs to see it. */
+  function trdPlanned(t){
+    return (t.itinerary||[]).reduce(function(a,x){ return a + (parseFloat(x.cost)||0); }, 0);
+  }
+  /* Foreign spending, without inventing exchange rates.
+     Rates move daily and a wrong one produces a confident lie, which is worse
+     than no figure at all. So: the original amount and currency are stored
+     exactly as entered, and the family supplies the rate they actually got.
+     Nothing is converted until they do. */
+  var TRD_CUR = ['BDT','USD','EUR','GBP','SAR','AED','TRY','EGP','INR','MYR','THB','JPY'];
+  function trdRates(t){ if(!t.rates) t.rates={}; return t.rates; }
+  function trdHome(){ try{ return FD.data.finance.currency || 'BDT'; }catch(e){ return 'BDT'; } }
+  function trdInHome(t, x){
+    var cur=x.cur||trdHome(), amt=parseFloat(x.amt)||0;
+    if(cur===trdHome()) return amt;
+    var r=parseFloat(trdRates(t)[cur]);
+    return r>0 ? amt*r : null;   /* null means: we honestly do not know */
+  }
+  function trdForeign(t){
+    var seen={};
+    (t.expenses||[]).forEach(function(x){
+      var c=x.cur||trdHome();
+      if(c===trdHome()) return;
+      seen[c]=(seen[c]||0)+(parseFloat(x.amt)||0);
+    });
+    return seen;
   }
   function trdTabBudget(t){
     var est = parseFloat(t.budget)||0, spent = trdSpent(t), left = est - spent;
@@ -9815,11 +9923,14 @@
     var cats = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; });
     var top = cats.length ? byCat[cats[0]] : 0;
 
+    var planned = trdPlanned(t);
     var head = '<div class="bdg__top">'
       + '<div class="bdg__t"><div class="bdg__tl">Estimated</div><div class="bdg__tv">'+(est?fmtMoney(est):'\u2014')+'</div></div>'
       + '<div class="bdg__t bdg__t--spent"><div class="bdg__tl">Spent</div><div class="bdg__tv">'+fmtMoney(spent)+'</div></div>'
       + '<div class="bdg__t '+(est&&left<0?'bdg__t--over':'bdg__t--left')+'"><div class="bdg__tl">'+(left<0?'Over by':'Remaining')+'</div><div class="bdg__tv">'+(est?fmtMoney(Math.abs(left)):'\u2014')+'</div></div>'
       + '</div>'
+      + (planned ? '<div class="bdg__planned">Planned on the itinerary: <b>'+fmtMoney(planned)+'</b>'
+          + (est ? ' \u00b7 '+Math.round(planned/est*100)+'% of the budget' : '')+'</div>' : '')
       + '<div class="bdg__set">'
         + '<input class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="Set a budget for this trip" value="'+(est||'')+'" id="bdgEst">'
         + '<button class="btn" data-bdgset>Save budget</button>'
@@ -9845,18 +9956,41 @@
       : '';
 
     var list = (t.expenses||[]).slice().sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
-    var exp = '<div class="trd__secH">Expenses \u00b7 '+list.length+'</div>'
+    var fx=trdForeign(t), fxKeys=Object.keys(fx);
+    var fxBox = fxKeys.length
+      ? '<div class="fx"><div class="fx__h">Spent in other currencies</div>'
+        + '<p class="fx__p">Enter the rate you actually got and these will be included in the total. '
+        + 'Until then they are kept separate rather than guessed.</p>'
+        + fxKeys.map(function(c){
+            var r=trdRates(t)[c]||'';
+            return '<div class="fx__row"><span class="fx__c">'+esc(c)+' '+fx[c]+'</span>'
+              + '<span class="fx__eq">= 1 '+esc(c)+' \u00d7</span>'
+              + '<input class="input fx__in" type="number" inputmode="decimal" step="0.0001" min="0" '
+              + 'placeholder="rate" value="'+esc(String(r))+'" data-fxcur="'+esc(c)+'">'
+              + '<span class="fx__home">'+esc(trdHome())+'</span></div>';
+          }).join('')
+        + '</div>'
+      : '';
+    var exp = fxBox + '<div class="trd__secH">Expenses \u00b7 '+list.length+'</div>'
       + (list.length
         ? '<div class="bdg__exp">' + list.map(function(x){
             return '<div class="bdg__e"><div class="bdg__ec"><div class="bdg__et">'+esc(x.name)+'</div>'
               + '<div class="bdg__em">'+esc(x.cat||'Other')+(x.date?' \u00b7 '+fmtDate(x.date):'')+'</div></div>'
-              + '<span class="bdg__ea">'+fmtMoney(parseFloat(x.amt)||0)+'</span>'
+              + '<span class="bdg__ea">'
+                + ((x.cur && x.cur!==trdHome())
+                    ? esc(x.cur)+' '+(parseFloat(x.amt)||0)
+                      + (trdInHome(t,x)!=null ? '<i class="bdg__conv">'+fmtMoney(trdInHome(t,x))+'</i>' : '')
+                    : fmtMoney(parseFloat(x.amt)||0))
+                + '</span>'
               + '<button class="bdg__del" data-bdgdel="'+x.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button></div>';
           }).join('') + '</div>'
         : '<div class="itn__empty">No expenses yet. Add the first one below.</div>')
       + '<div class="bdg__add">'
         + '<input class="input" type="text" placeholder="What was it for?" id="bdgName">'
         + '<input class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="Amount" id="bdgAmt">'
+        + '<select class="input" id="bdgCur" aria-label="Currency">'
+          + TRD_CUR.map(function(c){ return '<option'+(c===trdHome()?' selected':'')+'>'+c+'</option>'; }).join('')
+        + '</select>'
         + '<select class="input" id="bdgCat">'+TRD_CATS.map(function(c){ return '<option>'+c+'</option>'; }).join('')+'</select>'
         + '<button class="btn btn--primary" data-bdgadd>Add</button>'
       + '</div>';
@@ -9933,7 +10067,21 @@
         + '<button class="btn btn--primary sug__all" data-pksugall>Add all '+Math.min(sug.length,10)+'</button>'
         + '</div>'
       : '';
-    var add = sugBox + '<div class="pk__add">'
+    var tpls=trdTemplates();
+    var tplBox = (tpls.length || items.length)
+      ? '<div class="tpl">'
+        + (tpls.length
+            ? '<div class="tpl__row">'+tpls.map(function(x){
+                return '<button class="tpl__chip" data-tpluse="'+x.id+'">'+esc(x.name)
+                  + '<span class="tpl__n">'+x.items.length+'</span>'
+                  + '<span class="tpl__x" data-tpldel="'+x.id+'" role="button" aria-label="Delete list">\u00d7</span>'
+                  + '</button>';
+              }).join('')+'</div>'
+            : '')
+        + (items.length ? '<button class="tpl__save" data-tplsave>Save this list to reuse</button>' : '')
+        + '</div>'
+      : '';
+    var add = tplBox + sugBox + '<div class="pk__add">'
       + '<input class="input" type="text" placeholder="Add something to pack" id="pkName">'
       + '<select class="input" id="pkCat" aria-label="Category">'+TRD_PACKCATS.map(function(c){ return '<option>'+c+'</option>'; }).join('')+'</select>'
       + '<button class="btn btn--primary" data-pkadd>Add</button>'
@@ -10130,6 +10278,33 @@
            ['Religious','Quran'],['Personal','Unscented soap'],['Personal','Slippers']],
     family:[['Family','Snacks'],['Family','Wet wipes'],['Family','Toys or books']]
   };
+  /* A family that packs the same way each time should not rebuild the list.
+     Saving a template stores the item names, not the ticks. */
+  function trdTemplates(){ try{ return FD.data.travel.packTemplates || (FD.data.travel.packTemplates=[]); }catch(e){ return []; } }
+  function trdSaveTemplate(t, name){
+    var items=trdPackItems(t).map(function(p){ return {cat:p.cat||'Other', name:p.name}; });
+    if(!items.length) return false;
+    var list=trdTemplates();
+    var at=-1;
+    for(var i=0;i<list.length;i++) if(tvNorm(list[i].name)===tvNorm(name)) at=i;
+    var rec={ id:'tpl'+Date.now(), name:name, items:items };
+    if(at>=0) list[at]=rec; else list.push(rec);
+    try{ FD.save(); }catch(e){}
+    return true;
+  }
+  function trdApplyTemplate(t, id){
+    var tpl=trdTemplates().filter(function(x){ return x.id===id; })[0];
+    if(!tpl) return 0;
+    var have={};
+    trdPackItems(t).forEach(function(p){ have[tvNorm(p.name||'')]=1; });
+    var n=0;
+    tpl.items.forEach(function(x){
+      if(have[tvNorm(x.name)]) return;
+      FD.addPack({ tripId:t.id, cat:x.cat, name:x.name, done:false });
+      n++;
+    });
+    return n;
+  }
   function trdSuggestPack(t){
     var kind=trdKind(t), out=TRD_PACKSETS.base.slice();
     if(kind==='domestic'||kind==='short') out=out.concat(TRD_PACKSETS.domestic);
@@ -10290,6 +10465,98 @@
       : (spent? '<div class="live__money"><span>Spent so far</span><b>'+fmtMoney(spent)+'</b></div>' : '');
 
     return head + nextCard + rest + done + quick + money;
+  }
+
+  /* ==================== IF SOMETHING GOES WRONG ====================
+     The one screen a family needs when they are lost, ill or robbed abroad.
+     Local emergency numbers are shipped with the app so this works with no
+     signal and no data — which is exactly when it is needed. */
+  var TRD_SOS = {
+    'bangladesh':{p:'999',a:'199',f:'999'}, 'india':{p:'112',a:'102',f:'101'},
+    'pakistan':{p:'15',a:'1122',f:'16'}, 'nepal':{p:'100',a:'102',f:'101'},
+    'sri lanka':{p:'119',a:'1990',f:'110'}, 'maldives':{p:'119',a:'102',f:'118'},
+    'saudi arabia':{p:'999',a:'997',f:'998'}, 'united arab emirates':{p:'999',a:'998',f:'997'},
+    'qatar':{p:'999',a:'999',f:'999'}, 'kuwait':{p:'112',a:'112',f:'112'},
+    'oman':{p:'9999',a:'9999',f:'9999'}, 'bahrain':{p:'999',a:'999',f:'999'},
+    'turkey':{p:'155',a:'112',f:'110'}, 'egypt':{p:'122',a:'123',f:'180'},
+    'jordan':{p:'911',a:'911',f:'911'}, 'morocco':{p:'190',a:'150',f:'150'},
+    'malaysia':{p:'999',a:'999',f:'994'}, 'indonesia':{p:'110',a:'118',f:'113'},
+    'singapore':{p:'999',a:'995',f:'995'}, 'thailand':{p:'191',a:'1669',f:'199'},
+    'united kingdom':{p:'999',a:'999',f:'999'}, 'france':{p:'17',a:'15',f:'18'},
+    'germany':{p:'110',a:'112',f:'112'}, 'italy':{p:'112',a:'118',f:'115'},
+    'spain':{p:'112',a:'112',f:'112'}, 'netherlands':{p:'112',a:'112',f:'112'},
+    'united states of america':{p:'911',a:'911',f:'911'}, 'canada':{p:'911',a:'911',f:'911'},
+    'australia':{p:'000',a:'000',f:'000'}, 'japan':{p:'110',a:'119',f:'119'},
+    'china':{p:'110',a:'120',f:'119'}, 'south korea':{p:'112',a:'119',f:'119'}
+  };
+  /* the European standard covers most of the continent */
+  var TRD_SOS_EU = ['austria','belgium','bulgaria','croatia','cyprus','czechia','denmark',
+    'estonia','finland','greece','hungary','ireland','latvia','lithuania','luxembourg',
+    'malta','norway','poland','portugal','romania','slovakia','slovenia','sweden','switzerland'];
+  TRD_SOS_EU.forEach(function(c){ TRD_SOS[c]={p:'112',a:'112',f:'112'}; });
+
+  function trdSosFor(dest){
+    var db=tvPlaceDB(), q=tvNorm(dest||'');
+    if(!q) return null;
+    if(TRD_SOS[q]) return {country:q, n:TRD_SOS[q]};
+    var a=db.a[q];
+    if(a && TRD_SOS[a]) return {country:a, n:TRD_SOS[a]};
+    /* a city was entered: find the country whose name appears in the text */
+    for(var k in TRD_SOS) if(q.indexOf(k)>=0) return {country:k, n:TRD_SOS[k]};
+    /* still nothing — a bare city like "Dhaka". Fall back to geography: find the
+       country in our list whose centre is nearest the place they typed. */
+    var c=tvCoords(dest);
+    if(c){
+      var best=null, bestD=1e9;
+      for(var name in TRD_SOS){
+        var cc=db.p[name]; if(!cc) continue;
+        var d=Math.abs(cc[0]-c[0])+Math.abs(cc[1]-c[1]);
+        if(d<bestD){ bestD=d; best=name; }
+      }
+      /* only trust it when the place really is in that country's region */
+      if(best && bestD < 12) return {country:best, n:TRD_SOS[best], near:true};
+    }
+    return null;
+  }
+  function trdTitle(x){ return String(x||'').replace(/\b[a-z]/g, function(c){ return c.toUpperCase(); }); }
+
+  function trdTabSos(t){
+    var sos=trdSosFor(t.dest);
+    var lines = sos
+      ? '<div class="sos__nums">'
+        + [['Police',sos.n.p],['Ambulance',sos.n.a],['Fire',sos.n.f]].map(function(x){
+            return '<a class="sos__n" href="tel:'+x[1]+'"><span class="sos__nl">'+x[0]+'</span>'
+              + '<span class="sos__nv">'+x[1]+'</span></a>';
+          }).join('')
+        + '</div><p class="sos__where">Emergency numbers for '+esc(trdTitle(sos.country))
+        + (sos.near? ' \u00b7 matched from your destination' : '')+'</p>'
+      : '<div class="itn__empty">Add a country to the destination and the local emergency numbers will appear here.</div>';
+
+    var contacts=(t.contacts||[]);
+    var list = contacts.length
+      ? '<div class="trx__list">'+contacts.map(function(c){
+          return '<div class="trx__c"><div class="trx__top">'
+            + '<span class="trx__ic">'+TV_ICO.pin+'</span>'
+            + '<span class="trx__body"><span class="trx__t">'+esc(c.name)+'</span>'
+            + '<span class="trx__m">'+esc(c.role||'Contact')+'</span></span>'
+            + (c.phone? '<a class="sos__call" href="tel:'+esc(c.phone)+'">Call</a>' : '')
+            + '<button class="trx__x" data-trxdel="contacts:'+c.id+'" aria-label="Remove">'
+            + '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+            + '</div>'
+            + (c.note? '<div class="trx__ref">'+esc(c.note)+'</div>' : '')
+            + '</div>';
+        }).join('')+'</div>'
+      : '<div class="itn__empty">Add the hotel, a doctor, the embassy, someone at home \u2014 anyone worth reaching in a hurry.</div>';
+
+    return lines
+      + '<div class="trd__secH" style="margin-top:24px">People to reach</div>'
+      + list
+      + '<div class="trx__add">'
+        + '<input class="input" type="text" placeholder="Who?" id="ctName">'
+        + '<input class="input" type="tel" placeholder="Phone number" id="ctPhone">'
+        + '<input class="input" type="text" placeholder="Hotel, doctor, embassy\u2026" id="ctRole">'
+        + '<button class="btn btn--primary" data-ctadd>Add</button>'
+      + '</div>';
   }
 
   function trdTabBookings(t){
@@ -10476,6 +10743,7 @@
           : trdTab==='itinerary' ? trdTabItinerary(t)
           : trdTab==='budget' ? trdTabBudget(t)
           : trdTab==='bookings' ? trdTabBookings(t)
+          : trdTab==='sos' ? trdTabSos(t)
           : trdTab==='docs' ? trdTabDocs(t)
           : trdTabJournal(t))
       + '</div>'
@@ -10535,6 +10803,18 @@
       if(!tb2.bookings) tb2.bookings=[];
       tb2.bookings.push({ id:'bk'+Date.now()+Math.random().toString(36).slice(2,6),
         name:nv, kind:(k1&&k1.value)||'Other', date:(d1&&d1.value)||'', ref:(r1&&r1.value||'').trim() });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    if(e.target.closest('[data-ctadd]')){
+      var tC=trdTrip(); if(!tC) return;
+      var cn=document.getElementById('ctName'), cp=document.getElementById('ctPhone'),
+          cr=document.getElementById('ctRole');
+      var nv=(cn&&cn.value||'').trim();
+      if(!nv){ if(cn) cn.focus({preventScroll:true}); return; }
+      if(!tC.contacts) tC.contacts=[];
+      tC.contacts.push({ id:'ct'+Date.now()+Math.random().toString(36).slice(2,6),
+        name:nv, phone:(cp&&cp.value||'').trim(), role:(cr&&cr.value||'').trim() });
       try{ FD.save(); }catch(_){}
       trdRender(); return;
     }
@@ -10616,6 +10896,31 @@
         var at=order.indexOf(it.who||'');
         FD.updatePack(it.id, { who: order[(at+1) % order.length] || '' });
         trdRender();
+      }
+      return;
+    }
+    var tpx=e.target.closest('[data-tpldel]');
+    if(tpx){
+      var did=tpx.getAttribute('data-tpldel');
+      FD.data.travel.packTemplates=trdTemplates().filter(function(x){ return x.id!==did; });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var tpu=e.target.closest('[data-tpluse]');
+    if(tpu){
+      var tU=trdTrip(); if(!tU) return;
+      var n=trdApplyTemplate(tU, tpu.getAttribute('data-tpluse'));
+      trdRender();
+      if(typeof flash==='function') flash(n? n+' added' : 'Everything on that list is already here');
+      return;
+    }
+    if(e.target.closest('[data-tplsave]')){
+      var tS2=trdTrip(); if(!tS2) return;
+      var nm=prompt('Name this list', trdKindLabel(tS2));
+      if(!nm || !nm.trim()) return;
+      if(trdSaveTemplate(tS2, nm.trim())){
+        trdRender();
+        if(typeof flash==='function') flash('Saved \u2014 reuse it on any trip');
       }
       return;
     }
@@ -10735,8 +11040,12 @@
       var title=(ti&&ti.value||'').trim();
       if(!title){ if(ti) ti.focus({preventScroll:true}); return; }
       if(!t3.itinerary) t3.itinerary=[];
+      var pl=document.querySelector('[data-itnplace="'+day+'"]');
+      var cs=document.querySelector('[data-itncost="'+day+'"]');
       t3.itinerary.push({ id:'ev'+Date.now()+Math.random().toString(36).slice(2,6),
-                          day:day, time:(tm&&tm.value)||'', title:title, note:'' });
+                          day:day, time:(tm&&tm.value)||'', title:title, note:'',
+                          place:(pl&&pl.value||'').trim(), cost:parseFloat(cs&&cs.value)||0 });
+      if(pl) pl.value=''; if(cs) cs.value='';
       if(ti) ti.value='';
       try{ FD.save(); }catch(_){}
       trdDayOpen=day;
@@ -10766,8 +11075,10 @@
       if(!name){ if(nm) nm.focus({preventScroll:true}); return; }
       if(isNaN(amt)||amt<=0){ if(am) am.focus({preventScroll:true}); return; }
       if(!t5.expenses) t5.expenses=[];
+      var cu=document.getElementById('bdgCur');
       t5.expenses.push({ id:'ex'+Date.now()+Math.random().toString(36).slice(2,6),
-        name:name, amt:amt, cat:(ct&&ct.value)||'Other', date:new Date().toISOString().slice(0,10) });
+        name:name, amt:amt, cur:(cu&&cu.value)||trdHome(),
+        cat:(ct&&ct.value)||'Other', date:new Date().toISOString().slice(0,10) });
       try{ FD.save(); }catch(_){}
       trdRender(); return;
     }
@@ -10873,6 +11184,16 @@
     }
   });
 
+  /* rates are saved as they are typed, so nothing is lost on a redraw */
+  document.addEventListener('change', function(e){
+    var fx=e.target && e.target.getAttribute && e.target.getAttribute('data-fxcur');
+    if(!fx) return;
+    var tR=trdTrip(); if(!tR) return;
+    var v=parseFloat(e.target.value);
+    if(v>0) trdRates(tR)[fx]=v; else delete trdRates(tR)[fx];
+    try{ FD.save(); }catch(_){}
+    trdRender();
+  });
   document.addEventListener('keydown', function(e){
     if(e.key==='Escape'){ var r=document.getElementById('tjRead');
       if(r && r.classList.contains('is-on')){ trdJournalClose(); return; }
