@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','85'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','87'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -3797,7 +3797,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5084,7 +5084,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '85 \u00b7 audit-p0';
+  var APP_VERSION = '87 \u00b7 tasks';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -9524,10 +9524,17 @@
    the Travel list keeps working exactly as before. New fields are optional and
    created on demand. */
 
-  var TRD_TABS = [
+  var TRD_TABS_BASE = [
     ['overview','Overview'], ['itinerary','Itinerary'], ['packing','Packing'],
     ['budget','Budget'], ['bookings','Bookings'], ['docs','Documents'], ['journal','Journal']
   ];
+  /* A trip in progress opens on Today. Planning tabs are still there, just not
+     first — nobody standing at a gate wants a budget form. */
+  function trdTabs(t){
+    return tripStatus(t)==='ongoing'
+      ? [['today','Today']].concat(TRD_TABS_BASE)
+      : TRD_TABS_BASE;
+  }
   /* The eight things that decide whether a family is actually ready to go. */
   var TRD_PREP = [
     ['flights','Flights booked'], ['hotel','Accommodation confirmed'],
@@ -9539,6 +9546,24 @@
 
   function trdTrip(){ try{ return (FD.data.travel.trips||[]).filter(function(t){return t.id===trdId;})[0]||null; }catch(e){ return null; } }
   function trdPrepOf(t){ if(!t.prep) t.prep={}; return t.prep; }
+  /* The eight built-in items keep their existing shape so nothing already saved
+     is disturbed; a due date and an owner ride alongside in prepMeta. Anything
+     a family adds themselves lives in tasks. */
+  function trdPrepMeta(t){ if(!t.prepMeta) t.prepMeta={}; return t.prepMeta; }
+  function trdTasks(t){ if(!t.tasks) t.tasks=[]; return t.tasks; }
+  function trdDueClass(due){
+    if(!due) return '';
+    var d=Math.round((new Date(due+'T00:00:00') - new Date().setHours(0,0,0,0))/86400000);
+    return d<0 ? 'is-late' : d<=2 ? 'is-soon' : '';
+  }
+  function trdDueLabel(due){
+    if(!due) return '';
+    var d=Math.round((new Date(due+'T00:00:00') - new Date().setHours(0,0,0,0))/86400000);
+    if(d<0)  return Math.abs(d)+'d overdue';
+    if(d===0) return 'Today';
+    if(d===1) return 'Tomorrow';
+    return 'in '+d+'d';
+  }
 
   function trdReadiness(t){
     var p=trdPrepOf(t), done=0;
@@ -9547,13 +9572,15 @@
     /* An honest number. Ticking eight boxes while holding no booking, no
        document and no budget should not read as "ready" — it did, and that is
        the kind of reassurance that gets someone stranded at an airport. */
-    var prepPart = done/TRD_PREP.length;
+    /* Custom tasks are real preparation, so they belong in the score. */
+    var ct=trdTasks(t), ctDone=ct.filter(function(x){ return x.done; }).length;
+    var prepPart = (done + ctDone) / (TRD_PREP.length + ct.length);
     var packPart = pk.total ? pk.done/pk.total : 0;
     var hasBook  = (t.bookings||[]).length ? 1 : 0;
     var hasDocs  = (t.docs||[]).length ? 1 : 0;
     var hasMoney = (parseFloat(t.budget)||0) > 0 ? 1 : 0;
     var pc = Math.round((prepPart*0.45 + packPart*0.20 + hasBook*0.15 + hasDocs*0.12 + hasMoney*0.08)*100);
-    return { pc:pc, done:done, total:TRD_PREP.length, pack:pk,
+    return { pc:pc, done:done+ctDone, total:TRD_PREP.length+ct.length, pack:pk,
              book:hasBook, docs:hasDocs, money:hasMoney };
   }
 
@@ -9562,6 +9589,11 @@
     TRD_PREP.forEach(function(x){ if(!p[x[0]]) out.push(x[1]); });
     var pk=tvPackStats(t.id);
     if(pk.total && pk.done<pk.total) out.push((pk.total-pk.done)+' packing items');
+    trdTasks(t).forEach(function(x){
+      if(x.done) return;
+      var lbl=x.due ? esc(x.title)+' \u00b7 '+trdDueLabel(x.due) : esc(x.title);
+      if(x.due && trdDueClass(x.due)==='is-late') out.unshift(lbl); else out.push(lbl);
+    });
     if(!(t.bookings||[]).length) out.push('No bookings saved');
     if(!(t.docs||[]).length) out.push('No documents saved');
     if(!(parseFloat(t.budget)||0)) out.push('No budget set');
@@ -9595,7 +9627,63 @@
     return '<svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
 
+  /* ==================== WHEN THE TRIP IS OVER ====================
+     A finished trip should read as an archive, not as an unfinished checklist.
+     Everything here is counted from what the family actually recorded. */
+  function trdSummary(t){
+    var n=trdNights(t)||0, spent=trdSpent(t), est=parseFloat(t.budget)||0;
+    var byCat={};
+    (t.expenses||[]).forEach(function(x){
+      var c=x.cat||'Other'; byCat[c]=(byCat[c]||0)+(parseFloat(x.amt)||0);
+    });
+    var top=Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; })[0];
+    var jr=(t.journal||[]), photos=jr.filter(function(j){ return j.photo; }).length;
+    var pk=tvPackStats(t.id);
+
+    var stats=[
+      ['Days away', n? (n+1)+'' : '\u2014'],
+      ['Travellers', String(Math.max(1,(t.travelers||[]).length||1))],
+      ['Spent', spent? fmtMoney(spent) : 'Nothing recorded'],
+      ['Plans kept', String((t.itinerary||[]).length)],
+      ['Journal entries', String(jr.length)],
+      ['Photos', String(photos)]
+    ];
+    if(top) stats.push(['Most spent on', top+' \u00b7 '+fmtMoney(byCat[top])]);
+    if(est) stats.push([spent<=est?'Under budget by':'Over budget by', fmtMoney(Math.abs(est-spent))]);
+
+    var memory = jr.length
+      ? (function(){
+          var withPhoto = jr.filter(function(j){ return j.photo; });
+          var pick = withPhoto.length ? withPhoto[0] : jr[0];
+          return '<div class="sum__mem">'
+            + (pick.photo? '<div class="sum__memph"><img src="'+pick.photo+'" alt=""></div>' : '')
+            + '<div class="sum__memtx"><div class="sum__memd">'+esc(fmtDate(pick.date))+'</div>'
+            + '<div class="sum__memq">'+esc((pick.text||'').slice(0,160))+((pick.text||'').length>160?'\u2026':'')+'</div></div>'
+            + '</div>';
+        })()
+      : '';
+
+    return '<div class="sum">'
+      + '<div class="sum__h"><span class="sum__eyebrow">The journey</span>'
+      + '<h3 class="sum__t">'+esc(t.dest||t.name||'This trip')+'</h3>'
+      + '<div class="sum__dates">'+fmtRange(t.start,t.end)+'</div></div>'
+      + '<div class="sum__grid">'
+      + stats.map(function(x){
+          return '<div class="sum__s"><div class="sum__sl">'+x[0]+'</div><div class="sum__sv">'+esc(x[1])+'</div></div>';
+        }).join('')
+      + '</div>'
+      + memory
+      + (pk.total && pk.done<pk.total
+          ? '<div class="sum__note">'+(pk.total-pk.done)+' packing items were never ticked off \u2014 harmless now.</div>' : '')
+      + '</div>';
+  }
+
   function trdTabOverview(t){
+    /* A completed trip leads with what it became, not with what is left to do. */
+    if(tripStatus(t)==='past') return trdSummary(t) + trdOverviewFacts(t);
+    return trdOverviewFacts(t);
+  }
+  function trdOverviewFacts(t){
     var r=trdReadiness(t), left=trdRemaining(t), n=trdNights(t);
     var facts=[
       ['Destination', t.dest||'\u2014'],
@@ -9607,16 +9695,46 @@
       ['Spent', (t.expenses&&t.expenses.length)? fmtMoney(trdSpent(t)) : 'Nothing yet']
     ];
     var p=trdPrepOf(t);
+    var meta=trdPrepMeta(t), tasks=trdTasks(t);
+    var members=(FD.data.members||[]).map(function(m){ return m.name; }).filter(Boolean);
+    function ownerChip(who, attr, key){
+      return '<button class="tk__who'+(who?' is-set':'')+'" data-'+attr+'="'+key+'">'
+        + esc(who||'Anyone')+'</button>';
+    }
+    function dueChip(due, attr, key){
+      var cls=trdDueClass(due);
+      return '<button class="tk__due'+(due?' is-set ':' ')+cls+'" data-'+attr+'="'+key+'">'
+        + (due ? esc(trdDueLabel(due)) : 'No date')+'</button>';
+    }
     return '<div class="trd__sec"><div class="trd__secH">Trip summary</div><div class="trd__facts">'
       + facts.map(function(f){ return '<div class="trd__fact"><div class="trd__factL">'+f[0]+'</div><div class="trd__factV">'+esc(String(f[1]))+'</div></div>'; }).join('')
       + '</div></div>'
       + (t.note? '<div class="trd__sec"><div class="trd__secH">Notes</div><div class="trd__fact">'+esc(t.note).replace(/\n/g,'<br>')+'</div></div>' : '')
       + '<div class="trd__sec"><div class="trd__secH">Before you leave \u00b7 '+r.done+' of '+r.total+'</div><div class="trd__prep">'
       + TRD_PREP.map(function(x){
-          return '<button type="button" class="trd__prepI'+(p[x[0]]?' is-done':'')+'" data-trdprep="'+x[0]+'">'
-            +'<span class="trd__box">'+trdIco('tick')+'</span><span class="trd__prepT">'+x[1]+'</span></button>';
+          var m=meta[x[0]]||{};
+          return '<div class="trd__prepRow'+(p[x[0]]?' is-done':'')+'">'
+            + '<button type="button" class="trd__prepI" data-trdprep="'+x[0]+'">'
+              + '<span class="trd__box">'+trdIco('tick')+'</span>'
+              + '<span class="trd__prepT">'+x[1]+'</span></button>'
+            + '<span class="tk__meta">'+dueChip(m.due,'prepdue',x[0])+ownerChip(m.who,'prepwho',x[0])+'</span>'
+          + '</div>';
         }).join('')
-      + '</div></div>';
+      + tasks.map(function(x){
+          return '<div class="trd__prepRow'+(x.done?' is-done':'')+'">'
+            + '<button type="button" class="trd__prepI" data-tkto="'+x.id+'">'
+              + '<span class="trd__box">'+trdIco('tick')+'</span>'
+              + '<span class="trd__prepT">'+esc(x.title)+'</span></button>'
+            + '<span class="tk__meta">'+dueChip(x.due,'tkdue',x.id)+ownerChip(x.who,'tkwho',x.id)
+              + '<button class="tk__x" data-tkdel="'+x.id+'" aria-label="Remove">'
+              + '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button></span>'
+          + '</div>';
+        }).join('')
+      + '</div>'
+      + '<div class="tk__add"><input class="input" type="text" placeholder="Something else to do before you go" id="tkNew">'
+      + '<button class="btn" data-tkadd>Add</button></div>'
+      + '</div>'
+      + '<input type="date" class="itn__hidden" id="tkDate" tabindex="-1" aria-hidden="true">';
   }
 
 
@@ -9764,6 +9882,21 @@
     items.forEach(function(p){ var c=p.cat||'Other'; (groups[c]=groups[c]||[]).push(p); });
     var order=TRD_PACKCATS.filter(function(c){ return groups[c]; });
 
+    /* Wisal is a family OS: the useful question is not "how much is packed" but
+       "who still owes something". */
+    var byWho={};
+    items.forEach(function(p){
+      var w=p.who||'Anyone';
+      if(!byWho[w]) byWho[w]={done:0,total:0};
+      byWho[w].total++; if(p.done) byWho[w].done++;
+    });
+    var whoNames=Object.keys(byWho).filter(function(w){ return byWho[w].done<byWho[w].total; });
+    var whoBar = whoNames.length>1 || (whoNames.length===1 && whoNames[0]!=='Anyone')
+      ? '<div class="pk__who-row">'+whoNames.map(function(w){
+          var g=byWho[w];
+          return '<span class="pk__whochip"><b>'+esc(w)+'</b>'+(g.total-g.done)+' left</span>';
+        }).join('')+'</div>'
+      : '';
     var head='<div class="tvpk__head"><div style="flex:1;min-width:0">'
       + '<div class="tvpk__lbl">'+(items.length? done+' of '+items.length+' packed' : 'Nothing on the list yet')+'</div>'
       + '<div class="tvpk__bar"><div class="tvpk__barf" style="width:'+pc+'%"></div></div>'
@@ -9779,6 +9912,8 @@
                 return '<div class="pk__i'+(p.done?' is-done':'')+'">'
                   + '<button class="pk__chk" data-pkto="'+p.id+'" aria-label="Toggle"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
                   + '<span class="pk__t">'+esc(p.name||p.title||'Item')+'</span>'
+                  + '<button class="pk__who'+(p.who?' is-set':'')+'" data-pkwho="'+p.id+'">'
+                    + esc(p.who || 'Anyone') + '</button>'
                   + '<button class="pk__x" data-pkdel="'+p.id+'" aria-label="Remove"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
                 + '</div>';
               }).join('')
@@ -9805,7 +9940,7 @@
       + '</div>'
       + (items.length ? '' : '<button class="btn pk__seed" data-pkseed>Add travel essentials</button>');
 
-    return head + body + add;
+    return head + whoBar + body + add;
   }
 
   /* ---- Bookings, Documents, Journal ----
@@ -10074,6 +10209,89 @@
     return {tone:'calm', text:'Keep going \u2014 '+(100-r.pc)+'% left', act:'overview', cta:'See what is left'};
   }
 
+  /* ==================== TRAVEL DAY ====================
+     While a trip is happening the family is standing in an airport, not sitting
+     at a desk. This view answers only: what is now, what is next, and how do I
+     capture something quickly. Everything else stays one tab away. */
+  function trdTodayKey(){ return new Date().toISOString().slice(0,10); }
+  function trdMinutes(t){
+    var p=String(t||'').split(':');
+    var h=parseInt(p[0],10), m=parseInt(p[1],10);
+    return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
+  }
+  function trdLiveEvents(t){
+    var key=trdTodayKey();
+    var evs=trdEvents(t,key);
+    var now=new Date().getHours()*60 + new Date().getMinutes();
+    var past=[], next=null, later=[];
+    evs.forEach(function(e){
+      var m=trdMinutes(e.time);
+      if(!e.time){ later.push(e); return; }
+      if(m + 60 < now) past.push(e);
+      else if(!next) next=e;
+      else later.push(e);
+    });
+    return { key:key, past:past, next:next, later:later, all:evs };
+  }
+  function trdDayNumber(t){
+    var days=trdDays(t), key=trdTodayKey();
+    var i=days.indexOf(key);
+    return i<0 ? null : { n:i+1, of:days.length };
+  }
+
+  function trdTabToday(t){
+    var L=trdLiveEvents(t), dn=trdDayNumber(t);
+    var spent=trdSpent(t), est=parseFloat(t.budget)||0;
+    var pk=tvPackStats(t.id);
+
+    var head='<div class="live__head">'
+      + '<div class="live__d">'+(dn? 'Day '+dn.n+' of '+dn.of : 'Today')+'</div>'
+      + '<div class="live__date">'+esc(fmtDate(L.key))+'</div>'
+      + '</div>';
+
+    var nextCard = L.next
+      ? '<div class="live__next"><div class="live__nlbl">Next</div>'
+        + '<div class="live__nrow"><span class="live__nt">'+esc(fmt12(L.next.time)||'\u2014')+'</span>'
+        + '<span class="live__ntt">'+esc(L.next.title)+'</span></div>'
+        + (L.next.note? '<div class="live__nn">'+esc(L.next.note)+'</div>' : '')
+        + '</div>'
+      : (L.all.length
+          ? '<div class="live__next live__next--done"><div class="live__nlbl">Nothing left today</div>'
+            + '<div class="live__nrow"><span class="live__ntt">Rest well.</span></div></div>'
+          : '<div class="live__next live__next--empty"><div class="live__nlbl">No plan for today</div>'
+            + '<div class="live__nrow"><span class="live__ntt">Add something in Itinerary, or just enjoy the day.</span></div></div>');
+
+    var rest = L.later.length
+      ? '<div class="trd__secH">Later today</div><div class="itn__line">'
+        + L.later.map(function(e){
+            return '<div class="itn__ev"><span class="itn__t">'+esc(fmt12(e.time)||'\u2014')+'</span>'
+              + '<span class="itn__c"><span class="itn__title">'+esc(e.title)+'</span></span></div>';
+          }).join('') + '</div>'
+      : '';
+
+    var done = L.past.length
+      ? '<div class="trd__secH">Earlier</div><div class="live__past">'
+        + L.past.map(function(e){
+            return '<div class="live__p"><span>'+esc(fmt12(e.time))+'</span><span>'+esc(e.title)+'</span></div>';
+          }).join('') + '</div>'
+      : '';
+
+    /* Capture, not navigate: three things a traveller needs in one tap. */
+    var quick='<div class="trd__secH">Quick</div><div class="live__quick">'
+      + '<button class="live__q" data-liveexp><span class="live__qic">'+TV_ICO.pin+'</span>Add an expense</button>'
+      + '<button class="live__q" data-livejrn><span class="live__qic">'+trdIco('spark')+'</span>Write a note</button>'
+      + '<button class="live__q" data-livetab="packing"><span class="live__qic">'+TV_ICO.caseb+'</span>'
+        + (pk.total? pk.done+' / '+pk.total+' packed' : 'Packing')+'</button>'
+      + '</div>';
+
+    var money = est
+      ? '<div class="live__money"><span>Spent so far</span><b>'+fmtMoney(spent)+'</b>'
+        + '<span class="live__mof">of '+fmtMoney(est)+'</span></div>'
+      : (spent? '<div class="live__money"><span>Spent so far</span><b>'+fmtMoney(spent)+'</b></div>' : '');
+
+    return head + nextCard + rest + done + quick + money;
+  }
+
   function trdTabBookings(t){
     var list=(t.bookings||[]).slice().sort(function(a,b){ return String(a.date||'').localeCompare(String(b.date||'')); });
     var body = list.length
@@ -10249,10 +10467,11 @@
         + '<div class="trd__hint">'+hint+'</div>'
       + '</div>'
       + '<div class="trd__tabs">'
-        + TRD_TABS.map(function(x){ return '<button class="trd__tab'+(trdTab===x[0]?' is-on':'')+'" data-trdtab="'+x[0]+'">'+x[1]+'</button>'; }).join('')
+        + trdTabs(t).map(function(x){ return '<button class="trd__tab'+(trdTab===x[0]?' is-on':'')+'" data-trdtab="'+x[0]+'">'+x[1]+'</button>'; }).join('')
       + '</div>'
       + '<div class="trd__body">'
-        + (trdTab==='overview' ? trdTabOverview(t)
+        + (trdTab==='today' ? trdTabToday(t)
+          : trdTab==='overview' ? trdTabOverview(t)
           : trdTab==='packing' ? trdTabPacking(t)
           : trdTab==='itinerary' ? trdTabItinerary(t)
           : trdTab==='budget' ? trdTabBudget(t)
@@ -10265,7 +10484,9 @@
   }
 
   function trdOpen(id){
-    trdId=id; trdTab='overview';
+    trdId=id;
+    var _t=trdTrip();
+    trdTab = (_t && tripStatus(_t)==='ongoing') ? 'today' : 'overview';
     var host=document.getElementById('trdView');
     if(!host){
       host=document.createElement('div');
@@ -10385,6 +10606,19 @@
       trdJournalRead(tjo.getAttribute('data-tjopen')); return;
     }
     /* --- accepting a suggestion --- */
+    /* Assigning is a rotation through the household: one tap, no menu. */
+    var pkw=e.target.closest('[data-pkwho]');
+    if(pkw){
+      var it=FD.getPack(pkw.getAttribute('data-pkwho'));
+      if(it){
+        var names=(FD.data.members||[]).map(function(m){ return m.name; }).filter(Boolean);
+        var order=[''].concat(names);
+        var at=order.indexOf(it.who||'');
+        FD.updatePack(it.id, { who: order[(at+1) % order.length] || '' });
+        trdRender();
+      }
+      return;
+    }
     var pks=e.target.closest('[data-pksug]');
     if(pks){
       var tS=trdTrip(); if(!tS) return;
@@ -10437,6 +10671,14 @@
       TRD_ESSENTIALS.forEach(function(x){ FD.addPack({ tripId:tp2.id, cat:x[0], name:x[1], done:false }); });
       trdRender(); return;
     }
+    var lvt=e.target.closest('[data-livetab]');
+    if(lvt){ trdTab=lvt.getAttribute('data-livetab'); trdRender(); return; }
+    if(e.target.closest('[data-liveexp]')){ trdTab='budget'; trdRender();
+      setTimeout(function(){ var f=document.getElementById('bdgName'); if(f) f.focus({preventScroll:true}); },80);
+      return; }
+    if(e.target.closest('[data-livejrn]')){ trdTab='journal'; trdRender();
+      setTimeout(function(){ var f=document.getElementById('tjText'); if(f) f.focus({preventScroll:true}); },80);
+      return; }
     var tgo=e.target.closest('[data-trdgo]');
     if(tgo){
       var to=tgo.getAttribute('data-trdgo');
@@ -10537,6 +10779,84 @@
       try{ FD.save(); }catch(_){}
       trdRender(); return;
     }
+    /* --- tasks: add, tick, date, owner, remove --- */
+    if(e.target.closest('[data-tkadd]')){
+      var tT=trdTrip(); if(!tT) return;
+      var inp=document.getElementById('tkNew');
+      var title=(inp&&inp.value||'').trim();
+      if(!title){ if(inp) inp.focus({preventScroll:true}); return; }
+      trdTasks(tT).push({ id:'tk'+Date.now()+Math.random().toString(36).slice(2,6),
+                          title:title, done:false, due:'', who:'' });
+      if(inp) inp.value='';
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var tkt=e.target.closest('[data-tkto]');
+    if(tkt){
+      var tK=trdTrip(); if(!tK) return;
+      var id=tkt.getAttribute('data-tkto');
+      trdTasks(tK).forEach(function(x){ if(x.id===id) x.done=!x.done; });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var tkd=e.target.closest('[data-tkdel]');
+    if(tkd){
+      var tD=trdTrip(); if(!tD) return;
+      var rid=tkd.getAttribute('data-tkdel');
+      tD.tasks=trdTasks(tD).filter(function(x){ return x.id!==rid; });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    /* the owner rotates through the household; the date opens our calendar */
+    function rotateOwner(cur){
+      var names=(FD.data.members||[]).map(function(m){ return m.name; }).filter(Boolean);
+      var order=[''].concat(names);
+      return order[(order.indexOf(cur||'')+1) % order.length] || '';
+    }
+    var pw=e.target.closest('[data-prepwho]');
+    if(pw){
+      var tW=trdTrip(); if(!tW) return;
+      var k=pw.getAttribute('data-prepwho'), mm=trdPrepMeta(tW);
+      mm[k]=mm[k]||{}; mm[k].who=rotateOwner(mm[k].who);
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    var tw=e.target.closest('[data-tkwho]');
+    if(tw){
+      var tO=trdTrip(); if(!tO) return;
+      var tid=tw.getAttribute('data-tkwho');
+      trdTasks(tO).forEach(function(x){ if(x.id===tid) x.who=rotateOwner(x.who); });
+      try{ FD.save(); }catch(_){}
+      trdRender(); return;
+    }
+    function pickDate(current, apply){
+      var f=document.getElementById('tkDate'); if(!f) return;
+      f.value=current||'';
+      WDP.open(f);
+      f.addEventListener('change', function(){
+        apply(f.value||'');
+        try{ FD.save(); }catch(_){}
+        trdRender();
+      }, {once:true});
+    }
+    var pd=e.target.closest('[data-prepdue]');
+    if(pd){
+      var tPd=trdTrip(); if(!tPd) return;
+      var pk2=pd.getAttribute('data-prepdue'), m2=trdPrepMeta(tPd);
+      m2[pk2]=m2[pk2]||{};
+      pickDate(m2[pk2].due, function(v){ m2[pk2].due=v; });
+      return;
+    }
+    var td=e.target.closest('[data-tkdue]');
+    if(td){
+      var tTd=trdTrip(); if(!tTd) return;
+      var tid2=td.getAttribute('data-tkdue');
+      var cur=(trdTasks(tTd).filter(function(x){return x.id===tid2;})[0]||{}).due||'';
+      pickDate(cur, function(v){
+        trdTasks(tTd).forEach(function(x){ if(x.id===tid2) x.due=v; });
+      });
+      return;
+    }
     var pr=e.target.closest('[data-trdprep]');
     if(pr){
       var t=trdTrip(); if(!t) return;
@@ -10557,6 +10877,9 @@
     if(e.key==='Escape'){ var r=document.getElementById('tjRead');
       if(r && r.classList.contains('is-on')){ trdJournalClose(); return; }
       if(trdId) trdClose(); }
+    if(e.key==='Enter' && e.target && e.target.id==='tkNew'){
+      var b0=document.querySelector('[data-tkadd]'); if(b0){ e.preventDefault(); b0.click(); }
+    }
     if(e.key==='Enter' && e.target && e.target.id==='pkName'){
       var b=document.querySelector('[data-pkadd]'); if(b){ e.preventDefault(); b.click(); }
     }

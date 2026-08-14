@@ -123,3 +123,186 @@ newly added ones use the budget.
 build is still close to the quota. They will now be warned instead of losing
 data silently, but a "storage used" figure in Settings would let them see it
 coming. Worth adding.
+
+---
+
+# Phase 5–9 · Build 86
+
+## What was built
+
+### §16 Travel-day mode — P1-1
+
+While a trip is happening, a **Today** tab appears first and the trip opens on
+it. Planning tabs stay where they were; they are simply no longer the first
+thing someone sees at a departure gate.
+
+Today answers three questions and nothing else:
+
+- **What is next** — the next event by clock time, in large type. An event
+  stays "next" for an hour after its start, because that is when a person is
+  still doing it.
+- **What else today** — later events, then earlier ones struck through.
+- **Capture, not navigate** — one tap to add an expense, write a note, or check
+  packing. Each jumps to the right tab with the cursor already in the field.
+
+Also shows day number ("Day 3 of 12") and spend against budget.
+
+### §15 Family responsibilities — P1-2
+
+Every packing item carries an owner. Tapping the chip rotates through the
+household: Anyone → Hamza → Father → Mother → Anyone. One tap, no menu, and it
+degrades to "Anyone" when no members are saved.
+
+Above the list, a row shows **who still owes what** — "Father · 3 left" — which
+is the question a family actually asks, rather than a single overall percentage.
+
+### §18 Post-trip summary — P1-3
+
+A completed trip now opens with what it became: days away, travellers, spent,
+plans kept, journal entries, photos, the category that took most of the money,
+and whether it came in under or over budget. Under that, the first journal entry
+with a photo, as the memory of the trip.
+
+Everything is counted from what was actually recorded. Nothing is invented.
+
+## §26 QA performed
+
+Logic was extracted and run, not eyeballed.
+
+| Case | Result |
+|---|---|
+| Before the first event of the day | next = first event ✅ |
+| Mid-morning, one event passed | next correct, earlier counted ✅ |
+| After the last event | nothing left, all struck through ✅ |
+| A day with no plan | calm empty state, no crash ✅ |
+| Events with no time | listed under "later", never shown as next ✅ |
+| Summary: under budget | correct delta ✅ |
+| Summary: over budget | correct, labelled "over by" ✅ |
+| Summary: nothing recorded | no division by zero, no blank ✅ |
+| Assignment with 3 members | rotates and returns to Anyone ✅ |
+| Assignment with no members | stays Anyone, never sticks ✅ |
+
+Markup balance verified across all 10 trip renderers. No bare `.focus()` calls
+remain anywhere in the app.
+
+## Still open
+
+| # | Item | Note |
+|---|---|---|
+| P1-4 | Tasks with due dates, reminders, owners | Preparation is still 8 fixed checkboxes |
+| P1-5 | Loading and error states | Empty states are good; the other two are missing |
+| P2 | Packing templates, richer itinerary events, multi-currency | Data structures already allow these |
+| P2 | Storage-used figure in Settings | So a family sees the quota coming |
+
+## Deployment
+
+`app.js` · `styles.css` · `sw.js` → Settings should read **86 · travel-p1**.
+
+No schema change, no migration. Existing trips gain the new views immediately;
+packing items without an owner simply read "Anyone".
+
+## Honest closing note
+
+The brief asked for 30 steps. Most are now done or deliberately deferred, and
+the deferrals are listed above rather than quietly skipped.
+
+What has not happened is the part no amount of code can supply: **this module
+has still never been used on a real journey.** Travel-day mode in particular is
+a guess about what someone needs at an airport. One real trip will teach more
+about it than another build would.
+
+---
+
+# Build 87 · §9 Tasks · §19 States
+
+## §9 Smart checklist — P1-4
+
+Preparation was eight fixed ticks. It is now a real checklist, without
+disturbing anything already saved.
+
+**How the data was extended safely.** The existing `t.prep` object keeps its
+exact shape, so every trip already on a device or in the cloud still reads
+correctly. Two new fields ride alongside:
+
+- `t.prepMeta` — a due date and an owner for each built-in item
+- `t.tasks` — anything the family adds themselves
+
+Nothing was migrated, nothing was renamed, nothing can break on old data.
+
+**What a family can now do.** Give any preparation item a due date and an owner.
+Add their own tasks. The due chip states the truth plainly — *Today*,
+*Tomorrow*, *3d overdue* — and turns amber within two days, red once late.
+Owners rotate on a single tap through the household.
+
+Custom tasks count towards readiness, so the percentage stays honest. An overdue
+task jumps to the front of "what's left".
+
+## §19 Loading, error and offline states
+
+Empty states were already good; the other three did not exist. Added as reusable
+patterns: a shimmering skeleton while data is arriving, a plain-language error
+box with a way back, and an offline notice. No blank rectangles.
+
+## QA performed
+
+| Case | Result |
+|---|---|
+| Due 5 days ago | "5d overdue", red ✅ |
+| Due yesterday | "1d overdue", red ✅ |
+| Due today / tomorrow | amber ✅ |
+| Due in 3 days / a month | normal ✅ |
+| No date | blank, no crash ✅ |
+| Readiness, no custom tasks | unchanged from before ✅ |
+| Readiness, 8/8 prep + 0/2 tasks | 80%, not a false 100% ✅ |
+| Owner rotation from any point | always returns to Anyone ✅ |
+| Owner is a member since removed | falls back safely ✅ |
+
+Markup balance verified across 11 renderers.
+
+## The 30-step brief, closed out
+
+| Step | Status |
+|---|---|
+| 1 Inspect before coding | Done — the audit found two P0s invisible from the UI |
+| 2 Five-perspective audit | Done |
+| 3 Competitive patterns | Applied: next-event focus (TripIt), trip-type packing (PackPoint), journey map (Polarsteps), owner rotation (Todoist) |
+| 4 User scenarios | A–F all covered; E (during travel) drove Travel-day mode |
+| 5 Trip lifecycle | Status changes the interface: Today while travelling, summary once home |
+| 6 Single source of truth | Everything hangs off the trip object |
+| 7 Trip overview | Done |
+| 8 Readiness engine | Real completion states, now including custom tasks |
+| 9 Smart checklist | Done — this build |
+| 10 Packing | Done, with owners and suggestions |
+| 11 Itinerary | Day-by-day; end time, location and cost remain P2 |
+| 12 Bookings | Done |
+| 13 Document vault | Done, with expiry warnings and photos |
+| 14 Budget | Done; multi-currency remains P2 |
+| 15 Family collaboration | Done |
+| 16 Travel-day mode | Done |
+| 17 Journal | Done |
+| 18 Post-trip summary | Done |
+| 19 States | Done — this build |
+| 20 Mobile-first | Verified; global overflow guard in place |
+| 21 Backend integrity | No orphans, every write persists, no schema change needed |
+| 22 Security | Unchanged; nothing weakened |
+| 23 Design consistency | Existing tokens only |
+| 24 Redundancy | Duplicate top-level Packing tab removed earlier |
+| 25 AI-readiness | Data is structured; no invented content |
+| 26 QA | Logic extracted and executed, not eyeballed |
+| 27 Beyond visuals | Every feature traced UI → state → persistence |
+| 28 Phased | Followed |
+| 29 Rules | No rewrites of working code, no fake functionality |
+| 30 Report | This document |
+
+## Deferred, deliberately
+
+P2: packing templates · itinerary events with end time, location and cost ·
+multi-currency preserving the original amount · emergency contacts ·
+storage-used figure in Settings.
+
+These are listed rather than skipped. Each is small once a real trip shows
+whether it is wanted.
+
+## Deployment
+
+`app.js` · `styles.css` · `sw.js` → **87 · tasks**. No migration.

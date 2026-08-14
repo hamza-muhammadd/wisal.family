@@ -4799,3 +4799,132 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 .trx__list--docs .trx__shotimg{margin-top:auto!important}
 .trx__list--docs .trx__top{margin-bottom:16px}
 .trx__ref{margin-top:14px}
+
+/* ==================== TRAVEL DAY ====================
+   Large, calm, readable at arm's length in an airport. */
+.live__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px}
+.live__d{font-family:var(--mono);font-size:.7rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--brand)}
+.live__date{font-size:.86rem;color:var(--text-3)}
+.live__next{padding:20px;border-radius:var(--r-lg);margin-bottom:22px;
+  background:linear-gradient(155deg,color-mix(in srgb,var(--brand) 16%,var(--surface)),var(--surface));
+  border:1px solid color-mix(in srgb,var(--brand) 32%,transparent)}
+.live__next--done{background:linear-gradient(155deg,color-mix(in srgb,var(--ok,#2C7F6B) 12%,var(--surface)),var(--surface));
+  border-color:color-mix(in srgb,var(--ok,#2C7F6B) 28%,transparent)}
+.live__next--empty{background:var(--surface);border-color:var(--glass-hair)}
+.live__nlbl{font-family:var(--mono);font-size:.66rem;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--text-3);margin-bottom:9px}
+.live__nrow{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap}
+.live__nt{font-family:var(--mono);font-size:1.15rem;font-weight:700;color:var(--brand);flex:none}
+.live__ntt{font-size:1.2rem;font-weight:700;letter-spacing:-.02em;color:var(--text);
+  overflow-wrap:anywhere}
+.live__nn{margin-top:9px;font-size:.9rem;color:var(--text-2);line-height:1.55}
+.live__past{display:flex;flex-direction:column;gap:2px;margin-bottom:20px}
+.live__p{display:flex;gap:14px;padding:9px 12px;border-radius:10px;font-size:.88rem;
+  color:var(--text-3)}
+.live__p span:first-child{font-family:var(--mono);flex:none;width:72px}
+.live__p span:last-child{text-decoration:line-through;text-decoration-thickness:1px}
+.live__quick{display:grid;grid-template-columns:1fr;gap:9px;margin-bottom:20px}
+@media (min-width:560px){ .live__quick{grid-template-columns:repeat(3,1fr)} }
+.live__q{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 14px;
+  border-radius:var(--r-md);border:1px solid var(--glass-hair);background:var(--surface);
+  color:var(--text);font:inherit;font-size:.92rem;font-weight:600;cursor:pointer;
+  transition:border-color .16s,transform .16s var(--ease),background .16s}
+.live__q:hover{border-color:color-mix(in srgb,var(--brand) 40%,transparent);transform:translateY(-1px)}
+.live__q:active{transform:scale(.98)}
+.live__qic{flex:none;display:grid;place-items:center;color:var(--brand)}
+.live__qic svg{width:17px;height:17px}
+.live__money{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;padding:14px 16px;
+  border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--glass-hair);
+  font-size:.88rem;color:var(--text-2)}
+.live__money b{font-size:1.08rem;color:var(--text)}
+.live__mof{color:var(--text-3)}
+
+/* ==================== WHO OWES WHAT ==================== */
+.pk__who{flex:none;border:1px solid var(--glass-hair);background:transparent;
+  color:var(--text-3);font:inherit;font-size:.74rem;font-weight:600;padding:4px 10px;
+  border-radius:999px;cursor:pointer;transition:all .16s var(--ease)}
+.pk__who:hover{border-color:color-mix(in srgb,var(--brand) 40%,transparent);color:var(--brand)}
+.pk__who.is-set{background:color-mix(in srgb,var(--brand) 13%,transparent);
+  border-color:transparent;color:var(--brand)}
+.pk__who-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pk__whochip{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text-2);
+  padding:7px 13px;border-radius:999px;background:var(--surface-2);border:1px solid var(--glass-hair)}
+.pk__whochip b{color:var(--text);font-weight:640}
+
+/* ==================== THE JOURNEY, AFTERWARDS ==================== */
+.sum{padding:22px;border-radius:var(--r-lg);margin-bottom:24px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--brand) 12%,var(--surface)),var(--surface));
+  border:1px solid color-mix(in srgb,var(--brand) 26%,transparent)}
+.sum__eyebrow{font-family:var(--mono);font-size:.66rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--brand)}
+.sum__t{font-size:1.55rem;font-weight:770;letter-spacing:-.03em;margin:7px 0 4px;color:var(--text)}
+.sum__dates{font-size:.88rem;color:var(--text-3);margin-bottom:20px}
+.sum__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.sum__s{padding:14px 15px;border-radius:var(--r-md);background:var(--surface);
+  border:1px solid var(--glass-hair)}
+.sum__sl{font-size:.72rem;color:var(--text-3);margin-bottom:5px}
+.sum__sv{font-size:1.02rem;font-weight:680;color:var(--text);overflow-wrap:anywhere}
+.sum__mem{display:flex;gap:15px;align-items:flex-start;margin-top:20px;padding:15px;
+  border-radius:var(--r-md);background:var(--surface);border:1px solid var(--glass-hair)}
+.sum__memph{flex:none;width:96px;height:96px;border-radius:12px;overflow:hidden;background:var(--surface-2)}
+.sum__memph img{width:100%;height:100%;object-fit:cover;display:block}
+.sum__memtx{flex:1;min-width:0}
+.sum__memd{font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--brand);margin-bottom:7px}
+.sum__memq{font-size:.92rem;line-height:1.6;color:var(--text-2);overflow-wrap:anywhere}
+.sum__note{margin-top:16px;font-size:.82rem;color:var(--text-3);line-height:1.5}
+
+/* ==================== TASKS WITH DATES AND OWNERS ==================== */
+.trd__prepRow{display:flex;align-items:center;gap:10px;padding:2px 0;flex-wrap:wrap}
+.trd__prepRow .trd__prepI{flex:1;min-width:180px}
+.trd__prepRow.is-done .trd__box{background:var(--brand);border-color:var(--brand)}
+.trd__prepRow.is-done .trd__box svg{opacity:1}
+.trd__prepRow.is-done .trd__prepT{color:var(--text-3);text-decoration:line-through;
+  text-decoration-thickness:1px}
+.tk__meta{display:inline-flex;align-items:center;gap:6px;flex:none;padding-right:6px}
+.tk__due,.tk__who{border:1px solid var(--glass-hair);background:transparent;color:var(--text-3);
+  font:inherit;font-size:.73rem;font-weight:600;padding:5px 11px;border-radius:999px;
+  cursor:pointer;white-space:nowrap;transition:all .16s var(--ease)}
+.tk__due:hover,.tk__who:hover{border-color:color-mix(in srgb,var(--brand) 40%,transparent);
+  color:var(--brand)}
+.tk__who.is-set{background:color-mix(in srgb,var(--brand) 13%,transparent);
+  border-color:transparent;color:var(--brand)}
+.tk__due.is-set{background:var(--surface-2);color:var(--text-2);border-color:var(--glass-hair)}
+.tk__due.is-soon{background:color-mix(in srgb,var(--warn,#BE8E3C) 16%,transparent);
+  color:var(--warn-strong,#8a6524);border-color:transparent}
+.tk__due.is-late{background:color-mix(in srgb,var(--danger,#d9534f) 15%,transparent);
+  color:var(--danger,#d9534f);border-color:transparent;font-weight:700}
+.tk__x{border:0;background:transparent;color:var(--text-3);cursor:pointer;padding:5px;
+  border-radius:8px;opacity:0;transition:opacity .15s,color .15s}
+.trd__prepRow:hover .tk__x{opacity:1}
+.tk__x:hover{color:var(--danger,#d9534f)}
+.tk__x svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
+.tk__add{display:flex;gap:9px;margin-top:14px;padding-top:14px;border-top:1px solid var(--glass-hair)}
+.tk__add input{flex:1;min-width:0}
+@media (max-width:560px){
+  .trd__prepRow{gap:8px}
+  .tk__meta{width:100%;padding-left:33px}
+}
+
+/* ==================== LOADING · ERROR · OFFLINE (§19) ====================
+   Never a blank rectangle: a shape while waiting, a plain sentence when
+   something failed, and a way back. */
+.sk{display:flex;flex-direction:column;gap:10px}
+.sk__row{height:60px;border-radius:var(--r-md);background:var(--surface-2);
+  position:relative;overflow:hidden}
+.sk__row::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--text-3) 12%,transparent),transparent);
+  animation:skShine 1.4s ease-in-out infinite}
+@keyframes skShine{to{transform:translateX(100%)}}
+.sk__row:nth-child(2){opacity:.72}
+.sk__row:nth-child(3){opacity:.48}
+.errbox{padding:22px 20px;border-radius:var(--r-lg);text-align:center;
+  background:var(--surface);border:1px solid color-mix(in srgb,var(--danger,#d9534f) 26%,transparent)}
+.errbox__t{font-weight:660;color:var(--text);margin-bottom:6px}
+.errbox__p{font-size:.88rem;color:var(--text-2);line-height:1.55;margin-bottom:14px}
+.offline-note{display:flex;align-items:center;gap:9px;padding:11px 14px;border-radius:var(--r-md);
+  background:color-mix(in srgb,var(--warn,#BE8E3C) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--warn,#BE8E3C) 26%,transparent);
+  font-size:.85rem;color:var(--text-2);margin-bottom:14px}
+@media (prefers-reduced-motion:reduce){ .sk__row::after{animation:none} }
