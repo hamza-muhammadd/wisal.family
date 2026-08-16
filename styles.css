@@ -5416,3 +5416,61 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 .jrow:focus-visible,.tlc:focus-visible,.jph__t:focus-visible,.jcal__d:focus-visible,
 .jcol:focus-visible,.jms__i:focus-visible,.jt__mood:focus-visible{
   outline:2px solid var(--brand);outline-offset:2px}
+
+/* ==================== JOURNAL · SPACING & TAGS, FINAL ====================
+   Declared last on purpose. An earlier blanket rule set .jtags margin to 0,
+   which pressed tags against the text above them, and the chips themselves were
+   too tight to read. These are the values that should win. */
+
+/* tags, wherever they appear */
+.jtags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px!important}
+.jtag,.tlc__tag{display:inline-flex;align-items:center;font-size:.74rem;font-weight:560;
+  line-height:1.4;padding:6px 12px;border-radius:999px;
+  color:var(--text-2);background:var(--surface-2);
+  border:1px solid var(--glass-hair);white-space:nowrap}
+.tlc__tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto;padding-top:14px}
+.tlc__tags>*{flex:none}
+.jentry--cover .jtags,.jentry .jtags{margin-top:13px!important}
+
+/* the timeline card, given room */
+.tlc__in{padding:16px 17px 17px;gap:0}
+.tlc__top{margin-bottom:11px;gap:10px}
+.tlc__t{margin:0 0 8px;line-height:1.38}
+.tlc__b{margin:0}
+.tlc__b+.tlc__tags{padding-top:14px}
+
+/* rows: a comfortable target, not a cramped line (§25) */
+.jt__list{gap:4px}
+.jrow{padding:14px 15px;gap:14px}
+.jrow__main{gap:4px}
+
+/* readers and chips */
+.jread__chips{gap:8px}
+.jread__chip{padding:7px 14px;line-height:1.4}
+.jread__sec{margin-top:28px;padding-top:22px}
+
+/* sections keep their distance from one another */
+.tl__g{margin-bottom:34px}
+.tl__g:last-child{margin-bottom:0}
+.tl__gh{padding-bottom:12px;margin-bottom:16px}
+.tl__items{gap:16px}
+.tl__filters{margin-bottom:24px;gap:8px}
+.tl__search{margin-bottom:16px;padding:13px 16px}
+.jt__sec{margin-top:30px}
+.jt__sech{margin-bottom:13px}
+.jt__card{margin-bottom:18px;padding:21px}
+.jt__row{margin-top:18px;padding-top:16px;gap:9px}
+.jph__g{margin-bottom:32px}
+.jph__head{margin-bottom:22px}
+.jms__i{padding:13px 14px;margin-bottom:2px}
+.jcol__grid{gap:14px;margin-bottom:20px}
+.jref__sec{margin-top:26px;padding-top:22px}
+.jref__grid{gap:11px}
+.jcal__day{margin-top:20px}
+
+/* nothing in the journal may push the page sideways */
+#view-journal .subpanel>*{max-width:100%}
+.tlc__t,.tlc__b,.jrow__t,.jms__t,.jcol__n{overflow-wrap:anywhere}
+/* .jtag has an older rule further down the file that was still winning */
+.jtag{padding:6px 12px!important;font-size:.74rem;line-height:1.4;
+  border:1px solid var(--glass-hair)}
