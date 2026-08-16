@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','90'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','99'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -675,6 +675,13 @@
  if(space==='health' && sub==='appointments') renderHealthAppts();
  if(space==='health' && sub==='records') renderHealthRecords();
  if(space==='health' && sub==='vitals') renderHealthVitals();
+ if(space==='journal' && sub==='today') renderJournalToday();
+ if(space==='journal' && sub==='timeline') renderJournalTimeline();
+ if(space==='journal' && sub==='calendar') renderJournalCalendar();
+ if(space==='journal' && sub==='photos') renderJournalPhotos();
+ if(space==='journal' && sub==='memories') renderJournalMemories();
+ if(space==='journal' && sub==='reflect') renderJournalReflection();
+ if(space==='journal' && sub==='favorites') renderJournalFavorites();
  if(space==='journal' && sub==='dashboard') renderJournalOverview();
  if(space==='journal' && sub==='entries') renderJournalEntries();
  if(space==='journal' && sub==='gratitude') renderJournalGratitude();
@@ -3085,6 +3092,170 @@
  spark:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5l2.2 5.1 5.3.4-4 3.5 1.2 5.2L12 20.4l-4.7 2.7 1.2-5.2-4-3.5 5.3-.4L12 3.5Z"/></svg>'
  };
  var jSearch='', jEntryFilter='all', jOpen={};
+  /* ==================== JOURNAL RECORD ====================
+     Seven separate lists already exist and hold real family memories:
+     journal.entries, journal.gratitude, journal.milestones,
+     memory.stories, memory.albums, memory.capsules.
+
+     They are not merged or migrated — every array keeps its exact shape, so
+     nothing already written can be lost and every existing screen keeps
+     working. This layer only *reads* them through one common lens, which is
+     what lets Timeline, Search, Calendar, Photos, Favourites and On This Day
+     see the whole life at once instead of one drawer at a time.
+
+     New optional properties (favourite, collections, place, people) are written
+     back onto the original record, so they travel with it and sync as usual. */
+
+  var JR_TYPES = {
+    entry:     { label:'Entry',     icon:'book'  },
+    gratitude: { label:'Gratitude', icon:'heart' },
+    milestone: { label:'Milestone', icon:'flag'  },
+    story:     { label:'Story',     icon:'book'  },
+    capsule:   { label:'Capsule',   icon:'clock' }
+  };
+
+  function jrDateOf(r){
+    /* Each list names its date differently. Fall back to creation time so a
+       record without a date still lands somewhere sensible rather than at the
+       epoch, and never renders as Invalid Date. */
+    var d = r.date || r.when || r.openOn || r.occurredAt || '';
+    if(d && /^\d{4}-\d{2}-\d{2}/.test(d)) return d.slice(0,10);
+    if(r.createdAt){
+      try{ return new Date(r.createdAt).toISOString().slice(0,10); }catch(e){}
+    }
+    return '';
+  }
+  /* A date taken from createdAt is when the record was typed, not when the
+     moment happened. Screens that care about accuracy can say so quietly
+     rather than presenting a guess as fact. */
+  function jrDateIsExact(r){
+    var d=r.date||r.when||r.openOn||r.occurredAt||'';
+    return /^\d{4}-\d{2}-\d{2}/.test(d);
+  }
+
+  function jrWrap(type, r){
+    var d=jrDateOf(r);
+    return {
+      id: r.id,
+      type: type,
+      raw: r,                                   /* the untouched original */
+      date: d,
+      title: r.title || r.name || '',
+      body: r.body || r.text || r.note || '',
+      mood: r.mood || '',
+      tags: r.tags || [],
+      photo: r.photo || (r.photos && r.photos[0]) || '',
+      photos: r.photos || (r.photo ? [r.photo] : []),
+      people: r.people || (r.member ? [r.member] : (r.who ? [r.who] : [])),
+      place: r.place || r.location || '',
+      exactDate: jrDateIsExact(r),
+      favorite: !!r.favorite,
+      archived: !!r.archived,
+      collections: r.collections || []
+    };
+  }
+
+  function jrAll(opts){
+    opts = opts || {};
+    var d=FD.data, out=[];
+    function take(list, type){
+      (list||[]).forEach(function(r){
+        if(!r) return;
+        var w=jrWrap(type, r);
+        if(!opts.archived && w.archived) return;
+        out.push(w);
+      });
+    }
+    try{
+      take(d.journal && d.journal.entries,    'entry');
+      take(d.journal && d.journal.gratitude,  'gratitude');
+      take(d.journal && d.journal.milestones, 'milestone');
+      take(d.memory  && d.memory.stories,     'story');
+      take(d.memory  && d.memory.capsules,    'capsule');
+    }catch(e){}
+    /* newest first; undated records sink to the bottom rather than the top */
+    out.sort(function(a,b){
+      if(!a.date && !b.date) return (b.raw.createdAt||0)-(a.raw.createdAt||0);
+      if(!a.date) return 1;
+      if(!b.date) return -1;
+      return b.date.localeCompare(a.date);
+    });
+    if(opts.type) out=out.filter(function(x){ return x.type===opts.type; });
+    if(opts.favorite) out=out.filter(function(x){ return x.favorite; });
+    if(opts.withPhoto) out=out.filter(function(x){ return x.photos.length; });
+    return out;
+  }
+
+  /* Find the original object again so a change is written where it belongs. */
+  function jrFind(type, id){
+    var d=FD.data;
+    var list = type==='entry'     ? (d.journal||{}).entries
+             : type==='gratitude' ? (d.journal||{}).gratitude
+             : type==='milestone' ? (d.journal||{}).milestones
+             : type==='story'     ? (d.memory||{}).stories
+             : type==='capsule'   ? (d.memory||{}).capsules
+             : null;
+    if(!list) return null;
+    for(var i=0;i<list.length;i++) if(list[i].id===id) return list[i];
+    return null;
+  }
+  function jrSet(type, id, patch){
+    var r=jrFind(type,id); if(!r) return false;
+    for(var k in patch) r[k]=patch[k];
+    try{ FD.save(); }catch(e){}
+    return true;
+  }
+  function jrToggleFav(type, id){
+    var r=jrFind(type,id); if(!r) return false;
+    r.favorite=!r.favorite;
+    try{ FD.save(); }catch(e){}
+    return r.favorite;
+  }
+
+  /* --- shared queries every later phase depends on --- */
+  function jrOnThisDay(){
+    var now=new Date(), md=('0'+(now.getMonth()+1)).slice(-2)+'-'+('0'+now.getDate()).slice(-2);
+    var yr=now.getFullYear();
+    return jrAll().filter(function(x){
+      return x.date && x.date.slice(5)===md && +x.date.slice(0,4) < yr;
+    });
+  }
+  function jrByDay(){
+    var map={};
+    jrAll().forEach(function(x){
+      if(!x.date) return;
+      (map[x.date]=map[x.date]||[]).push(x);
+    });
+    return map;
+  }
+  function jrSearch(q, filters){
+    filters=filters||{};
+    var needle=String(q||'').toLowerCase().trim();
+    return jrAll(filters).filter(function(x){
+      if(filters.mood && x.mood!==filters.mood) return false;
+      if(filters.media && !x.photos.length) return false;
+      if(filters.from && x.date && x.date < filters.from) return false;
+      if(filters.to && x.date && x.date > filters.to) return false;
+      if(!needle) return true;
+      var hay=[x.title, x.body, x.place, (x.tags||[]).join(' '), (x.people||[]).join(' ')]
+        .join(' ').toLowerCase();
+      return hay.indexOf(needle)>=0;
+    });
+  }
+  function jrStats(from, to){
+    var rows=jrAll().filter(function(x){
+      return x.date && (!from || x.date>=from) && (!to || x.date<=to);
+    });
+    var photos=0, places={}, byType={};
+    rows.forEach(function(x){
+      photos += x.photos.length;
+      if(x.place) places[x.place]=1;
+      byType[x.type]=(byType[x.type]||0)+1;
+    });
+    return { total:rows.length, photos:photos, places:Object.keys(places).length,
+             byType:byType, rows:rows };
+  }
+
  function jDateLabel(ds){ if(!ds) return ''; var p=String(ds).split('-'); if(p.length<3) return ds; var dt=new Date(+p[0],+p[1]-1,+p[2]); if(isNaN(dt.getTime())) return ds; return dt.getDate()+' '+MON[dt.getMonth()]+' '+dt.getFullYear(); }
  function jStreak(entries){ var set={}; entries.forEach(function(e){ if(e.date) set[e.date]=true; }); var d=new Date(); var ds=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); if(!set[ds]){ d.setDate(d.getDate()-1); } var streak=0; for(var i=0;i<730;i++){ var k=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); if(set[k]){ streak++; d.setDate(d.getDate()-1); } else break; } return streak; }
  function jEntryCard(e){
@@ -3152,6 +3323,983 @@
  var sorted=arr.slice().sort(function(a,b){ var c=String(b.date).localeCompare(String(a.date)); return c||(b.createdAt-a.createdAt); });
  el.innerHTML=add+'<div class="hsec-h">Milestones \u00b7 '+arr.length+'</div><div class="jmlist">'+sorted.map(mileCard).join('')+'</div>';
  }
+  /* ==================== TODAY ====================
+     One screen for the day: how it felt, what happened, what you were grateful
+     for, and anything from this date in earlier years. No tab hopping.
+
+     Writing is the only thing asked for. Mood, gratitude, a photo and the rest
+     are offered but never required, which is the difference between a journal
+     someone keeps and a form they abandon. */
+
+  function jToday(){ return new Date().toISOString().slice(0,10); }
+  function jGreeting(){
+    var h=new Date().getHours();
+    return h<5 ? 'Still awake' : h<12 ? 'Good morning' : h<17 ? 'Good afternoon'
+         : h<21 ? 'Good evening' : 'Good night';
+  }
+  function jLongDate(d){
+    try{
+      var t=new Date(d+'T00:00:00');
+      return t.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    }catch(e){ return d; }
+  }
+  function jTodayRecords(){
+    var t=jToday();
+    return jrAll().filter(function(x){ return x.date===t; });
+  }
+
+
+  /* ---- Today: capture ----
+     Mood is saved the moment it is tapped, because a mood is a fleeting thing
+     and asking someone to press Save afterwards loses it. Everything else waits
+     for one deliberate Save. */
+  var jtBuf = { photo:'', grat:false, mile:false };
+
+  function jtMoodSet(v){
+    var today=jToday();
+    var todays=(FD.data.journal.entries||[]).filter(function(e){ return e.date===today; });
+    if(todays.length){
+      todays[0].mood=v;
+      try{ FD.save(); }catch(e){}
+    } else {
+      /* a mood on its own is a valid record of a day */
+      FD.addJournalEntry({ date:today, title:'', body:'', mood:v, tags:[] });
+    }
+    renderJournalToday();
+    if(typeof flash==='function') flash(MOODS[v].label+' \u2014 noted');
+  }
+
+  function jtRenderExtra(){
+    var box=document.getElementById('jtExtra'); if(!box) return;
+    var out='';
+    if(jtBuf.photo) out+='<div class="jt__thumb"><img src="'+jtBuf.photo+'" alt="">'
+      + '<button class="jt__thumbx" data-jtdrop="photo" aria-label="Remove">\u00d7</button></div>';
+    if(jtBuf.grat) out+='<div class="jt__sub"><label class="jt__sublbl">Grateful for</label>'
+      + '<input class="input" type="text" id="jtGrat" placeholder="Something small counts"></div>';
+    if(jtBuf.mile) out+='<div class="jt__sub"><label class="jt__sublbl">Mark as a milestone</label>'
+      + '<input class="input" type="text" id="jtMile" placeholder="What made today matter?"></div>';
+    box.innerHTML=out;
+  }
+
+  function jtSave(){
+    var ta=document.getElementById('jtBody');
+    var body=(ta&&ta.value||'').trim();
+    var g=document.getElementById('jtGrat'), mi=document.getElementById('jtMile');
+    var gv=(g&&g.value||'').trim(), mv=(mi&&mi.value||'').trim();
+    if(!body && !jtBuf.photo && !gv && !mv){
+      if(ta) ta.focus({preventScroll:true});
+      return;
+    }
+    var today=jToday(), saved=0;
+    if(body || jtBuf.photo){
+      /* the first line becomes the title if it reads like one */
+      var lines=body.split('\n'), title='';
+      if(lines.length>1 && lines[0].length<=70){ title=lines[0].trim(); body=lines.slice(1).join('\n').trim(); }
+      FD.addJournalEntry({ date:today, title:title, body:body, mood:'', tags:[], photo:jtBuf.photo||'' });
+      saved++;
+    }
+    if(gv){ FD.addGratitude({ date:today, text:gv }); saved++; }
+    if(mv){ FD.addMilestone({ date:today, title:mv, note:body.slice(0,160) }); saved++; }
+    jtBuf={ photo:'', grat:false, mile:false };
+    if(ta) ta.value='';
+    renderJournalToday();
+    try{ refreshAll(); }catch(e){}
+    if(typeof flash==='function') flash(saved>1 ? saved+' things saved for today' : 'Saved');
+  }
+
+  /* ==================== TIMELINE ====================
+     One chronological thread through everything: entries, gratitude,
+     milestones, stories and capsules together. Grouped the way people actually
+     remember time — today, yesterday, this week, then by month — rather than as
+     a list of rows with dates in a column. */
+
+  function jTlBucket(d){
+    /* Undated records sit at the very bottom, below every dated month. */
+    if(!d) return { key:'undated', label:'Undated', rank:9e9 };
+    var today=jToday();
+    if(d===today) return { key:'today', label:'Today', rank:0 };
+    var y=new Date(); y.setDate(y.getDate()-1);
+    var ys=y.toISOString().slice(0,10);
+    if(d===ys) return { key:'yesterday', label:'Yesterday', rank:1 };
+    var wk=new Date(); wk.setDate(wk.getDate()-7);
+    if(d >= wk.toISOString().slice(0,10)) return { key:'week', label:'Earlier this week', rank:2 };
+    var mo=new Date(); mo.setDate(mo.getDate()-30);
+    if(d >= mo.toISOString().slice(0,10)) return { key:'month', label:'Earlier this month', rank:3 };
+    /* older than a month: group by the month it happened in */
+    var t=new Date(d+'T00:00:00');
+    var label=isNaN(t) ? d.slice(0,7)
+      : t.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+    /* Months sit after the named buckets, newest month first. A large base keeps
+       the value positive — an earlier version went negative and floated old
+       months above Today. */
+    var ym = (+d.slice(0,4))*12 + (+d.slice(5,7));
+    return { key:d.slice(0,7), label:label, rank: 100 + (999999 - ym) };
+  }
+
+  var jTlFilter='';   /* '' = everything */
+
+  /* ==================== READING ONE RECORD ====================
+     §22: opening a memory should feel like opening a page, not a form. Photo
+     first where there is one, then the day, then the words with room to
+     breathe. Editing is a deliberate act; deleting sits behind a menu and a
+     confirmation, because a memory cannot be recovered once it is gone. */
+
+  var jrOpenRef = null;   /* 'type:id' of what is being read */
+
+  /* ==================== CALENDAR ====================
+     A year of a life at a glance. Indicators stay deliberately quiet (§09) — a
+     dot for a day with words, a mood tint, a corner mark for a photo. The point
+     is to see the shape of your journaling, not to decorate a grid. */
+
+  var jCalView = null;      /* first of the month being shown */
+  var jCalPick = null;      /* the day opened below the grid */
+
+  function jCalInit(){
+    if(jCalView) return;
+    var n=new Date();
+    jCalView=new Date(n.getFullYear(), n.getMonth(), 1);
+  }
+
+  /* ==================== PHOTOS ====================
+     §10: every picture the family has kept, in one place, grouped by month and
+     lazily loaded. Nothing is duplicated — each tile points back at the record
+     it belongs to, so opening a photo opens the memory around it. */
+
+  /* ==================== MEMORIES ====================
+     §13-16: three ways a life resurfaces. On This Day brings back the same date
+     from earlier years, Milestones mark what mattered, Collections gather
+     records that belong together without ever copying them. */
+
+  var jMemTab='onthisday';
+
+  /* --- collections live on the record, as ids (§16: reference, never duplicate) --- */
+  function jCollections(){
+    try{
+      if(!FD.data.journal.collections) FD.data.journal.collections=[];
+      return FD.data.journal.collections;
+    }catch(e){ return []; }
+  }
+  function jCollAdd(name){
+    var c={ id:'col'+Date.now()+Math.random().toString(36).slice(2,5),
+            name:name, createdAt:Date.now() };
+    jCollections().push(c);
+    try{ FD.save(); }catch(e){}
+    return c;
+  }
+  function jCollRecords(id){
+    return jrAll().filter(function(x){ return (x.collections||[]).indexOf(id)>=0; });
+  }
+  function jCollToggle(type, recId, colId){
+    var r=jrFind(type, recId); if(!r) return;
+    if(!r.collections) r.collections=[];
+    var at=r.collections.indexOf(colId);
+    if(at>=0) r.collections.splice(at,1); else r.collections.push(colId);
+    try{ FD.save(); }catch(e){}
+  }
+
+  /* ==================== REFLECTION ====================
+     §18: personal, not corporate. Four windows on the same life — a day, a
+     week, a month, a year — each answering one honest question, counted from
+     what was actually written. §20: grounded in real records, never generic
+     encouragement. */
+
+  var jReflWin='month';
+
+  function jReflRange(win){
+    var n=new Date(), from, to=n.toISOString().slice(0,10);
+    if(win==='day'){ from=to; }
+    else if(win==='week'){ var w=new Date(); w.setDate(w.getDate()-6); from=w.toISOString().slice(0,10); }
+    else if(win==='month'){ from=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-01'; }
+    else { from=n.getFullYear()+'-01-01'; }
+    return { from:from, to:to };
+  }
+  function jReflTitle(win){
+    var n=new Date();
+    return win==='day'   ? 'Today'
+         : win==='week'  ? 'The last seven days'
+         : win==='month' ? n.toLocaleDateString(undefined,{month:'long',year:'numeric'})
+         : String(n.getFullYear());
+  }
+  function jReflQuestion(win){
+    return win==='day'   ? 'How was today?'
+         : win==='week'  ? 'What mattered this week?'
+         : win==='month' ? 'What changed this month?'
+         : 'What kind of year was this?';
+  }
+
+  function renderJournalReflection(){
+    var el=$('#jReflect'); if(!el) return;
+    var r=jReflRange(jReflWin);
+    var st=jrStats(r.from, r.to);
+    var rows=st.rows;
+
+    var wins=[['day','Daily'],['week','Weekly'],['month','Monthly'],['year','Yearly']];
+    var nav='<div class="tl__filters">'
+      + wins.map(function(w){
+          return '<button class="tl__f'+(jReflWin===w[0]?' is-on':'')+'" data-jrefl="'+w[0]+'">'
+            + w[1]+'</button>';
+        }).join('')
+      + '</div>';
+
+    if(!rows.length){
+      el.innerHTML = nav + '<div class="tl__empty"><p>Nothing written in this stretch.</p>'
+        + '<p class="tl__esub">A reflection needs something to reflect on.</p></div>';
+      return;
+    }
+
+    /* mood, only where it was actually recorded */
+    var moods=rows.map(function(x){ return +x.mood||0; }).filter(Boolean);
+    var avg=moods.length ? moods.reduce(function(a,b){return a+b;},0)/moods.length : 0;
+    var mm=avg?MOODS[Math.round(avg)]:null;
+
+    /* which days were written on, out of the days in range */
+    var daysWith={}; rows.forEach(function(x){ if(x.date) daysWith[x.date]=1; });
+    var span=Math.max(1, Math.round((new Date(r.to)-new Date(r.from))/86400000)+1);
+    var written=Object.keys(daysWith).length;
+
+    /* recurring words, so the theme comes from the writing itself (§20) */
+    var STOP=('the a an and or but if to of in on at for with was were is are it its this that '
+      +'i me my we our you your he she they them his her their as be been so just really very '
+      +'today day time got get had have has did do done from about out up down not no yes '
+      +'am pm all more some what when then than there here now').split(' ');
+    var freq={};
+    rows.forEach(function(x){
+      (x.body+' '+x.title).toLowerCase().replace(/[^a-z\u0980-\u09FF\s]/g,' ')
+        .split(/\s+/).forEach(function(w){
+          if(w.length<4 || STOP.indexOf(w)>=0) return;
+          freq[w]=(freq[w]||0)+1;
+        });
+    });
+    var themes=Object.keys(freq).filter(function(w){ return freq[w]>=2; })
+      .sort(function(a,b){ return freq[b]-freq[a]; }).slice(0,6);
+
+    /* people who keep appearing */
+    var pf={};
+    rows.forEach(function(x){ (x.people||[]).forEach(function(p){ if(p) pf[p]=(pf[p]||0)+1; }); });
+    var people=Object.keys(pf).sort(function(a,b){ return pf[b]-pf[a]; }).slice(0,4);
+
+    var stats=[
+      ['Moments captured', String(st.total)],
+      ['Days written on', written+' of '+span],
+      ['Photographs', String(st.photos)],
+      ['Gratitude', String(st.byType.gratitude||0)],
+      ['Milestones', String(st.byType.milestone||0)]
+    ];
+    if(mm) stats.push(['How it felt', mm.label]);
+
+    var favs=rows.filter(function(x){ return x.favorite; });
+    var withPhoto=rows.filter(function(x){ return x.photos.length; });
+    var pick = favs[0] || withPhoto[0] || rows[0];
+
+    el.innerHTML = nav
+      + '<div class="jref">'
+        + '<div class="jref__h">'
+          + '<span class="jref__eyebrow">Your '+esc(jReflWin==='day'?'day':jReflWin)+'</span>'
+          + '<h2 class="jref__t">'+esc(jReflTitle(jReflWin))+'</h2>'
+        + '</div>'
+        + '<div class="jref__grid">'
+        + stats.map(function(x){
+            return '<div class="jref__s"><div class="jref__sl">'+x[0]+'</div>'
+              + '<div class="jref__sv">'+esc(x[1])+'</div></div>';
+          }).join('')
+        + '</div>'
+        + (themes.length
+            ? '<div class="jref__sec"><div class="jread__sh">What kept coming up</div>'
+              + '<div class="jread__chips">'+themes.map(function(w){
+                  return '<span class="jread__chip">'+esc(w)+' <b>'+freq[w]+'</b></span>'; }).join('')
+              + '</div></div>' : '')
+        + (people.length
+            ? '<div class="jref__sec"><div class="jread__sh">Who was there</div>'
+              + '<div class="jread__chips">'+people.map(function(p){
+                  return '<span class="jread__chip">'+esc(p)+'</span>'; }).join('')
+              + '</div></div>' : '')
+        + (pick
+            ? '<div class="jref__sec"><div class="jread__sh">Worth remembering</div>'
+              + '<div class="jt__list">'+jrRow(pick)+'</div></div>' : '')
+        + '<div class="jref__ask">'+esc(jReflQuestion(jReflWin))+'</div>'
+        + '<textarea class="jt__ta jref__ta" id="jrefText" rows="3" '
+          + 'placeholder="Write it in your own words\u2026">'+esc(jReflSaved())+'</textarea>'
+        + '<button class="btn btn--primary jref__save" data-jrefsave>Save this reflection</button>'
+      + '</div>';
+  }
+
+  /* a reflection is itself a journal entry, tagged so it can be found again */
+  function jReflKey(){
+    var n=new Date();
+    return jReflWin+':'+(jReflWin==='day' ? jToday()
+      : jReflWin==='week' ? jToday()
+      : jReflWin==='month' ? n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)
+      : String(n.getFullYear()));
+  }
+  function jReflSaved(){
+    var k=jReflKey();
+    var hit=(FD.data.journal.entries||[]).filter(function(e){
+      return e.reflKey===k; })[0];
+    return hit ? (hit.body||'') : '';
+  }
+  function jReflSave(){
+    var ta=document.getElementById('jrefText');
+    var txt=(ta&&ta.value||'').trim();
+    if(!txt){ if(ta) ta.focus({preventScroll:true}); return; }
+    var k=jReflKey();
+    var hit=(FD.data.journal.entries||[]).filter(function(e){ return e.reflKey===k; })[0];
+    if(hit){
+      hit.body=txt;
+      try{ FD.save(); }catch(e){}
+    } else {
+      FD.addJournalEntry({ date:jToday(), title:jReflTitle(jReflWin)+' \u2014 reflection',
+        body:txt, mood:'', tags:['reflection'], reflKey:k });
+    }
+    renderJournalReflection();
+    try{ refreshAll(); }catch(e){}
+    if(typeof flash==='function') flash('Reflection saved');
+  }
+
+  function renderJournalMemories(){
+    var el=$('#jMemories'); if(!el) return;
+    var tabs=[['onthisday','On this day'],['milestones','Milestones'],['collections','Collections']];
+    var nav='<div class="tl__filters">'
+      + tabs.map(function(t){
+          return '<button class="tl__f'+(jMemTab===t[0]?' is-on':'')+'" data-jmem="'+t[0]+'">'
+            + t[1]+'</button>';
+        }).join('')
+      + '</div>';
+    el.innerHTML = nav
+      + (jMemTab==='onthisday'  ? jMemOnThisDay()
+       : jMemTab==='milestones' ? jMemMilestones()
+       : jMemCollections());
+  }
+
+  /* --- §14 On This Day --- */
+  function jMemOnThisDay(){
+    var rows=jrOnThisDay();
+    if(!rows.length){
+      var d=new Date();
+      return '<div class="tl__empty">'
+        + '<p>Nothing from this day in earlier years \u2014 yet.</p>'
+        + '<p class="tl__esub">Keep writing, and '
+        + d.toLocaleDateString(undefined,{day:'numeric',month:'long'})
+        + ' will have something to show you next year.</p></div>';
+    }
+    /* group by how long ago, because that is the feeling of it */
+    var thisYear=new Date().getFullYear(), groups={}, order=[];
+    rows.forEach(function(x){
+      var yrs=thisYear-(+x.date.slice(0,4));
+      if(!groups[yrs]){ groups[yrs]=[]; order.push(yrs); }
+      groups[yrs].push(x);
+    });
+    order.sort(function(a,b){ return a-b; });
+    return order.map(function(y){
+      return '<div class="tl__g">'
+        + '<div class="tl__gh">'+y+(y===1?' year ago':' years ago')
+        + '<span class="tl__gn">'+groups[y].length+'</span></div>'
+        + '<div class="tl__items">'+groups[y].map(jTlCard).join('')+'</div>'
+      + '</div>';
+    }).join('');
+  }
+
+  /* --- §15 Milestones --- */
+  function jMemMilestones(){
+    var rows=jrAll({type:'milestone'});
+    if(!rows.length){
+      return '<div class="tl__empty"><p>Keep the moments that matter.</p>'
+        + '<p class="tl__esub">A first step, a hard-won finish, a day that changed something.</p>'
+        + '<button class="btn btn--primary" data-modal="milestone">Add a milestone</button></div>';
+    }
+    /* a life reads best forwards */
+    /* Oldest first, but undated milestones belong at the end, not before the
+       first real year — an empty string sorts above every date. */
+    var asc=rows.slice().sort(function(a,b){
+      if(!a.date && !b.date) return 0;
+      if(!a.date) return 1;
+      if(!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
+    var byYear={}, years=[];
+    asc.forEach(function(x){
+      var y=x.date? x.date.slice(0,4) : 'Undated';
+      if(!byYear[y]){ byYear[y]=[]; years.push(y); }
+      byYear[y].push(x);
+    });
+    return '<div class="jms">'
+      + years.map(function(y){
+          return '<div class="jms__y"><div class="jms__yh">'+esc(y)+'</div>'
+            + byYear[y].map(function(x){
+                return '<button class="jms__i" data-jropen="milestone:'+x.id+'">'
+                  + '<span class="jms__dot"></span>'
+                  + '<span class="jms__c">'
+                    + '<span class="jms__t">'+esc(x.title||'Milestone')+'</span>'
+                    + (x.date? '<span class="jms__d">'+esc(jLongDate(x.date))+'</span>' : '')
+                    + (x.body? '<span class="jms__b">'+esc(x.body.slice(0,120))
+                        +(x.body.length>120?'\u2026':'')+'</span>' : '')
+                  + '</span></button>';
+              }).join('')
+          + '</div>';
+        }).join('')
+      + '</div>'
+      + '<button class="btn jms__add" data-modal="milestone">Add a milestone</button>';
+  }
+
+  /* --- §16 Collections --- */
+  function jMemCollections(){
+    var cols=jCollections();
+    var add='<div class="jcol__add">'
+      + '<input class="input" type="text" id="jcolName" placeholder="Name a collection \u2014 Rome trip, Ramadan, 2026\u2026">'
+      + '<button class="btn" data-jcoladd>Create</button></div>';
+    if(!cols.length){
+      return '<div class="tl__empty"><p>Gather what belongs together.</p>'
+        + '<p class="tl__esub">A trip, a season, a person, a year.</p></div>' + add;
+    }
+    return '<div class="jcol__grid">'
+      + cols.map(function(c){
+          var recs=jCollRecords(c.id);
+          var cover=recs.filter(function(r){ return r.photos.length; })[0];
+          return '<button class="jcol" data-jcolopen="'+c.id+'">'
+            + (cover
+                ? '<span class="jcol__ph"><img src="'+cover.photos[0]+'" alt="" loading="lazy"></span>'
+                : '<span class="jcol__ph jcol__ph--none"></span>')
+            + '<span class="jcol__in">'
+              + '<span class="jcol__n">'+esc(c.name)+'</span>'
+              + '<span class="jcol__c">'+recs.length+(recs.length===1?' memory':' memories')+'</span>'
+            + '</span>'
+            + '<span class="jcol__x" data-jcoldel="'+c.id+'" role="button" aria-label="Delete collection">\u00d7</span>'
+          + '</button>';
+        }).join('')
+      + '</div>' + add;
+  }
+
+  /* opening a collection reuses the timeline card, so it looks like home */
+  var jColOpen=null;
+  function jColView(id){
+    var c=jCollections().filter(function(x){ return x.id===id; })[0];
+    if(!c) return;
+    jColOpen=id;
+    var rows=jCollRecords(id);
+    var el=$('#jMemories'); if(!el) return;
+    el.innerHTML='<button class="jcol__back" data-jcolback>'
+      + '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      + 'All collections</button>'
+      + '<h2 class="jcol__title">'+esc(c.name)+'</h2>'
+      + '<div class="jph__head">'+rows.length+(rows.length===1?' memory':' memories')+'</div>'
+      + (rows.length
+          ? '<div class="tl__items">'+rows.map(jTlCard).join('')+'</div>'
+          : '<div class="tl__empty"><p>Nothing here yet.</p>'
+            + '<p class="tl__esub">Open any memory and add it to this collection.</p></div>');
+  }
+
+  function renderJournalPhotos(){
+    var el=$('#jPhotos'); if(!el) return;
+    var rows=jrAll({withPhoto:true});
+
+    if(!rows.length){
+      el.innerHTML='<div class="tl__empty"><p>No photographs yet.</p>'
+        + '<p class="tl__esub">A picture keeps a day better than words sometimes.</p>'
+        + '<button class="btn btn--primary" data-tlgo>Capture something today</button></div>';
+      return;
+    }
+
+    /* one tile per photo, not per record — a record may hold several */
+    var tiles=[];
+    rows.forEach(function(x){
+      x.photos.forEach(function(p,i){
+        tiles.push({ src:p, rec:x, idx:i });
+      });
+    });
+
+    var groups={}, order=[];
+    tiles.forEach(function(t){
+      var k=t.rec.date ? t.rec.date.slice(0,7) : 'undated';
+      if(!groups[k]){ groups[k]=[]; order.push(k); }
+      groups[k].push(t);
+    });
+    order.sort(function(a,b){
+      if(a==='undated') return 1;
+      if(b==='undated') return -1;
+      return b.localeCompare(a);
+    });
+
+    function monthLabel(k){
+      if(k==='undated') return 'Undated';
+      try{
+        return new Date(k+'-01T00:00:00')
+          .toLocaleDateString(undefined,{month:'long',year:'numeric'});
+      }catch(e){ return k; }
+    }
+
+    el.innerHTML='<div class="jph__head">'+tiles.length+' photograph'+(tiles.length===1?'':'s')
+      + ' across '+rows.length+' memor'+(rows.length===1?'y':'ies')+'</div>'
+      + order.map(function(k){
+          return '<div class="jph__g">'
+            + '<div class="tl__gh">'+esc(monthLabel(k))+'<span class="tl__gn">'+groups[k].length+'</span></div>'
+            + '<div class="jph__grid">'
+            + groups[k].map(function(t){
+                return '<button class="jph__t" data-jropen="'+t.rec.type+':'+t.rec.id+'">'
+                  + '<img src="'+t.src+'" alt="" loading="lazy">'
+                  + '<span class="jph__ov"><span class="jph__d">'
+                  + esc(t.rec.date ? jShortDate(t.rec.date) : '')+'</span></span>'
+                  + '</button>';
+              }).join('')
+            + '</div></div>';
+        }).join('');
+  }
+
+  function jShortDate(d){
+    try{
+      return new Date(d+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'});
+    }catch(e){ return d; }
+  }
+
+  /* ==================== FAVOURITES ====================
+     §12: not a separate store — a flag on the shared record, so a favourite is
+     the same object wherever it appears. */
+
+  function renderJournalFavorites(){
+    var el=$('#jFavorites'); if(!el) return;
+    var rows=jrAll({favorite:true});
+
+    if(!rows.length){
+      el.innerHTML='<div class="tl__empty"><p>Save the moments you never want to lose.</p>'
+        + '<p class="tl__esub">Open any memory and tap the star.</p></div>';
+      return;
+    }
+    el.innerHTML='<div class="jph__head">'+rows.length+' kept close</div>'
+      + '<div class="tl__items">'+rows.map(jTlCard).join('')+'</div>';
+  }
+
+  function renderJournalCalendar(){
+    var el=$('#jCalendar'); if(!el) return;
+    jCalInit();
+    var byDay=jrByDay();
+    var y=jCalView.getFullYear(), mo=jCalView.getMonth();
+    var first=new Date(y,mo,1), start=first.getDay();
+    var days=new Date(y,mo+1,0).getDate(), prev=new Date(y,mo,0).getDate();
+    var today=jToday();
+
+    function pad(n){ return (n<10?'0':'')+n; }
+    function key(yy,mm,dd){ return yy+'-'+pad(mm+1)+'-'+pad(dd); }
+
+    var cells=[];
+    for(var i=start-1;i>=0;i--) cells.push({ d:prev-i, out:-1 });
+    for(var d=1;d<=days;d++) cells.push({ d:d, out:0 });
+    var n2=1; while(cells.length%7){ cells.push({ d:n2++, out:1 }); }
+
+    /* how much of this month has anything in it */
+    var filled=0;
+    for(var q=1;q<=days;q++) if(byDay[key(y,mo,q)]) filled++;
+
+    var grid=cells.map(function(c){
+      var k=key(y, mo+c.out, c.d);
+      var recs=byDay[k]||[];
+      var moods=recs.map(function(r){ return +r.mood||0; }).filter(Boolean);
+      var avg=moods.length ? Math.round(moods.reduce(function(a,b){return a+b;},0)/moods.length) : 0;
+      var m=avg?MOODS[avg]:null;
+      var hasPhoto=recs.some(function(r){ return r.photos.length; });
+      var cls='jcal__d'
+        + (c.out?' is-out':'')
+        + (k===today?' is-today':'')
+        + (jCalPick===k?' is-pick':'')
+        + (recs.length?' has':'');
+      return '<button class="'+cls+'" data-jcal="'+k+'"'
+        + (m?' style="--mc:'+m.color+'"':'')+'>'
+        + '<span class="jcal__n">'+c.d+'</span>'
+        + (recs.length
+            ? '<span class="jcal__mk">'
+              + '<i class="jcal__dot"></i>'
+              + (recs.length>1?'<i class="jcal__dot"></i>':'')
+              + (recs.length>2?'<i class="jcal__dot"></i>':'')
+              + '</span>' : '')
+        + (hasPhoto?'<span class="jcal__pin"></span>':'')
+        + '</button>';
+    }).join('');
+
+    var picked = jCalPick && byDay[jCalPick]
+      ? '<div class="jcal__day"><div class="jcal__dayh">'+esc(jLongDate(jCalPick))
+        + '<span class="jcal__dayn">'+byDay[jCalPick].length+'</span></div>'
+        + '<div class="jt__list">'+byDay[jCalPick].map(function(x){ return jrRow(x); }).join('')+'</div></div>'
+      : (jCalPick
+          ? '<div class="jcal__day jcal__day--none">'
+            + '<div class="jcal__dayh">'+esc(jLongDate(jCalPick))+'</div>'
+            + '<p class="jcal__nothing">Nothing recorded on this day.</p></div>'
+          : '');
+
+    el.innerHTML='<div class="jcal">'
+      + '<div class="jcal__bar">'
+        + '<button class="jcal__nav" data-jcalmo="-1" aria-label="Previous month">'
+          + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">'
+          + '<path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        + '<div class="jcal__title">'
+          + '<span class="jcal__mo">'+first.toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</span>'
+          + '<span class="jcal__sub">'+(filled? filled+' of '+days+' days written' : 'Nothing yet this month')+'</span>'
+        + '</div>'
+        + '<button class="jcal__nav" data-jcalmo="1" aria-label="Next month">'
+          + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">'
+          + '<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+      + '</div>'
+      + '<div class="jcal__dow">'+['S','M','T','W','T','F','S'].map(function(x){
+          return '<span>'+x+'</span>'; }).join('')+'</div>'
+      + '<div class="jcal__grid">'+grid+'</div>'
+      + '</div>'
+      + picked;
+  }
+
+  function jrOpen(ref){
+    var p=String(ref||'').split(':'), type=p[0], id=p.slice(1).join(':');
+    var r=jrFind(type,id); if(!r) return;
+    var x=jrWrap(type,r);
+    jrOpenRef=ref;
+
+    var host=document.getElementById('jrRead');
+    if(!host){
+      host=document.createElement('div');
+      host.className='jread'; host.id='jrRead';
+      document.body.appendChild(host);
+    }
+
+    var m=x.mood?MOODS[+x.mood]:null;
+    var dateLine = x.date
+      ? jLongDate(x.date) + (x.exactDate ? '' : ' \u00b7 approximate')
+      : 'No date recorded';
+
+    /* other records from the same day give a memory its context */
+    var sameDay = x.date
+      ? jrAll().filter(function(o){ return o.date===x.date && !(o.type===x.type && o.id===x.id); })
+      : [];
+
+    var body=(x.body||'').trim();
+    host.innerHTML='<div class="jread__box" role="dialog" aria-modal="true">'
+      + '<div class="jread__bar">'
+        + '<button class="jread__x" data-jrclose aria-label="Close">'
+          + '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg></button>'
+        + '<div class="jread__acts">'
+          + '<button class="jread__ico'+(x.favorite?' is-on':'')+'" data-jrfav aria-label="Favourite">'
+            + J_ICO2('star')+'</button>'
+          + '<button class="jread__ico" data-jredit aria-label="Edit">'
+            + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">'
+            + '<path d="M4 16.5V20h3.5L18 9.5 14.5 6 4 16.5Z" stroke-linejoin="round"/></svg></button>'
+          + '<button class="jread__ico jread__ico--del" data-jrdel aria-label="Delete">'
+            + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">'
+            + '<path d="M5 7h14M9.5 7V5.5h5V7M7 7l.8 12.5h8.4L17 7" stroke-linejoin="round"/></svg></button>'
+        + '</div>'
+      + '</div>'
+      + '<div class="jread__scroll">'
+      + (x.photos.length
+          ? '<div class="jread__ph">'+x.photos.map(function(p,i){
+              return '<img src="'+p+'" alt=""'+(i?' loading="lazy"':'')+'>'; }).join('')+'</div>'
+          : '')
+      + '<div class="jread__body">'
+        + '<div class="jread__meta">'
+          + (m? '<span class="jread__mood" style="--mc:'+m.color+'"><i></i>'+m.label+'</span>' : '')
+          + (x.type!=='entry' ? '<span class="jread__type">'+JR_TYPES[x.type].label+'</span>' : '')
+        + '</div>'
+        + '<div class="jread__date">'+esc(dateLine)+'</div>'
+        + (x.title? '<h2 class="jread__t">'+esc(x.title)+'</h2>' : '')
+        + (body
+            ? '<div class="jread__tx">'+esc(body)+'</div>'
+            : (x.photos.length ? '' : '<div class="jread__tx jread__tx--none">Nothing written for this one.</div>'))
+        + ((x.people||[]).length
+            ? '<div class="jread__sec"><div class="jread__sh">With</div><div class="jread__chips">'
+              + x.people.map(function(p){ return '<span class="jread__chip">'+esc(p)+'</span>'; }).join('')
+              + '</div></div>' : '')
+        + (x.place
+            ? '<div class="jread__sec"><div class="jread__sh">Where</div>'
+              + '<div class="jread__place">'+J_ICO2('pin')+esc(x.place)+'</div></div>' : '')
+        + ((x.tags||[]).length
+            ? '<div class="jread__sec"><div class="jread__sh">Tags</div><div class="jread__chips">'
+              + x.tags.map(function(t){ return '<span class="jread__chip">'+esc(t)+'</span>'; }).join('')
+              + '</div></div>' : '')
+        + (jCollections().length
+            ? '<div class="jread__sec"><div class="jread__sh">Collections</div><div class="jread__chips">'
+              + jCollections().map(function(c){
+                  var on=(x.collections||[]).indexOf(c.id)>=0;
+                  return '<button class="jread__chip jread__chip--tog'+(on?' is-on':'')+'" '
+                    + 'data-jcoltog="'+c.id+'">'+esc(c.name)+'</button>';
+                }).join('')
+              + '</div></div>' : '')
+        + (sameDay.length
+            ? '<div class="jread__sec"><div class="jread__sh">Also that day</div>'
+              + '<div class="jt__list">'+sameDay.map(function(o){ return jrRow(o); }).join('')+'</div></div>'
+            : '')
+      + '</div></div></div>';
+
+    host.classList.add('is-on');
+    document.body.style.overflow='hidden';
+    OV.open('jread', function(){ jrClose(true); });
+  }
+
+  function jrClose(fromBack){
+    var h=document.getElementById('jrRead');
+    if(h) h.classList.remove('is-on');
+    document.body.style.overflow = trdId ? 'hidden' : '';
+    jrOpenRef=null;
+    if(!fromBack) OV.done('jread');
+  }
+
+  /* §29: deleting a memory is permanent, so it asks first and says what it is
+     about to remove. */
+  function jrDelete(){
+    if(!jrOpenRef) return;
+    var p=jrOpenRef.split(':'), type=p[0], id=p.slice(1).join(':');
+    var r=jrFind(type,id); if(!r) return;
+    var name=r.title || r.name || (r.text||r.body||'').slice(0,40) || 'this memory';
+    if(!confirm('Delete "'+name+'"?\n\nThis will be permanently removed and cannot be undone.')) return;
+    var d=FD.data;
+    var list = type==='entry'     ? d.journal.entries
+             : type==='gratitude' ? d.journal.gratitude
+             : type==='milestone' ? d.journal.milestones
+             : type==='story'     ? d.memory.stories
+             : type==='capsule'   ? d.memory.capsules : null;
+    if(!list) return;
+    for(var i=0;i<list.length;i++){ if(list[i].id===id){ list.splice(i,1); break; } }
+    try{ FD.save(); }catch(e){}
+    jrClose();
+    try{ refreshAll(); }catch(e){}
+    if(typeof flash==='function') flash('Removed');
+  }
+
+  function renderJournalTimeline(){
+    var el=$('#jTimeline'); if(!el) return;
+    var q=(document.getElementById('jtlSearch')||{}).value||'';
+    var rows = q ? jrSearch(q) : jrAll();
+    if(jTlFilter) rows=rows.filter(function(x){ return x.type===jTlFilter; });
+
+    var counts={};
+    jrAll().forEach(function(x){ counts[x.type]=(counts[x.type]||0)+1; });
+
+    var chips='<div class="tl__filters">'
+      + '<button class="tl__f'+(jTlFilter===''?' is-on':'')+'" data-tlf="">All'
+        + '<span class="tl__fn">'+jrAll().length+'</span></button>'
+      + Object.keys(JR_TYPES).filter(function(t){ return counts[t]; }).map(function(t){
+          return '<button class="tl__f'+(jTlFilter===t?' is-on':'')+'" data-tlf="'+t+'">'
+            + JR_TYPES[t].label+'<span class="tl__fn">'+counts[t]+'</span></button>';
+        }).join('')
+      + '</div>';
+
+    var search='<div class="tl__search">'
+      + '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">'
+      + '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>'
+      + '<input type="search" id="jtlSearch" placeholder="Search your memories\u2026" value="'+esc(q)+'">'
+      + (q? '<button class="tl__clear" data-tlclear aria-label="Clear">\u00d7</button>' : '')
+      + '</div>';
+
+    if(!rows.length){
+      var empty = q
+        ? '<div class="tl__empty"><p>No memories match your search.</p>'
+          + '<button class="btn" data-tlclear>Clear search</button></div>'
+        : '<div class="tl__empty"><p>Your story starts here.</p>'
+          + '<p class="tl__esub">Capture something from today.</p>'
+          + '<button class="btn btn--primary" data-tlgo>Write your first entry</button></div>';
+      el.innerHTML = search + chips + empty;
+      return;
+    }
+
+    /* group, keeping the order the buckets should appear in */
+    var groups={}, order=[];
+    rows.forEach(function(x){
+      var b=jTlBucket(x.date);
+      if(!groups[b.key]){ groups[b.key]={ label:b.label, rank:b.rank, items:[] }; order.push(b.key); }
+      groups[b.key].items.push(x);
+    });
+    order.sort(function(a,b){ return groups[a].rank - groups[b].rank; });
+
+    el.innerHTML = search + chips
+      + '<div class="tl">'
+      + order.map(function(k){
+          var g=groups[k];
+          return '<div class="tl__g">'
+            + '<div class="tl__gh">'+esc(g.label)+'<span class="tl__gn">'+g.items.length+'</span></div>'
+            + '<div class="tl__items">'+g.items.map(jTlCard).join('')+'</div>'
+          + '</div>';
+        }).join('')
+      + '</div>';
+  }
+
+  function jTlCard(x){
+    var m=x.mood?MOODS[+x.mood]:null;
+    var day='';
+    if(x.date){
+      try{
+        var t=new Date(x.date+'T00:00:00');
+        day=t.toLocaleDateString(undefined,{day:'numeric',month:'short'}).toUpperCase();
+      }catch(e){ day=x.date; }
+    }
+    var body=(x.body||'').replace(/\s+/g,' ').trim();
+    return '<article class="tlc'+(x.photos.length?' tlc--photo':'')+'" data-jropen="'+x.type+':'+x.id+'">'
+      + (x.photos.length ? '<div class="tlc__ph"><img src="'+x.photos[0]+'" alt="" loading="lazy"></div>' : '')
+      + '<div class="tlc__in">'
+        + '<div class="tlc__top">'
+          + '<span class="tlc__day">'+esc(day)+(x.exactDate?'':' \u00b7 approx')+'</span>'
+          + (x.type!=='entry' ? '<span class="tlc__type">'+JR_TYPES[x.type].label+'</span>' : '')
+          + (m? '<span class="tlc__mood" style="background:'+m.color+'" title="'+m.label+'"></span>' : '')
+          + '<button class="tlc__star'+(x.favorite?' is-on':'')+'" data-jrstar="'+x.type+':'+x.id+'" aria-label="Favourite">'
+            + J_ICO2('star')+'</button>'
+          + '<button class="tlc__menu" data-jrmenu="'+x.type+':'+x.id+'" aria-label="More">\u22ef</button>'
+        + '</div>'
+        + (x.title? '<h3 class="tlc__t">'+esc(x.title)+'</h3>' : '')
+        + (body? '<p class="tlc__b">'+esc(body.slice(0,180))+(body.length>180?'\u2026':'')+'</p>' : '')
+        + ((x.tags||[]).length
+            ? '<div class="tlc__tags">'+x.tags.slice(0,4).map(function(t){
+                return '<span class="tlc__tag">'+esc(t)+'</span>'; }).join('')+'</div>'
+            : '')
+      + '</div></article>';
+  }
+
+
+  /* ==================== A QUIET SUGGESTION ====================
+     §19: the assistant sits above the journal, it does not run it. Nothing is
+     classified, saved or changed without the person agreeing. These prompts
+     appear at most once each, are always dismissible, and are drawn from what
+     was actually written. */
+
+  function jSuggest(){
+    var box=document.getElementById('jtSuggest'); if(!box) return;
+    var seen={};
+    try{ seen=Store.get('fw.j.sugg',{})||{}; }catch(e){}
+    var today=jToday();
+    var todays=jrAll().filter(function(x){ return x.date===today; });
+    var s=null;
+
+    /* something that reads like an achievement, worth keeping as a milestone */
+    var MARK=['finished','completed','launched','first','finally','achieved','shipped','passed','won','started'];
+    var cand=todays.filter(function(x){
+      if(x.type!=='entry') return false;
+      var t=(x.title+' '+x.body).toLowerCase();
+      return MARK.some(function(w){ return t.indexOf(w)>=0; });
+    })[0];
+    if(cand && !seen['mile:'+cand.id]){
+      s={ key:'mile:'+cand.id,
+          text:'You wrote about something that sounds like a step forward. Keep it as a milestone?',
+          yes:'Save milestone', ref:cand.type+':'+cand.id, act:'milestone' };
+    }
+
+    /* a month with enough in it to be worth looking back on */
+    if(!s){
+      var n=new Date();
+      var mk='refl:'+n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2);
+      var st=jrStats(n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-01', today);
+      if(st.total>=8 && !seen[mk]){
+        s={ key:mk, text:'You have captured '+st.total+' moments this month. Write a reflection on it?',
+            yes:'Reflect on the month', act:'reflect' };
+      }
+    }
+
+    /* a memory from this date in an earlier year */
+    if(!s){
+      var otd=jrOnThisDay();
+      var ok='otd:'+today;
+      if(otd.length && !seen[ok]){
+        var yrs=new Date().getFullYear()-(+otd[0].date.slice(0,4));
+        s={ key:ok, text:'Something from this day '+yrs+(yrs===1?' year':' years')+' ago is waiting.',
+            yes:'Look back', act:'memories' };
+      }
+    }
+
+    if(!s){ box.innerHTML=''; return; }
+    box.innerHTML='<div class="jsug">'
+      + '<span class="jsug__ic">'+trdIco('spark')+'</span>'
+      + '<span class="jsug__tx">'+esc(s.text)+'</span>'
+      + '<span class="jsug__acts">'
+        + '<button class="jsug__no" data-jsugno="'+esc(s.key)+'">Not now</button>'
+        + '<button class="jsug__yes" data-jsugyes="'+esc(s.key)+'" '
+          + 'data-jsugact="'+s.act+'"'+(s.ref?' data-jsugref="'+s.ref+'"':'')+'>'+esc(s.yes)+'</button>'
+      + '</span></div>';
+  }
+  function jSuggestSeen(key){
+    var seen={};
+    try{ seen=Store.get('fw.j.sugg',{})||{}; seen[key]=1; Store.set('fw.j.sugg',seen); }catch(e){}
+  }
+
+  function renderJournalToday(){
+    var el=$('#jToday'); if(!el) return;
+    var today=jToday();
+    var mine=jTodayRecords();
+    var entries=mine.filter(function(x){ return x.type==='entry'; });
+    var grats=mine.filter(function(x){ return x.type==='gratitude'; });
+    var ond=jrOnThisDay();
+
+    /* mood already recorded today, if any */
+    var moodToday=0;
+    entries.forEach(function(x){ if(x.mood) moodToday=+x.mood||0; });
+
+    var hello='<div class="jt__hello">'
+      + '<div class="jt__hi">'+jGreeting()+'</div>'
+      + '<div class="jt__date">'+esc(jLongDate(today))+'</div>'
+      + '</div>';
+
+    var mood='<div class="jt__card">'
+      + '<div class="jt__q">How was your day?</div>'
+      + '<div class="jt__moods">'
+      + [1,2,3,4,5].map(function(v){
+          var m=MOODS[v];
+          return '<button class="jt__mood'+(moodToday===v?' is-on':'')+'" data-jtmood="'+v+'" '
+            + 'style="--mc:'+m.color+'" title="'+m.label+'">'
+            + '<span class="jt__mdot"></span><span class="jt__ml">'+m.label+'</span></button>';
+        }).join('')
+      + '</div></div>';
+
+    var write='<div class="jt__card jt__write">'
+      + '<div class="jt__q">What would you like to remember about today?</div>'
+      + '<textarea class="jt__ta" id="jtBody" rows="4" placeholder="Start writing\u2026"></textarea>'
+      + '<div class="jt__row">'
+        + '<button class="jt__chip" data-jtadd="photo">'+J_ICO2('photo')+'Photo</button>'
+        + '<button class="jt__chip" data-jtadd="grat">'+J_ICO2('heart')+'Gratitude</button>'
+        + '<button class="jt__chip" data-jtadd="mile">'+J_ICO2('flag')+'Milestone</button>'
+      + '</div>'
+      + '<div id="jtExtra"></div>'
+      + '<button class="btn btn--primary jt__save" data-jtsave>Save today</button>'
+      + '</div>';
+
+    var todayList = mine.length
+      ? '<div class="jt__sec"><div class="jt__sech">Today so far</div>'
+        + '<div class="jt__list">'
+        + mine.map(function(x){ return jrRow(x); }).join('')
+        + '</div></div>'
+      : '';
+
+    var gratList = grats.length ? '' : '';
+
+    var ondCard = ond.length
+      ? '<div class="jt__sec"><div class="jt__sech">On this day</div>'
+        + '<div class="jt__list">'
+        + ond.slice(0,3).map(function(x){
+            var yrs=new Date().getFullYear()-(+x.date.slice(0,4));
+            return jrRow(x, yrs+(yrs===1?' year ago':' years ago'));
+          }).join('')
+        + '</div></div>'
+      : '';
+
+    el.innerHTML = hello + '<div id="jtSuggest"></div>' + mood + write + todayList + ondCard;
+    jSuggest();
+  }
+
+  /* one row shape reused by Today, Timeline and On This Day */
+  function jrRow(x, note){
+    var m=x.mood?MOODS[+x.mood]:null;
+    var when = note || (x.type!=='entry' ? (JR_TYPES[x.type]||{}).label : '');
+    return '<button class="jrow" data-jropen="'+x.type+':'+x.id+'">'
+      + (x.photos.length
+          ? '<span class="jrow__ph"><img src="'+x.photos[0]+'" alt=""></span>'
+          : '<span class="jrow__dot"'+(m?' style="background:'+m.color+'"':'')+'></span>')
+      + '<span class="jrow__main">'
+        + '<span class="jrow__t">'+esc(x.title || (x.body||'').slice(0,60) || 'Untitled')+'</span>'
+        + '<span class="jrow__s">'+esc(when||'')
+          + (when && x.body ? ' \u00b7 ' : '')
+          + esc((x.body||'').slice(0,70))+((x.body||'').length>70?'\u2026':'')+'</span>'
+      + '</span>'
+      + (x.favorite? '<span class="jrow__fav">'+J_ICO2('star')+'</span>' : '')
+      + '</button>';
+  }
+
+  function J_ICO2(n){
+    var p = n==='photo' ? '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 16l4.5-4 4 3.5L16 12l4 4"/>'
+      : n==='heart' ? '<path d="M12 20s-7-4.5-7-9.5A4 4 0 0 1 12 8a4 4 0 0 1 7 2.5C19 15.5 12 20 12 20Z"/>'
+      : n==='flag'  ? '<path d="M6 21V4M6 5h11l-2 3.5L17 12H6"/>'
+      : n==='star'  ? '<path d="M12 4l2.3 4.9 5.2.6-3.9 3.6 1.1 5.1L12 15.6 7.3 18.2l1.1-5.1L4.5 9.5l5.2-.6z" fill="currentColor" stroke="none"/>'
+      : n==='pin'   ? '<path d="M12 21s6.5-6.1 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 14.9 12 21 12 21Z"/><circle cx="12" cy="10.4" r="2.3"/>'
+      : '<circle cx="12" cy="12" r="8"/>';
+    return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">'+p+'</svg>';
+  }
+
  function renderJournalOverview(){
  var el=$('#jOverview'); if(!el) return;
  var J=FD.data.journal, entries=J.entries, miles=J.milestones, grats=J.gratitude;
@@ -3797,7 +4945,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
+  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
@@ -5093,7 +6241,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '90 \u00b7 complete';
+  var APP_VERSION = '99 \u00b7 journal-ai';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -7090,7 +8238,7 @@
 
  function showMembersList(){ currentMemberId=null; var dt=$('#memberDetail'),ls=$('#membersList'); if(dt){ dt.hidden=true; dt.innerHTML=''; } if(ls){ ls.style.display=''; renderMembersList(); } }
  function openMember(id){ var dt=$('#memberDetail'),ls=$('#membersList'); if(!dt) return; currentMemberId=id; renderMemberDetail(id); if(ls) ls.style.display='none'; dt.hidden=false; var c=$('#canvas'); if(c) c.scrollTop=0; }
- function refreshAll(ctx){ try{ avApply(); }catch(e){} renderDashboard(); if($('#mydayBody')) renderMyDay(); if($('#membersList')) renderMembersList(); if(ctx && ctx.memberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(ctx.memberId); if($('#meetingsList')) renderMeetingsList(); if(ctx && ctx.meetingId && $('#meetingDetail') && !$('#meetingDetail').hidden) renderMeetingDetail(ctx.meetingId); if($('#goalsList')) renderGoalsList(); if($('#calWrap')) renderCalendar(); if($('#commWrap')) renderComm(); if($('#hOverview')) renderHealthOverview(); if($('#hProfiles')) renderHealthProfiles(); if($('#hMeds')) renderHealthMeds(); if($('#hRecords')) renderHealthRecords(); if($('#hAppts')) renderHealthAppts(); if($('#hVitals')) renderHealthVitals(); if($('#respWrap')) renderResponsibilities(); if($('#docsWrap')) renderDocuments(); if($('#treeWrap')) renderFamilyTree(); if($('#finOverview')) renderFinOverview(); if($('#finTx')) renderFinTx(); if($('#finPlanned')) renderFinPlanned(); if($('#finDebts')) renderFinDebts(); if($('#finBudget')) renderFinBudget(); if($('#finSavings')) renderFinSavings(); if($('#finStats')) renderFinStats(); if($('#jOverview')) renderJournalOverview(); if($('#jEntries')) renderJournalEntries(); if($('#jGratitude')) renderJournalGratitude(); if($('#jMilestones')) renderJournalMilestones(); if($('#ckOverview')) renderCookingOverview(); if($('#ckRecipes')) renderCookingRecipes(); if($('#ckMeals')) renderCookingMeals(); if($('#ckShopping')) renderCookingShopping(); if($('#gsCard')) renderGettingStarted(); if($('#hmOverview')) renderHomeOverview(); if($('#hmChores')) renderHomeChores(); if($('#hmMaint')) renderHomeMaint(); if($('#hmSupplies')) renderHomeSupplies(); if($('#lnOverview')) renderLearnOverview(); if($('#lnCourses')) renderLearnCourses(); if($('#lnBooks')) renderLearnBooks(); if($('#lnSkills')) renderLearnSkills(); if($('#tvOverview')) renderTravelOverview(); if($('#tvTrips')) renderTravelTrips(); if($('#tvPacking')) renderTravelPacking(); if($('#tvBucket')) renderTravelBucket(); if($('#ftOverview')) renderFitOverview(); if($('#ftWorkouts')) renderFitWorkouts(); if($('#ftGoals')) renderFitGoals(); if($('#ftRoutines')) renderFitRoutines(); if($('#ntOverview')) renderNutriOverview(); if($('#ntMeals')) renderNutriMeals(); if($('#ntWater')) renderNutriWater(); if($('#ntHabits')) renderNutriHabits(); if($('#plOverview')) renderPlanOverview(); if($('#plTasks')) renderPlanTasks(); if($('#plProjects')) renderPlanProjects(); if($('#plWeek')) renderPlanWeek(); if($('#rlLock')) renderRelLock(); if(rlUnlocked){ if($('#rlUs')) renderRelUs(); if($('#rlNotes')) renderRelNotes(); if($('#rlDates')) renderRelDates(); if($('#rlPlans')) renderRelPlans(); } if($('#mmOverview')) renderMemOverview(); if($('#mmAlbums')) renderMemAlbums(); if($('#mmStories')) renderMemStories(); if($('#mmCapsule')) renderMemCapsule(); if($('#wbOverview')) renderWbOverview(); if($('#wbCheckins')) renderWbCheckins(); if($('#wbCare')) renderWbCare(); if($('#wbGrowth')) renderWbGrowth(); if($('#lgOverview')) renderLegOverview(); if($('#lgDuas')) renderLegDuas(); if($('#lgDeeds')) renderLegDeeds(); if($('#lgWisdom')) renderLegWisdom(); if(currentMemberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(currentMemberId); if(document.getElementById('notiBody')) renderNotifications(); if(document.getElementById('homeToday')) renderHome(); try{ renderHeroPulse(); }catch(e){} }
+ function refreshAll(ctx){ try{ avApply(); }catch(e){} renderDashboard(); if($('#mydayBody')) renderMyDay(); if($('#membersList')) renderMembersList(); if(ctx && ctx.memberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(ctx.memberId); if($('#meetingsList')) renderMeetingsList(); if(ctx && ctx.meetingId && $('#meetingDetail') && !$('#meetingDetail').hidden) renderMeetingDetail(ctx.meetingId); if($('#goalsList')) renderGoalsList(); if($('#calWrap')) renderCalendar(); if($('#commWrap')) renderComm(); if($('#hOverview')) renderHealthOverview(); if($('#hProfiles')) renderHealthProfiles(); if($('#hMeds')) renderHealthMeds(); if($('#hRecords')) renderHealthRecords(); if($('#hAppts')) renderHealthAppts(); if($('#hVitals')) renderHealthVitals(); if($('#respWrap')) renderResponsibilities(); if($('#docsWrap')) renderDocuments(); if($('#treeWrap')) renderFamilyTree(); if($('#finOverview')) renderFinOverview(); if($('#finTx')) renderFinTx(); if($('#finPlanned')) renderFinPlanned(); if($('#finDebts')) renderFinDebts(); if($('#finBudget')) renderFinBudget(); if($('#finSavings')) renderFinSavings(); if($('#finStats')) renderFinStats(); if($('#jToday')) renderJournalToday(); if($('#jTimeline')) renderJournalTimeline(); if($('#jCalendar')) renderJournalCalendar(); if($('#jPhotos')) renderJournalPhotos(); if($('#jMemories')) renderJournalMemories(); if($('#jReflect')) renderJournalReflection(); if($('#jFavorites')) renderJournalFavorites(); if($('#jOverview')) renderJournalOverview(); if($('#jEntries')) renderJournalEntries(); if($('#jGratitude')) renderJournalGratitude(); if($('#jMilestones')) renderJournalMilestones(); if($('#ckOverview')) renderCookingOverview(); if($('#ckRecipes')) renderCookingRecipes(); if($('#ckMeals')) renderCookingMeals(); if($('#ckShopping')) renderCookingShopping(); if($('#gsCard')) renderGettingStarted(); if($('#hmOverview')) renderHomeOverview(); if($('#hmChores')) renderHomeChores(); if($('#hmMaint')) renderHomeMaint(); if($('#hmSupplies')) renderHomeSupplies(); if($('#lnOverview')) renderLearnOverview(); if($('#lnCourses')) renderLearnCourses(); if($('#lnBooks')) renderLearnBooks(); if($('#lnSkills')) renderLearnSkills(); if($('#tvOverview')) renderTravelOverview(); if($('#tvTrips')) renderTravelTrips(); if($('#tvPacking')) renderTravelPacking(); if($('#tvBucket')) renderTravelBucket(); if($('#ftOverview')) renderFitOverview(); if($('#ftWorkouts')) renderFitWorkouts(); if($('#ftGoals')) renderFitGoals(); if($('#ftRoutines')) renderFitRoutines(); if($('#ntOverview')) renderNutriOverview(); if($('#ntMeals')) renderNutriMeals(); if($('#ntWater')) renderNutriWater(); if($('#ntHabits')) renderNutriHabits(); if($('#plOverview')) renderPlanOverview(); if($('#plTasks')) renderPlanTasks(); if($('#plProjects')) renderPlanProjects(); if($('#plWeek')) renderPlanWeek(); if($('#rlLock')) renderRelLock(); if(rlUnlocked){ if($('#rlUs')) renderRelUs(); if($('#rlNotes')) renderRelNotes(); if($('#rlDates')) renderRelDates(); if($('#rlPlans')) renderRelPlans(); } if($('#mmOverview')) renderMemOverview(); if($('#mmAlbums')) renderMemAlbums(); if($('#mmStories')) renderMemStories(); if($('#mmCapsule')) renderMemCapsule(); if($('#wbOverview')) renderWbOverview(); if($('#wbCheckins')) renderWbCheckins(); if($('#wbCare')) renderWbCare(); if($('#wbGrowth')) renderWbGrowth(); if($('#lgOverview')) renderLegOverview(); if($('#lgDuas')) renderLegDuas(); if($('#lgDeeds')) renderLegDeeds(); if($('#lgWisdom')) renderLegWisdom(); if(currentMemberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(currentMemberId); if(document.getElementById('notiBody')) renderNotifications(); if(document.getElementById('homeToday')) renderHome(); try{ renderHeroPulse(); }catch(e){} }
 
  /* ===================== GOVERNANCE ===================== */
  var GOV=[
@@ -7710,6 +8858,30 @@
       var jr=d.journal||{}, ent=jr.entries||[], grt=jr.gratitude||[], mil=jr.milestones||[];
       if(ent.length||mil.length||grt.length){
         var jL=[];
+        /* One record type at a time hid the shape of a life. The assistant now
+           sees the whole archive through the same lens the app uses. */
+        try{
+          var st30=jrStats(new Date(Date.now()-30*86400000).toISOString().slice(0,10), today);
+          jL.push('- Last 30 days: '+st30.total+' moments, '+st30.photos+' photos'
+            + (st30.byType.gratitude? ', '+st30.byType.gratitude+' gratitude':'')
+            + (st30.byType.milestone? ', '+st30.byType.milestone+' milestone(s)':''));
+          var fav=jrAll({favorite:true});
+          if(fav.length) jL.push('- Kept as favourites: '+_list(fav,4,function(x){
+            return _cut(x.title||x.body,40)+(x.date?' ('+x.date+')':''); }));
+          var otd=jrOnThisDay();
+          if(otd.length) jL.push('- On this day in earlier years: '+_list(otd,3,function(x){
+            return x.date+' '+_cut(x.title||x.body,40); }));
+          var cols=(d.journal.collections||[]);
+          if(cols.length) jL.push('- Collections: '+_list(cols,6,function(c){
+            return c.name+' ('+jrAll().filter(function(r){
+              return (r.collections||[]).indexOf(c.id)>=0; }).length+')'; }));
+          var moods=jrAll().filter(function(x){ return x.mood; }).slice(0,14);
+          if(moods.length){
+            var mAvg=moods.reduce(function(a,x){ return a+(+x.mood||0); },0)/moods.length;
+            jL.push('- Recent mood average: '+MOODS[Math.round(mAvg)].label
+              +' (from '+moods.length+' entries that recorded one)');
+          }
+        }catch(e){}
         if(ent.length) jL.push('- '+ent.length+' journal entr(ies). Recent: '+_list(ent.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date));}),4,function(e){ return String(e.date||'')+' '+_cut(e.title,40)+(e.mood?' ['+e.mood+']':''); }));
         if(mil.length) jL.push('- Milestones: '+_list(mil,6,function(m){ return (m.title||'')+' '+(m.date||''); }));
         if(grt.length) jL.push('- '+grt.length+' gratitude note(s) logged');
@@ -10984,6 +12156,170 @@
     if(e.target.closest('[data-livejrn]')){ trdTab='journal'; trdRender();
       setTimeout(function(){ var f=document.getElementById('tjText'); if(f) f.focus({preventScroll:true}); },80);
       return; }
+    var jcm=e.target.closest('[data-jcalmo]');
+    if(jcm){
+      jCalInit();
+      jCalView.setMonth(jCalView.getMonth()+parseInt(jcm.getAttribute('data-jcalmo'),10));
+      jCalPick=null;
+      renderJournalCalendar(); return;
+    }
+    var jcd=e.target.closest('[data-jcal]');
+    if(jcd){
+      var k=jcd.getAttribute('data-jcal');
+      jCalPick = (jCalPick===k) ? null : k;
+      /* tapping a day in an adjacent month moves the view there too */
+      var kp=k.split('-');
+      if(+kp[1]-1 !== jCalView.getMonth()) jCalView=new Date(+kp[0], +kp[1]-1, 1);
+      renderJournalCalendar(); return;
+    }
+    var sno=e.target.closest('[data-jsugno]');
+    if(sno){ jSuggestSeen(sno.getAttribute('data-jsugno')); jSuggest(); return; }
+    var syes=e.target.closest('[data-jsugyes]');
+    if(syes){
+      jSuggestSeen(syes.getAttribute('data-jsugyes'));
+      var act=syes.getAttribute('data-jsugact'), ref=syes.getAttribute('data-jsugref');
+      if(act==='milestone' && ref){
+        var rp=ref.split(':'), rec=jrFind(rp[0], rp.slice(1).join(':'));
+        if(rec){
+          FD.addMilestone({ date:rec.date||jToday(), title:rec.title||(rec.body||'').slice(0,60),
+            note:(rec.body||'').slice(0,200) });
+          if(typeof flash==='function') flash('Saved as a milestone');
+        }
+      } else if(act==='reflect'){
+        var rt=document.querySelector('[data-sub="journal-reflect"]'); if(rt) rt.click();
+      } else if(act==='memories'){
+        jMemTab='onthisday';
+        var mt=document.querySelector('[data-sub="journal-memories"]'); if(mt) mt.click();
+      }
+      jSuggest();
+      try{ refreshAll(); }catch(_){}
+      return;
+    }
+    var jrw=e.target.closest('[data-jrefl]');
+    if(jrw){ jReflWin=jrw.getAttribute('data-jrefl'); renderJournalReflection(); return; }
+    if(e.target.closest('[data-jrefsave]')){ jReflSave(); return; }
+    var jmt=e.target.closest('[data-jmem]');
+    if(jmt){ jMemTab=jmt.getAttribute('data-jmem'); jColOpen=null; renderJournalMemories(); return; }
+    var jcx=e.target.closest('[data-jcoldel]');
+    if(jcx){
+      var did=jcx.getAttribute('data-jcoldel');
+      var col=jCollections().filter(function(x){ return x.id===did; })[0];
+      var n=jCollRecords(did).length;
+      if(!confirm('Delete the collection "'+(col?col.name:'')+'"?\n\n'
+        + (n? 'The '+n+' memor'+(n===1?'y':'ies')+' inside stay safe \u2014 only the grouping is removed.'
+            : 'It is empty.'))) return;
+      FD.data.journal.collections=jCollections().filter(function(x){ return x.id!==did; });
+      /* clear the reference from every record that pointed at it */
+      jrAll({archived:true}).forEach(function(x){
+        if((x.collections||[]).indexOf(did)>=0){
+          var r=jrFind(x.type,x.id);
+          if(r && r.collections) r.collections=r.collections.filter(function(c){ return c!==did; });
+        }
+      });
+      try{ FD.save(); }catch(_){}
+      renderJournalMemories(); return;
+    }
+    var jco=e.target.closest('[data-jcolopen]');
+    if(jco){ jColView(jco.getAttribute('data-jcolopen')); return; }
+    if(e.target.closest('[data-jcolback]')){ jColOpen=null; renderJournalMemories(); return; }
+    if(e.target.closest('[data-jcoladd]')){
+      var ni=document.getElementById('jcolName');
+      var nm=(ni&&ni.value||'').trim();
+      if(!nm){ if(ni) ni.focus({preventScroll:true}); return; }
+      jCollAdd(nm);
+      renderJournalMemories(); return;
+    }
+    var jct=e.target.closest('[data-jcoltog]');
+    if(jct){
+      if(!jrOpenRef) return;
+      var rp=jrOpenRef.split(':');
+      jCollToggle(rp[0], rp.slice(1).join(':'), jct.getAttribute('data-jcoltog'));
+      jrOpen(jrOpenRef);
+      return;
+    }
+    var jst=e.target.closest('[data-jrstar]');
+    if(jst){
+      var sp=jst.getAttribute('data-jrstar').split(':');
+      jrToggleFav(sp[0], sp.slice(1).join(':'));
+      try{ refreshAll(); }catch(_){}
+      return;
+    }
+    var jro=e.target.closest('[data-jropen]');
+    if(jro && !e.target.closest('[data-jrmenu]') && !e.target.closest('[data-jrstar]')){ jrOpen(jro.getAttribute('data-jropen')); return; }
+    var jrm=e.target.closest('[data-jrmenu]');
+    if(jrm){ jrOpen(jrm.getAttribute('data-jrmenu')); return; }
+    if(e.target.closest('[data-jrclose]') || e.target.id==='jrRead'){ jrClose(); return; }
+    if(e.target.closest('[data-jrfav]')){
+      if(!jrOpenRef) return;
+      var fp=jrOpenRef.split(':');
+      jrToggleFav(fp[0], fp.slice(1).join(':'));
+      jrOpen(jrOpenRef);
+      try{ refreshAll(); }catch(_){}
+      return;
+    }
+    if(e.target.closest('[data-jrdel]')){ jrDelete(); return; }
+    if(e.target.closest('[data-jredit]')){
+      if(!jrOpenRef) return;
+      var ep=jrOpenRef.split(':'), etype=ep[0], eid=ep.slice(1).join(':');
+      jrClose();
+      /* reuse the existing edit modals rather than building a second editor */
+      /* attribute names verified against the existing markup, not guessed */
+      var map={ entry:'jedit', gratitude:'gratedit', milestone:'msedit', story:'mmsedit' };
+      var attr=map[etype];
+      var btn=attr ? document.querySelector('[data-'+attr+'="'+eid+'"]') : null;
+      if(btn){ btn.click(); return; }
+      /* the editor lives on another tab, so go there and try again once it renders */
+      var tabFor={ entry:'journal-entries', gratitude:'journal-gratitude',
+                   milestone:'journal-milestones', story:'memory-stories' };
+      var tb=tabFor[etype] && document.querySelector('[data-sub="'+tabFor[etype]+'"]');
+      if(tb){
+        tb.click();
+        setTimeout(function(){
+          var b2=attr && document.querySelector('[data-'+attr+'="'+eid+'"]');
+          if(b2) b2.click();
+        }, 120);
+        return;
+      }
+      if(typeof flash==='function') flash('This one can be edited from its own tab');
+      return;
+    }
+    var tlf=e.target.closest('[data-tlf]');
+    if(tlf){ jTlFilter=tlf.getAttribute('data-tlf'); renderJournalTimeline(); return; }
+    if(e.target.closest('[data-tlclear]')){
+      var si=document.getElementById('jtlSearch'); if(si) si.value='';
+      renderJournalTimeline(); return;
+    }
+    if(e.target.closest('[data-tlgo]')){
+      try{ navigate('journal'); }catch(_){}
+      var tb=document.querySelector('[data-sub="journal-today"]'); if(tb) tb.click();
+      return;
+    }
+    var jtm=e.target.closest('[data-jtmood]');
+    if(jtm){ jtMoodSet(parseInt(jtm.getAttribute('data-jtmood'),10)); return; }
+    var jta=e.target.closest('[data-jtadd]');
+    if(jta){
+      var kind=jta.getAttribute('data-jtadd');
+      if(kind==='photo'){
+        try{
+          var pi=document.createElement('input'); pi.type='file'; pi.accept='image/*';
+          pi.onchange=function(){
+            var f=pi.files&&pi.files[0]; if(!f) return;
+            var rd=new FileReader();
+            rd.onload=function(){ cropOpen(rd.result, 1.5, function(durl){ jtBuf.photo=durl; jtRenderExtra(); }); };
+            rd.readAsDataURL(f);
+          };
+          pi.click();
+        }catch(_){}
+      } else {
+        jtBuf[kind]=!jtBuf[kind];
+        jta.classList.toggle('is-on', jtBuf[kind]);
+        jtRenderExtra();
+      }
+      return;
+    }
+    var jtd=e.target.closest('[data-jtdrop]');
+    if(jtd){ jtBuf[jtd.getAttribute('data-jtdrop')]=''; jtRenderExtra(); return; }
+    if(e.target.closest('[data-jtsave]')){ jtSave(); return; }
     var tgo=e.target.closest('[data-trdgo]');
     if(tgo){
       var to=tgo.getAttribute('data-trdgo');
@@ -11185,6 +12521,19 @@
   });
 
   /* rates are saved as they are typed, so nothing is lost on a redraw */
+  /* Search as you type. The field is re-created on each render, so the caret is
+     put back where it was — otherwise every keystroke would jump to the end. */
+  var _jtlT=null;
+  document.addEventListener('input', function(e){
+    if(!e.target || e.target.id!=='jtlSearch') return;
+    clearTimeout(_jtlT);
+    var pos=e.target.selectionStart;
+    _jtlT=setTimeout(function(){
+      renderJournalTimeline();
+      var f=document.getElementById('jtlSearch');
+      if(f){ f.focus({preventScroll:true}); try{ f.setSelectionRange(pos,pos); }catch(_){} }
+    }, 160);
+  });
   document.addEventListener('change', function(e){
     var fx=e.target && e.target.getAttribute && e.target.getAttribute('data-fxcur');
     if(!fx) return;
