@@ -4945,7 +4945,7 @@
 
   /* ==================== Cloudflare Turnstile (CAPTCHA) ==================== */
   /* Paste your Turnstile Site Key below — this is the ONE place to edit it. */
-  var TURNSTILE_SITE_KEY = 'PASTE_YOUR_TURNSTILE_SITE_KEY_HERE';
+  var TURNSTILE_SITE_KEY = '0x4AAAAAAD-L2xLycDhpIvnh';
   var _tsWidgetId = null;
   function tsRender(){
     if(!window.turnstile){ return; } /* api.js not ready yet — onloadTurnstileCallback re-calls when it is */
