@@ -230,7 +230,7 @@ self.addEventListener('fetch', function(e){
     return;
   }
 
-  if(url.origin === location.origin && /\\.(css|js)$/.test(url.pathname)){
+  if(url.origin === location.origin && /\.(css|js)$/.test(url.pathname)){
     e.respondWith(
       fetch(req).then(function(res){
         if(url.pathname.slice(-7)==='/app.js'){
