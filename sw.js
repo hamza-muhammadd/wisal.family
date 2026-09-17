@@ -3,7 +3,7 @@
    Strategy: network-first for the page (so you always get the latest when online),
    cache-first for fonts, and a cached fallback when offline. */
 
-var CACHE = 'wisal-v129';
+var CACHE = 'wisal-v130';
 var SHELL = ['./', './index.html', './styles.css', './app.js', './world.js', './places.js'];
 
 self.addEventListener('install', function(e){
@@ -20,7 +20,7 @@ self.addEventListener('install', function(e){
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
-      return Promise.all(keys.map(function(k){ if(k !== CACHE) return caches.delete(k); }));
+      return Promise.all(keys.map(function(k){ if(k !== CACHE) return caches.delete(k); });
     }).then(function(){ return self.clients.claim(); })
   );
 });
