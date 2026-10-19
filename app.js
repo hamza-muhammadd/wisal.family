@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','100'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','101'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -451,6 +451,189 @@
  else st='<button class="fpulse fpulse--empty" data-sub="finance-savings"><span class="fpulse__k">Savings</span><span class="fpulse__v">Start</span><span class="fpulse__sub">No goals yet</span></button>';
  return '<div class="hsec-h" style="margin-top:2px">Snapshot</div><div class="fpulse-grid">'+bt+blt+dt+st+'</div>';
  }
+  /* ==================== EVERYTHING, IN ONE PLACE ====================
+     Money was spread across five tabs: transactions, planned payments, debts,
+     savings and budgets. The questions a family actually asks cut straight
+     across them — what came in, what went out, who owes me, what is due next.
+
+     This reads all of them through one lens. Nothing is moved or copied; each
+     row points back at the record it came from. */
+
+  function fxLedger(opts){
+    opts=opts||{};
+    var F=FD.data.finance||{}, out=[];
+
+    (F.transactions||[]).forEach(function(t){
+      out.push({
+        kind:'tx', id:t.id, raw:t,
+        date:t.date||'', title:t.note||t.category||'Transaction',
+        cat:t.category||'other', who:t.member||'',
+        amount:Number(t.amount)||0,
+        dir:(t.type==='income'?'in':'out'),
+        badge:(t.type==='income'?'Income':'Spent')
+      });
+    });
+
+    /* a debt is money that has already moved, or is owed — both matter here */
+    (F.debts||[]).forEach(function(d){
+      var rem=(Number(d.amount)||0)-(Number(d.paid)||0);
+      if(rem<=0 && !opts.settled) return;
+      var toUs=(d.direction==='owed_to_us');
+      out.push({
+        kind:'debt', id:d.id, raw:d,
+        date:d.date||'', title:(toUs?'Owed by ':'Owed to ')+(d.person||'someone'),
+        cat:'debt', who:d.person||'',
+        amount:rem, dir:(toUs?'in':'out'),
+        badge:(toUs?'They owe you':'You owe'),
+        pending:true
+      });
+    });
+
+    (F.planned||[]).forEach(function(p){
+      if(p.active===false) return;
+      out.push({
+        kind:'planned', id:p.id, raw:p,
+        date:p.nextDue||'', title:(p.name||p.note||'Planned payment'),
+        cat:p.category||'planned', who:p.member||'',
+        amount:Number(p.amount)||0,
+        dir:(p.type==='income'?'in':'out'),
+        badge:'Due', pending:true
+      });
+    });
+
+    (F.savings||[]).forEach(function(g){
+      if(!Number(g.saved)) return;
+      out.push({
+        kind:'saving', id:g.id, raw:g,
+        date:g.date||'', title:'Saved towards '+(g.name||'a goal'),
+        cat:'savings', who:'',
+        amount:Number(g.saved)||0, dir:'out',
+        badge:'Set aside', pending:true
+      });
+    });
+
+    out.sort(function(a,b){
+      if(!a.date && !b.date) return (b.raw.createdAt||0)-(a.raw.createdAt||0);
+      if(!a.date) return 1;
+      if(!b.date) return -1;
+      return b.date.localeCompare(a.date);
+    });
+    if(opts.kind) out=out.filter(function(x){ return x.kind===opts.kind; });
+    if(opts.dir)  out=out.filter(function(x){ return x.dir===opts.dir; });
+    return out;
+  }
+
+  var fxFilter='', fxQuery='';
+
+  function renderFinLedger(){
+    var el=$('#finLedger'); if(!el) return;
+    var all=fxLedger();
+    var rows=all;
+    if(fxFilter) rows=rows.filter(function(x){ return x.kind===fxFilter; });
+    if(fxQuery){
+      var q=fxQuery.toLowerCase();
+      rows=rows.filter(function(x){
+        return (x.title+' '+x.cat+' '+x.who).toLowerCase().indexOf(q)>=0;
+      });
+    }
+
+    /* the four answers, from settled money only — pending is shown apart so a
+       total is never inflated by something that has not happened */
+    var inSum=0, outSum=0, owedToUs=0, youOwe=0, dueSoon=0;
+    var today=todayStr();
+    all.forEach(function(x){
+      if(x.kind==='tx'){ if(x.dir==='in') inSum+=x.amount; else outSum+=x.amount; }
+      if(x.kind==='debt'){ if(x.dir==='in') owedToUs+=x.amount; else youOwe+=x.amount; }
+      if(x.kind==='planned' && x.date && x.date<=addDaysStr(today,7)) dueSoon+=x.amount;
+    });
+
+    var cards='<div class="fx__cards">'
+      + fxCard('Came in', fmtMoney(inSum), 'in')
+      + fxCard('Went out', fmtMoney(outSum), 'out')
+      + fxCard('Left', fmtMoney(inSum-outSum), (inSum-outSum)>=0?'in':'out')
+      + (owedToUs? fxCard('Owed to you', fmtMoney(owedToUs), 'in') : '')
+      + (youOwe? fxCard('You owe', fmtMoney(youOwe), 'out') : '')
+      + (dueSoon? fxCard('Due this week', fmtMoney(dueSoon), 'due') : '')
+      + '</div>';
+
+    var counts={};
+    all.forEach(function(x){ counts[x.kind]=(counts[x.kind]||0)+1; });
+    var kinds=[['','Everything'],['tx','Transactions'],['debt','Debts'],
+               ['planned','Planned'],['saving','Savings']];
+    var chips='<div class="tl__filters">'
+      + kinds.filter(function(k){ return !k[0] || counts[k[0]]; }).map(function(k){
+          return '<button class="tl__f'+(fxFilter===k[0]?' is-on':'')+'" data-fxf="'+k[0]+'">'
+            + k[1]+'<span class="tl__fn">'+(k[0]?counts[k[0]]:all.length)+'</span></button>';
+        }).join('')
+      + '</div>';
+
+    var search='<div class="tl__search">'
+      + '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">'
+      + '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>'
+      + '<input type="search" id="fxSearch" placeholder="Search by note, category or person\u2026" value="'+esc(fxQuery)+'">'
+      + (fxQuery? '<button class="tl__clear" data-fxclear aria-label="Clear">\u00d7</button>':'')
+      + '</div>';
+
+    if(!rows.length){
+      el.innerHTML=cards+search+chips
+        + '<div class="tl__empty"><p>'+(fxQuery||fxFilter?'Nothing matches.':'No money recorded yet.')+'</p>'
+        + (fxQuery||fxFilter
+            ? '<button class="btn" data-fxclear>Clear</button>'
+            : '<p class="tl__esub">Add a transaction and it will appear here.</p>')
+        + '</div>';
+      return;
+    }
+
+    /* grouped by day, so a family can see a Tuesday at a glance */
+    var groups={}, order=[];
+    rows.forEach(function(x){
+      var k=x.date||'undated';
+      if(!groups[k]){ groups[k]=[]; order.push(k); }
+      groups[k].push(x);
+    });
+    order.sort(function(a,b){
+      if(a==='undated') return 1;
+      if(b==='undated') return -1;
+      return b.localeCompare(a);
+    });
+
+    el.innerHTML=cards+search+chips
+      + order.map(function(k){
+          var day=groups[k];
+          var net=day.reduce(function(a,x){
+            return a + (x.pending?0:(x.dir==='in'?x.amount:-x.amount)); },0);
+          return '<div class="fx__g">'
+            + '<div class="tl__gh">'+esc(k==='undated'?'Undated':jLongDate(k))
+              + '<span class="tl__gn">'+(net?(net>0?'+':'')+fmtMoney(net):day.length+'')+'</span></div>'
+            + '<div class="fx__rows">'+day.map(fxRow).join('')+'</div>'
+          + '</div>';
+        }).join('');
+  }
+
+  function fxCard(label, value, tone){
+    return '<div class="fx__c fx__c--'+tone+'">'
+      + '<div class="fx__cl">'+label+'</div>'
+      + '<div class="fx__cv">'+value+'</div></div>';
+  }
+  function fxRow(x){
+    return '<div class="fx__r'+(x.pending?' is-pending':'')+'">'
+      + '<span class="fx__dot fx__dot--'+x.dir+'"></span>'
+      + '<span class="fx__main">'
+        + '<span class="fx__t">'+esc(x.title)+'</span>'
+        + '<span class="fx__m">'+esc(x.badge)
+          + (x.cat && x.cat!=='debt' && x.cat!=='savings' ? ' \u00b7 '+esc(x.cat) : '')
+          + (x.who? ' \u00b7 '+esc(x.who) : '')+'</span>'
+      + '</span>'
+      + '<span class="fx__a fx__a--'+x.dir+'">'+(x.dir==='in'?'+':'\u2212')+fmtMoney(x.amount)+'</span>'
+      + '</div>';
+  }
+  function addDaysStr(d, n){
+    try{
+      var t=new Date(d+'T00:00:00'); t.setDate(t.getDate()+n);
+      return t.toISOString().slice(0,10);
+    }catch(e){ return d; }
+  }
+
  function renderFinOverview(){
  var el=$('#finOverview'); if(!el) return;
  var ym=curYM(), tx=txMonth(ym), income=0,expense=0;
@@ -663,7 +846,8 @@
  if(space==='family' && sub==='documents') renderDocuments();
  if(space==='family' && sub==='familytree') renderFamilyTree();
  if(space==='finance' && sub==='dashboard') renderFinOverview();
- if(space==='finance' && sub==='transactions') renderFinTx();
+  if(space==='finance' && sub==='ledger') renderFinLedger();
+if(space==='finance' && sub==='transactions') renderFinTx();
  if(space==='finance' && sub==='planned') renderFinPlanned();
  if(space==='finance' && sub==='debts') renderFinDebts();
  if(space==='finance' && sub==='budget') renderFinBudget();
@@ -6241,7 +6425,7 @@
   }
   /* ================= UPDATES: "new version" toast + "what's new" ================= */
   /* ⬇⬇ BUMP THIS ON EVERY RELEASE — and bump CACHE in sw.js to match ⬇⬇ */
-  var APP_VERSION = '100 \u00b7 journal-polish';
+  var APP_VERSION = '101 \u00b7 money-ledger';
   var WHATS_NEW = {
     title: 'What\u2019s new in Wisal',
     date: 'July 2026',
@@ -7446,7 +7630,7 @@
  sb.rpc('join_household',{code:code})
  .then(function(r){
  if(r.error){ var m=String(r.error.message||''); flash(m.indexOf('own_code')>=0?'That\u2019s your own code':'Code not found, check it and try again'); syncStatus('up to date'); return null; }
- var hid=r.data; if(!hid) return null;
+ var hid=r.data; if(!hid){ flash('Code not found, check it and try again'); syncStatus('up to date'); return null; }
  Store.set('fw.sync.row', hid); Store.set('fw.sync.ts','');
  return sb.from('family_data').select('user_id,data,updated_at').eq('user_id',hid).maybeSingle();
  })
@@ -8238,7 +8422,7 @@
 
  function showMembersList(){ currentMemberId=null; var dt=$('#memberDetail'),ls=$('#membersList'); if(dt){ dt.hidden=true; dt.innerHTML=''; } if(ls){ ls.style.display=''; renderMembersList(); } }
  function openMember(id){ var dt=$('#memberDetail'),ls=$('#membersList'); if(!dt) return; currentMemberId=id; renderMemberDetail(id); if(ls) ls.style.display='none'; dt.hidden=false; var c=$('#canvas'); if(c) c.scrollTop=0; }
- function refreshAll(ctx){ try{ avApply(); }catch(e){} renderDashboard(); if($('#mydayBody')) renderMyDay(); if($('#membersList')) renderMembersList(); if(ctx && ctx.memberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(ctx.memberId); if($('#meetingsList')) renderMeetingsList(); if(ctx && ctx.meetingId && $('#meetingDetail') && !$('#meetingDetail').hidden) renderMeetingDetail(ctx.meetingId); if($('#goalsList')) renderGoalsList(); if($('#calWrap')) renderCalendar(); if($('#commWrap')) renderComm(); if($('#hOverview')) renderHealthOverview(); if($('#hProfiles')) renderHealthProfiles(); if($('#hMeds')) renderHealthMeds(); if($('#hRecords')) renderHealthRecords(); if($('#hAppts')) renderHealthAppts(); if($('#hVitals')) renderHealthVitals(); if($('#respWrap')) renderResponsibilities(); if($('#docsWrap')) renderDocuments(); if($('#treeWrap')) renderFamilyTree(); if($('#finOverview')) renderFinOverview(); if($('#finTx')) renderFinTx(); if($('#finPlanned')) renderFinPlanned(); if($('#finDebts')) renderFinDebts(); if($('#finBudget')) renderFinBudget(); if($('#finSavings')) renderFinSavings(); if($('#finStats')) renderFinStats(); if($('#jToday')) renderJournalToday(); if($('#jTimeline')) renderJournalTimeline(); if($('#jCalendar')) renderJournalCalendar(); if($('#jPhotos')) renderJournalPhotos(); if($('#jMemories')) renderJournalMemories(); if($('#jReflect')) renderJournalReflection(); if($('#jFavorites')) renderJournalFavorites(); if($('#jOverview')) renderJournalOverview(); if($('#jEntries')) renderJournalEntries(); if($('#jGratitude')) renderJournalGratitude(); if($('#jMilestones')) renderJournalMilestones(); if($('#ckOverview')) renderCookingOverview(); if($('#ckRecipes')) renderCookingRecipes(); if($('#ckMeals')) renderCookingMeals(); if($('#ckShopping')) renderCookingShopping(); if($('#gsCard')) renderGettingStarted(); if($('#hmOverview')) renderHomeOverview(); if($('#hmChores')) renderHomeChores(); if($('#hmMaint')) renderHomeMaint(); if($('#hmSupplies')) renderHomeSupplies(); if($('#lnOverview')) renderLearnOverview(); if($('#lnCourses')) renderLearnCourses(); if($('#lnBooks')) renderLearnBooks(); if($('#lnSkills')) renderLearnSkills(); if($('#tvOverview')) renderTravelOverview(); if($('#tvTrips')) renderTravelTrips(); if($('#tvPacking')) renderTravelPacking(); if($('#tvBucket')) renderTravelBucket(); if($('#ftOverview')) renderFitOverview(); if($('#ftWorkouts')) renderFitWorkouts(); if($('#ftGoals')) renderFitGoals(); if($('#ftRoutines')) renderFitRoutines(); if($('#ntOverview')) renderNutriOverview(); if($('#ntMeals')) renderNutriMeals(); if($('#ntWater')) renderNutriWater(); if($('#ntHabits')) renderNutriHabits(); if($('#plOverview')) renderPlanOverview(); if($('#plTasks')) renderPlanTasks(); if($('#plProjects')) renderPlanProjects(); if($('#plWeek')) renderPlanWeek(); if($('#rlLock')) renderRelLock(); if(rlUnlocked){ if($('#rlUs')) renderRelUs(); if($('#rlNotes')) renderRelNotes(); if($('#rlDates')) renderRelDates(); if($('#rlPlans')) renderRelPlans(); } if($('#mmOverview')) renderMemOverview(); if($('#mmAlbums')) renderMemAlbums(); if($('#mmStories')) renderMemStories(); if($('#mmCapsule')) renderMemCapsule(); if($('#wbOverview')) renderWbOverview(); if($('#wbCheckins')) renderWbCheckins(); if($('#wbCare')) renderWbCare(); if($('#wbGrowth')) renderWbGrowth(); if($('#lgOverview')) renderLegOverview(); if($('#lgDuas')) renderLegDuas(); if($('#lgDeeds')) renderLegDeeds(); if($('#lgWisdom')) renderLegWisdom(); if(currentMemberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(currentMemberId); if(document.getElementById('notiBody')) renderNotifications(); if(document.getElementById('homeToday')) renderHome(); try{ renderHeroPulse(); }catch(e){} }
+ function refreshAll(ctx){ try{ avApply(); }catch(e){} renderDashboard(); if($('#mydayBody')) renderMyDay(); if($('#membersList')) renderMembersList(); if(ctx && ctx.memberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(ctx.memberId); if($('#meetingsList')) renderMeetingsList(); if(ctx && ctx.meetingId && $('#meetingDetail') && !$('#meetingDetail').hidden) renderMeetingDetail(ctx.meetingId); if($('#goalsList')) renderGoalsList(); if($('#calWrap')) renderCalendar(); if($('#commWrap')) renderComm(); if($('#hOverview')) renderHealthOverview(); if($('#hProfiles')) renderHealthProfiles(); if($('#hMeds')) renderHealthMeds(); if($('#hRecords')) renderHealthRecords(); if($('#hAppts')) renderHealthAppts(); if($('#hVitals')) renderHealthVitals(); if($('#respWrap')) renderResponsibilities(); if($('#docsWrap')) renderDocuments(); if($('#treeWrap')) renderFamilyTree(); if($('#finOverview')) renderFinOverview(); if($('#finLedger')) renderFinLedger(); if($('#finTx')) renderFinTx(); if($('#finPlanned')) renderFinPlanned(); if($('#finDebts')) renderFinDebts(); if($('#finBudget')) renderFinBudget(); if($('#finSavings')) renderFinSavings(); if($('#finStats')) renderFinStats(); if($('#jToday')) renderJournalToday(); if($('#jTimeline')) renderJournalTimeline(); if($('#jCalendar')) renderJournalCalendar(); if($('#jPhotos')) renderJournalPhotos(); if($('#jMemories')) renderJournalMemories(); if($('#jReflect')) renderJournalReflection(); if($('#jFavorites')) renderJournalFavorites(); if($('#jOverview')) renderJournalOverview(); if($('#jEntries')) renderJournalEntries(); if($('#jGratitude')) renderJournalGratitude(); if($('#jMilestones')) renderJournalMilestones(); if($('#ckOverview')) renderCookingOverview(); if($('#ckRecipes')) renderCookingRecipes(); if($('#ckMeals')) renderCookingMeals(); if($('#ckShopping')) renderCookingShopping(); if($('#gsCard')) renderGettingStarted(); if($('#hmOverview')) renderHomeOverview(); if($('#hmChores')) renderHomeChores(); if($('#hmMaint')) renderHomeMaint(); if($('#hmSupplies')) renderHomeSupplies(); if($('#lnOverview')) renderLearnOverview(); if($('#lnCourses')) renderLearnCourses(); if($('#lnBooks')) renderLearnBooks(); if($('#lnSkills')) renderLearnSkills(); if($('#tvOverview')) renderTravelOverview(); if($('#tvTrips')) renderTravelTrips(); if($('#tvPacking')) renderTravelPacking(); if($('#tvBucket')) renderTravelBucket(); if($('#ftOverview')) renderFitOverview(); if($('#ftWorkouts')) renderFitWorkouts(); if($('#ftGoals')) renderFitGoals(); if($('#ftRoutines')) renderFitRoutines(); if($('#ntOverview')) renderNutriOverview(); if($('#ntMeals')) renderNutriMeals(); if($('#ntWater')) renderNutriWater(); if($('#ntHabits')) renderNutriHabits(); if($('#plOverview')) renderPlanOverview(); if($('#plTasks')) renderPlanTasks(); if($('#plProjects')) renderPlanProjects(); if($('#plWeek')) renderPlanWeek(); if($('#rlLock')) renderRelLock(); if(rlUnlocked){ if($('#rlUs')) renderRelUs(); if($('#rlNotes')) renderRelNotes(); if($('#rlDates')) renderRelDates(); if($('#rlPlans')) renderRelPlans(); } if($('#mmOverview')) renderMemOverview(); if($('#mmAlbums')) renderMemAlbums(); if($('#mmStories')) renderMemStories(); if($('#mmCapsule')) renderMemCapsule(); if($('#wbOverview')) renderWbOverview(); if($('#wbCheckins')) renderWbCheckins(); if($('#wbCare')) renderWbCare(); if($('#wbGrowth')) renderWbGrowth(); if($('#lgOverview')) renderLegOverview(); if($('#lgDuas')) renderLegDuas(); if($('#lgDeeds')) renderLegDeeds(); if($('#lgWisdom')) renderLegWisdom(); if(currentMemberId && $('#memberDetail') && !$('#memberDetail').hidden) renderMemberDetail(currentMemberId); if(document.getElementById('notiBody')) renderNotifications(); if(document.getElementById('homeToday')) renderHome(); try{ renderHeroPulse(); }catch(e){} }
 
  /* ===================== GOVERNANCE ===================== */
  var GOV=[
@@ -12195,6 +12379,9 @@
       try{ refreshAll(); }catch(_){}
       return;
     }
+    var fxf=e.target.closest('[data-fxf]');
+    if(fxf){ fxFilter=fxf.getAttribute('data-fxf'); renderFinLedger(); return; }
+    if(e.target.closest('[data-fxclear]')){ fxQuery=''; fxFilter=''; renderFinLedger(); return; }
     var jrw=e.target.closest('[data-jrefl]');
     if(jrw){ jReflWin=jrw.getAttribute('data-jrefl'); renderJournalReflection(); return; }
     if(e.target.closest('[data-jrefsave]')){ jReflSave(); return; }
@@ -12524,7 +12711,19 @@
   /* Search as you type. The field is re-created on each render, so the caret is
      put back where it was — otherwise every keystroke would jump to the end. */
   var _jtlT=null;
+  var _fxT=null;
   document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='fxSearch'){
+      clearTimeout(_fxT);
+      var p=e.target.selectionStart;
+      _fxT=setTimeout(function(){
+        fxQuery=(document.getElementById('fxSearch')||{}).value||'';
+        renderFinLedger();
+        var f=document.getElementById('fxSearch');
+        if(f){ f.focus({preventScroll:true}); try{ f.setSelectionRange(p,p); }catch(_){} }
+      }, 160);
+      return;
+    }
     if(!e.target || e.target.id!=='jtlSearch') return;
     clearTimeout(_jtlT);
     var pos=e.target.selectionStart;

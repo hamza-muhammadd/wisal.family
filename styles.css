@@ -5474,3 +5474,53 @@ input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:not([aria-value
 /* .jtag has an older rule further down the file that was still winning */
 .jtag{padding:6px 12px!important;font-size:.74rem;line-height:1.4;
   border:1px solid var(--glass-hair)}
+
+/* ==================== NAVIGATION IS NOT TEXT ====================
+   A stray tap or double-tap was selecting a letter inside a nav label and
+   leaving a coloured block behind it — the artefact next to "Cooking". Labels
+   on controls are not prose; nobody needs to select them. Applied to every
+   button-like label in the app, not only the sidebar. */
+.nav__item,.nav__label,.nav__grouphd,.nav__grouptitle,.subtab,.footbtn,
+.brand__text,.tl__f,.jt__chip,.jt__mood,.tlc__tag,.jtag,.tvpill,
+.trd__tab,.itn__time,.pk__who,.tk__due,.tk__who,.sug__chip,.tpl__chip{
+  -webkit-user-select:none;user-select:none}
+
+/* ==================== ALL MONEY, IN ONE PLACE ====================
+   The four questions first, then everything that happened, newest day at the
+   top. Pending money is shown but never folded into a total. */
+.fx__cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:11px;margin-bottom:20px}
+.fx__c{padding:15px 16px;border-radius:var(--r-lg);background:var(--surface);
+  border:1px solid var(--glass-hair)}
+.fx__cl{font-size:.72rem;color:var(--text-3);margin-bottom:6px}
+.fx__cv{font-size:1.22rem;font-weight:740;letter-spacing:-.02em;color:var(--text)}
+.fx__c--in .fx__cv{color:var(--ok,#2C7F6B)}
+.fx__c--out .fx__cv{color:var(--text)}
+.fx__c--due{border-color:color-mix(in srgb,var(--warn,#BE8E3C) 30%,transparent)}
+.fx__c--due .fx__cv{color:var(--warn-strong,#8a6524)}
+
+.fx__g{margin-bottom:26px}
+.fx__g:last-child{margin-bottom:0}
+.fx__rows{display:flex;flex-direction:column;gap:2px}
+.fx__r{display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:var(--r-md);
+  transition:background .16s}
+.fx__r:hover{background:var(--surface-2)}
+.fx__r.is-pending{opacity:.82}
+.fx__r.is-pending .fx__a{font-style:normal}
+.fx__dot{flex:none;width:9px;height:9px;border-radius:50%}
+.fx__dot--in{background:var(--ok,#2C7F6B)}
+.fx__dot--out{background:var(--text-3)}
+.fx__main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.fx__t{font-size:.95rem;font-weight:600;color:var(--text);overflow-wrap:anywhere}
+.fx__m{font-size:.78rem;color:var(--text-3);font-family:var(--mono);letter-spacing:.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx__a{flex:none;font-family:var(--mono);font-size:.94rem;font-weight:700;white-space:nowrap}
+.fx__a--in{color:var(--ok,#2C7F6B)}
+.fx__a--out{color:var(--text)}
+.is-pending .fx__a{color:var(--text-3)}
+@media (max-width:520px){
+  .fx__cards{grid-template-columns:repeat(2,1fr);gap:9px}
+  .fx__c{padding:13px 14px}
+  .fx__cv{font-size:1.08rem}
+  .fx__r{padding:12px 12px;gap:11px}
+}
