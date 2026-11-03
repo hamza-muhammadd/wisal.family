@@ -5192,6 +5192,10 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  }
  function authErr(msg){ var e=document.getElementById('authErr'); if(!e){ _authDetail=''; return; } e.textContent=msg||''; if(msg&&_authDetail){ e.appendChild(document.createElement('br')); var s=document.createElement('small'); s.textContent='Details: '+_authDetail; e.appendChild(s); } _authDetail=''; e.hidden=!msg; }
  function authBusy(on){ var b=document.getElementById('authGo'); if(b){ b.disabled=!!on; b.textContent=on?'Please wait\u2026':authModeLabel(_authMode); } }
+ function authFirstName(){
+ var el=document.getElementById('authFirst'); var v=((el&&el.value)||'').replace(/[\u0000-\u001F\u007F<>]/g,'').replace(/\s+/g,' ').trim().split(' ')[0]||'';
+ v=v.slice(0,30); return v?{first_name:v}:{};
+ }
  function authModeLabel(m){ return m==='in'?'Sign in':m==='up'?'Create account':m==='forgot'?'Send reset link':'Save new password'; }
  function authSetMode(m){ _authMode=m;
  var gid=function(id){ return document.getElementById(id); };
@@ -5201,7 +5205,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  if(g){ g.textContent=authModeLabel(m); g.disabled=false; }
  if(s){ s.hidden=(m==='forgot'||m==='reset'); s.innerHTML=(m==='in')?'New to Wisal? <b>Create an account</b>':'Already have an account? <b>Sign in</b>'; }
  var show=function(id,on){ var el=gid(id); if(el) el.hidden=!on; };
- show('authEmailFld',m!=='reset'); show('authPassFld',m!=='forgot'); show('authPass2Fld',m==='reset');
+ show('authFirstFld',m==='up'); show('authEmailFld',m!=='reset'); show('authPassFld',m!=='forgot'); show('authPass2Fld',m==='reset');
  show('authForgot',m==='in'); show('authBack',m==='forgot'||m==='reset'); show('authCaptcha',m!=='reset');
  var pl=gid('authPassLbl'); if(pl) pl.textContent=(m==='reset')?'New password':'Password';
  if(pw){ pw.setAttribute('autocomplete',(m==='in')?'current-password':'new-password'); pw.type='password'; if(m==='reset'||m==='forgot') pw.value=''; }
@@ -5645,7 +5649,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var _ts=tsNeed(); if(!_ts.ok){ authErr(_ts.msg); return; } var captchaToken=_ts.token;
  tsReset(); /* single-use token: retire it now and start a fresh one */
  authErr(''); authBusy(true);
- var call=(_authMode==='in') ? sb.auth.signInWithPassword({email:email,password:pass,options:{captchaToken:captchaToken}}) : sb.auth.signUp({email:email,password:pass,options:{captchaToken:captchaToken,emailRedirectTo:location.origin}});
+ var call=(_authMode==='in') ? sb.auth.signInWithPassword({email:email,password:pass,options:{captchaToken:captchaToken}}) : sb.auth.signUp({email:email,password:pass,options:{captchaToken:captchaToken,emailRedirectTo:location.origin,data:authFirstName()}});
  call.then(function(res){
  authBusy(false);
  if(res.error){ authErr(authFriendly(res.error)); tsReset(); return; }

@@ -2191,6 +2191,7 @@ html:has(.modal.open){overflow:hidden}
 .auth [hidden]{display:none!important}
 .auth__forgot{align-self:flex-end;font:inherit;font-size:.82rem;font-weight:600;color:var(--brand);background:none;border:0;cursor:pointer;padding:2px 0;margin-top:-6px}
 .auth__forgot:hover{text-decoration:underline}
+.fld__opt{font-weight:500;opacity:.6;margin-left:6px;font-size:.78em}
 .auth__pw{position:relative}
 .auth__pw input{padding-right:46px}
 .auth__eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;background:none;border:0;border-radius:10px;cursor:pointer;color:var(--text-2)}

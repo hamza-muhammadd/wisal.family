@@ -21,6 +21,7 @@ Open each file from `supabase/migrations/`, paste everything, press **Run**. Saf
 | 1 | `001_core.sql` | tables `family_data`, `family_members`, `family_messages`, `family_reads`; the `join_household` invite function; security rules; live-chat realtime; the `chat-media` bucket |
 | 2 | `002_subscriptions.sql` | `subscriptions` (Wisal Plus; written only by the payment function) |
 | 3 | `003_ai_usage.sql` | `ai_usage` + `ai_bump()` (daily free-AI limit) |
+| 4 | `004_welcome_email.sql` | automatic Welcome email (do this last, after sign-up works; see `docs/WELCOME-EMAIL.md`) |
 
 Check afterwards: **Table Editor** shows 6 tables (all with the RLS shield on); **Storage** shows `chat-media`.
 Older file `supabase/sql/subscriptions.sql` is replaced by migration 002, you can ignore or delete it.
@@ -51,6 +52,7 @@ For **all four, turn "Verify JWT" OFF** (they check the user themselves; the new
 |---|---|---|
 | `wisal-ai` | free AI chat | `GEMINI_API_KEY` (from aistudio.google.com). Optional: `AI_FREE_DAILY_LIMIT` (default 20), `AI_PLUS_DAILY_LIMIT` (200) |
 | `wisal-delete-account` | Settings → delete account | none |
+| `wisal-welcome` | Welcome email after sign-up | `RESEND_API_KEY`, `WELCOME_WEBHOOK_SECRET` (see `docs/WELCOME-EMAIL.md`) |
 | `wisal-pay` | start a Plus payment | `SSLCZ_STORE_ID`, `SSLCZ_STORE_PASS`, `SSLCZ_SANDBOX` (`true` while testing), `APP_URL` = `https://wisal.family` |
 | `wisal-pay-ipn` | payment confirmation callback | same three `SSLCZ_*` values |
 
