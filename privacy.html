@@ -104,7 +104,7 @@ This page explains exactly what is stored, where it goes, and how you erase it.<
     <li>Your data is stored <strong>on your device first</strong>.</li>
     <li>If you sign in, a copy syncs to <strong>your own private space</strong> so your household stays together across phones.</li>
     <li><strong>No ads. No trackers. No analytics.</strong> Your data is never sold or rented.</li>
-    <li>Only the AI assistant sends data outside &mdash; and only when <strong>you</strong> ask it something.</li>
+    <li>Only the AI assistant sends data outside, and only when <strong>you</strong> ask it something.</li>
     <li>Card and wallet details are handled by the payment gateway. <strong>Wisal never sees them.</strong></li>
     <li>You can <strong>delete everything</strong> at any time, from inside the app.</li>
   </ul>
@@ -125,7 +125,7 @@ in the background.</p>
     <tr><th>What</th><th>Examples</th><th>Why</th></tr>
   </thead>
   <tbody>
-    <tr><td>Account</td><td>Email address, sign-in credentials</td><td>To sign you in and sync your household</td></tr>
+    <tr><td>Account</td><td>Email address, sign in credentials</td><td>To sign you in and sync your household</td></tr>
     <tr><td>Family members</td><td>Names, relationships, birthdays, photos</td><td>So the app knows who your household is</td></tr>
     <tr><td>Planning</td><td>Tasks, projects, events, responsibilities</td><td>The core of the app</td></tr>
     <tr><td>Health</td><td>Appointments, records, medications you enter</td><td>To keep a family health history in one place</td></tr>
@@ -150,35 +150,35 @@ your data never leaves the device.</p>
 
 <h3>In your private cloud space</h3>
 <p>When you sign in, an encrypted copy syncs to <strong>Supabase</strong>, our database and
-authentication provider. Row-Level Security means each account can only ever read the household
-it owns or was invited into with a code. Nobody else &mdash; including other Wisal users &mdash; can
+authentication provider. Row Level Security means each account can only ever read the household
+it owns or was invited into with a code. Nobody else, including other Wisal users, can
 reach your household's rows.</p>
 <p>Data is encrypted in transit (HTTPS/TLS) and encrypted at rest by the provider.</p>
 
-<h2>4. The AI assistant &mdash; please read this</h2>
+<h2>4. The AI assistant: please read this</h2>
 
 <h3>What it can do</h3>
 <p>The assistant is not a general chatbot bolted on the side. It reads a summary of your household
 so it can act on it. Today it can:</p>
 <ul>
-  <li><strong>Answer from your own data</strong> &mdash; what is due this week, how much is left in the budget, whose appointment is next.</li>
-  <li><strong>Create things for you</strong> &mdash; add tasks, events, expenses, shopping items or health entries from a plain sentence, in English or Bangla.</li>
-  <li><strong>Notice what you would miss</strong> &mdash; overdue items, a medicine running out, a birthday coming up, spending running ahead of the month.</li>
-  <li><strong>Summarise the week</strong> &mdash; a short picture of how the household actually went.</li>
-  <li><strong>Suggest next steps</strong> &mdash; and, when it proposes an action, wait for you to approve it before anything is saved.</li>
+  <li><strong>Answer from your own data</strong>: what is due this week, how much is left in the budget, whose appointment is next.</li>
+  <li><strong>Create things for you</strong>: add tasks, events, expenses, shopping items or health entries from a plain sentence, in English or Bangla.</li>
+  <li><strong>Notice what you would miss</strong>: overdue items, a medicine running out, a birthday coming up, spending running ahead of the month.</li>
+  <li><strong>Summarise the week</strong>: a short picture of how the household actually went.</li>
+  <li><strong>Suggest next steps</strong>: and, when it proposes an action, wait for you to approve it before anything is saved.</li>
 </ul>
 <p>More is planned. As the assistant gains the ability to reach outside the app on your behalf,
-this page will say so plainly before that ships &mdash; not after.</p>
+this page will say so plainly before that ships, not after.</p>
 
 <h3>What leaves the app</h3>
 <div class="card">
   <p>When you send the assistant a message, that message plus a <strong>summary of your family
-  data</strong> &mdash; things like how many open tasks you have, upcoming events, this month's
-  spending, your shopping list &mdash; goes to <strong>Google's Gemini API</strong> so it can answer
+  data</strong>: things like how many open tasks you have, upcoming events, this month's
+  spending, your shopping list, goes to <strong>Google's Gemini API</strong> so it can answer
   usefully.</p>
   <p>This happens <strong>only when you send a message to the assistant</strong>. If you never open
   it, nothing is ever sent.</p>
-  <p><strong>What is never sent:</strong> your Secure Vault, the PIN-protected private space, your
+  <p><strong>What is never sent:</strong> your Secure Vault, the PIN protected private space, your
   passwords, and your family chat messages.</p>
   <p>You may add your own Google Gemini API key in Settings. If you do, requests go directly from
   your device using your key, under your own agreement with Google.</p>
@@ -204,10 +204,10 @@ this page will say so plainly before that ships &mdash; not after.</p>
 <h2>6. Keeping accounts real</h2>
 <p>Two services help make sure a human, not a bot, is creating an account:</p>
 <ul>
-  <li><strong>Cloudflare Turnstile</strong> &mdash; a privacy-first CAPTCHA on the sign-in screen.
+  <li><strong>Cloudflare Turnstile</strong>: a privacy first CAPTCHA on the sign in screen.
   It checks the browser, not you, and Cloudflare states it does not use it to track people
   across sites.</li>
-  <li><strong>Resend</strong> &mdash; delivers the confirmation email that proves your address is
+  <li><strong>Resend</strong>: delivers the confirmation email that proves your address is
   really yours. It receives your email address and the message itself, nothing more.</li>
 </ul>
 
@@ -215,17 +215,17 @@ this page will say so plainly before that ships &mdash; not after.</p>
 <p>We do not sell, rent or trade your data. It is shared only with the services that make the app
 work:</p>
 <ul>
-  <li><strong>Supabase</strong> &mdash; database, authentication and file storage. Holds your synced household data.</li>
-  <li><strong>Google (Gemini API)</strong> &mdash; processes AI assistant requests, as described above.</li>
-  <li><strong>SSLCommerz</strong> &mdash; processes subscription payments.</li>
-  <li><strong>Cloudflare</strong> &mdash; bot protection on sign-in.</li>
-  <li><strong>Resend</strong> &mdash; sends confirmation and account emails.</li>
-  <li><strong>Vercel</strong> &mdash; serves the website and app. Receives standard server request data such as IP address, as any web host does.</li>
+  <li><strong>Supabase</strong>: database, authentication and file storage. Holds your synced household data.</li>
+  <li><strong>Google (Gemini API)</strong>: processes AI assistant requests, as described above.</li>
+  <li><strong>SSLCommerz</strong>: processes subscription payments.</li>
+  <li><strong>Cloudflare</strong>: bot protection on sign in.</li>
+  <li><strong>Resend</strong>: sends confirmation and account emails.</li>
+  <li><strong>Vercel</strong>: serves the website and app. Receives standard server request data such as IP address, as any web host does.</li>
 </ul>
 <p>We may disclose data if legally required to, but we have no interest in doing so and would tell
 you where the law allows.</p>
 
-<h2>8. Your PIN-protected spaces</h2>
+<h2>8. Your PIN protected spaces</h2>
 <p>The Secure Vault and the private Relationship space are locked with a PIN that <strong>only you
 know</strong>. We cannot see inside them, cannot recover them, and cannot reset your PIN.
 If you forget it, that content is gone. Please keep a backup of anything irreplaceable.</p>
@@ -233,18 +233,18 @@ If you forget it, that content is gone. Please keep a backup of anything irrepla
 <h2>9. Deleting your data</h2>
 <p>You are always in control. From inside the app:</p>
 <ul>
-  <li><strong>Settings &rarr; Reset</strong> &mdash; erases everything stored on that device.</li>
-  <li><strong>Settings &rarr; Account &rarr; Delete account &amp; data</strong> &mdash; erases your cloud copy too, permanently.</li>
+  <li><strong>Settings &rarr; Reset</strong>: erases everything stored on that device.</li>
+  <li><strong>Settings &rarr; Account &rarr; Delete account &amp; data</strong>: erases your cloud copy too, permanently.</li>
 </ul>
 <p>You can also email <a href="mailto:hamzamuhammad.trd@gmail.com">hamzamuhammad.trd@gmail.com</a>
 and your account and all associated data will be deleted within 30 days. Backups you exported
-yourself are files in your own hands &mdash; we cannot reach those.</p>
+yourself are files in your own hands, we cannot reach those.</p>
 
 <h2>10. Your rights</h2>
 <p>Wherever you live, you can ask us to:</p>
 <ul>
   <li><strong>See</strong> what data we hold about you</li>
-  <li><strong>Export</strong> it &mdash; the app has a one-tap backup export</li>
+  <li><strong>Export</strong> it, the app has a one tap backup export</li>
   <li><strong>Correct</strong> anything wrong</li>
   <li><strong>Delete</strong> everything</li>
 </ul>
@@ -259,19 +259,19 @@ If you believe a child has created their own account, contact us and we will rem
 <h2>12. How long we keep data</h2>
 <p>We keep your data for as long as your account exists. Delete your account and it is removed from
 our systems, with backups cycling out within 30 days. Payment records may be kept longer where
-financial record-keeping rules require it.</p>
+financial record keeping rules require it.</p>
 
 <h2>13. Security</h2>
-<p>We use HTTPS/TLS everywhere, encryption at rest, Row-Level Security so households cannot see each
-other, bot protection on sign-in, and PIN protection for your most private spaces. No system is
-perfect &mdash; if we ever discover a breach affecting your data, we will tell you promptly and plainly.</p>
+<p>We use HTTPS/TLS everywhere, encryption at rest, Row Level Security so households cannot see each
+other, bot protection on sign in, and PIN protection for your most private spaces. No system is
+perfect, if we ever discover a breach affecting your data, we will tell you promptly and plainly.</p>
 
 <h2>14. Terms of use</h2>
-<p>Wisal is a home for one family's honest life &mdash; not for unlawful content or for harming others.
+<p>Wisal is a home for one family's honest life, not for unlawful content or for harming others.
 The invite code is a key: share it only with people who belong in your household.</p>
 <p>Owners and admins can invite and manage members; every member is responsible for what they add.
 Children's profiles are managed by their guardians. Wisal is built for adults running a home.</p>
-<p>Wisal is provided with care, as-is &mdash; please keep backups of what matters most. Continued use
+<p>Wisal is provided with care and as is. Please keep backups of what matters most. Continued use
 means you agree to these terms.</p>
 
 <h2>15. Changes to this policy</h2>

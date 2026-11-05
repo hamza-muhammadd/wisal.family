@@ -3,8 +3,8 @@
 // Sends the branded Welcome email, exactly once per account, from hello@wisal.family.
 //
 // HOW IT RUNS
-//   A database trigger (migration 004) fires the moment an account becomes usable (email confirmed,
-//   which with "Confirm email" OFF is the instant it is created). The trigger records the user in
+//   A database trigger (migration 004) fires the moment an account is created, so the welcome goes out
+//   together with Supabase's confirmation email (or right away when "Confirm email" is OFF). The trigger records the user in
 //   `welcome_emails` (primary key = user_id, so a retry can never create a second row) and calls
 //   this function with { user_id } and a shared secret header.
 //
@@ -20,7 +20,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUBJECT = "Welcome to Wisal — Your family's space starts here.";
+const SUBJECT = "Welcome to Wisal. Your family's space starts here.";
 const ASSET_BASE = "https://wisal.family";
 const SUPPORT = "hello@wisal.family";
 const SECRET = Deno.env.get("WELCOME_WEBHOOK_SECRET") ?? "";
@@ -59,12 +59,19 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 /* ------------------------------ the email ------------------------------ */
-export function renderWelcome(firstName: string, appUrl: string): { subject: string; html: string; text: string } {
+export function renderWelcome(firstName: string, appUrl: string, needsConfirm = false): { subject: string; html: string; text: string } {
   const name = cleanFirstName(firstName);
   const hello = name ? `Hello, ${esc(name)}!` : "Hello there!";
   const helloText = name ? `Hello, ${name}!` : "Hello there!";
   const cta = `${appUrl}/?utm_source=welcome&utm_medium=email`;
   const F = "'Plus Jakarta Sans','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans Bengali',sans-serif";
+
+  const confirmHtml = needsConfirm
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;"><tr>
+        <td bgcolor="#1C2338" style="background-color:#1C2338;border:1px solid #3A4A7A;border-radius:18px;padding:16px 20px;">
+          <div style="font-family:${F};font-size:15px;line-height:23px;color:#C9D6F7;"><strong style="color:#F4F6FC;">One more step.</strong> Please tap the confirmation link in the separate email we just sent, then open your account.</div>
+        </td></tr></table>`
+    : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -119,7 +126,7 @@ export function renderWelcome(firstName: string, appUrl: string): { subject: str
       <p style="margin:26px 0 0 0;font-family:${F};font-size:17px;line-height:26px;font-weight:700;color:#E9ECF6;">${hello}</p>
       <p style="margin:14px 0 0 0;font-family:${F};font-size:16px;line-height:26px;color:#B4BCD4;">We&rsquo;re glad you&rsquo;re here.</p>
       <p style="margin:14px 0 0 0;font-family:${F};font-size:16px;line-height:26px;color:#B4BCD4;">Wisal brings your family&rsquo;s important moments, plans and everyday life together in one calm, private space.</p>
-      <p style="margin:14px 0 0 0;font-family:${F};font-size:16px;line-height:26px;color:#B4BCD4;">From organizing daily responsibilities to planning family events, preserving memories and managing shared goals &mdash; everything starts here.</p>
+      <p style="margin:14px 0 0 0;font-family:${F};font-size:16px;line-height:26px;color:#B4BCD4;">From organizing daily responsibilities to planning family events, preserving memories and managing shared goals, everything starts here.</p>
 
       <!-- soft callout -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;"><tr>
@@ -129,6 +136,7 @@ export function renderWelcome(firstName: string, appUrl: string): { subject: str
         </td>
       </tr></table>
 
+      ${confirmHtml}
       <!-- CTA -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;"><tr>
         <td align="center" bgcolor="#9DB6F7" style="background-color:#9DB6F7;border-radius:16px;">
@@ -142,7 +150,7 @@ export function renderWelcome(firstName: string, appUrl: string): { subject: str
 
     <!-- footer -->
     <tr><td align="center" style="padding:26px 12px 0 12px;">
-      <p style="margin:0;font-family:${F};font-size:14px;line-height:22px;font-weight:600;color:#C9D2EA;">Wisal Family &mdash; One calm home for everything your family is.</p>
+      <p style="margin:0;font-family:${F};font-size:14px;line-height:22px;font-weight:600;color:#C9D2EA;">Wisal Family. One calm home for everything your family is.</p>
       <p style="margin:14px 0 0 0;font-family:${F};font-size:13px;line-height:20px;color:#8E97AF;">
         <a href="${ASSET_BASE}/privacy" target="_blank" style="color:#9DB6F7;text-decoration:none;">Privacy Policy</a>
         &nbsp;&middot;&nbsp;
@@ -169,15 +177,14 @@ We're glad you're here.
 
 Wisal brings your family's important moments, plans and everyday life together in one calm, private space.
 
-From organizing daily responsibilities to planning family events, preserving memories and managing shared goals — everything starts here.
+From organizing daily responsibilities to planning family events, preserving memories and managing shared goals, everything starts here.
 
-Open Your Wisal Account:
+${needsConfirm ? "One more step. Please tap the confirmation link in the separate email we just sent, then open your account.\n\n" : ""}Open Your Wisal Account:
 ${cta}
 
 If you didn't create this account, you can safely ignore this email.
 
---
-Wisal Family — One calm home for everything your family is.
+Wisal Family. One calm home for everything your family is.
 Privacy Policy: ${ASSET_BASE}/privacy
 Support: ${SUPPORT}
 Website: ${ASSET_BASE}
@@ -257,12 +264,11 @@ Deno.serve(async (req: Request) => {
   const { data: u, error: ue } = await admin.auth.admin.getUserById(userId);
   const user = u?.user;
   if (ue || !user?.email) return await fail("user or email not found", 404);
-  if (!user.email_confirmed_at) return await fail("email not confirmed yet", 409);
 
   // 3) send
   const md = (user.user_metadata ?? {}) as Record<string, unknown>;
   const first = cleanFirstName(md.first_name ?? md.given_name ?? md.name ?? md.full_name ?? "");
-  const msg = renderWelcome(first, safeAppUrl(Deno.env.get("APP_URL")));
+  const msg = renderWelcome(first, safeAppUrl(Deno.env.get("APP_URL")), !user.email_confirmed_at);
   const res = await sendViaResend(apiKey, userId, user.email, msg);
   if (!res.ok) return await fail(res.error);
 

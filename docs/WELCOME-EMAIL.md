@@ -1,7 +1,7 @@
 # Welcome email: how it works and how to switch it on
 
 **What users get:** right after an account is created, an email from **Wisal Family &lt;hello@wisal.family&gt;**,
-subject *"Welcome to Wisal — Your family's space starts here."*, with a personal greeting and the button
+subject *"Welcome to Wisal. Your family's space starts here."*, with a personal greeting and the button
 **"Open Your Wisal Account →"**. Sent once per account, automatically.
 
 ## What I found in the existing system (audit)
@@ -16,7 +16,7 @@ subject *"Welcome to Wisal — Your family's space starts here."*, with a person
 
 ## How it works (one email, once, never blocking sign-up)
 ```
-account becomes usable ──► DB trigger (migration 004)
+account is created ──► DB trigger (migration 004)
                               │ inserts a row in welcome_emails (primary key = user_id → no duplicates)
                               │ calls the Edge Function with a shared secret
                               ▼
@@ -25,7 +25,7 @@ account becomes usable ──► DB trigger (migration 004)
                                        ──► sends through Resend (HTML + plain text, Idempotency-Key per user)
                                        ──► row = sent (+ Resend message id)  or  failed (+ short reason)
 ```
-- **Fires** when an account is created already confirmed (Confirm email OFF) **or** at the moment it is confirmed (Confirm email ON). If you later turn confirmation ON, people get Supabase's confirmation mail first and this welcome right after they confirm, so there is never a second link to click.
+- **Fires** the moment an account is created, so the welcome arrives together with Supabase's confirmation email (Confirm email ON) or right away (Confirm email OFF). While confirmation is still pending, the welcome carries a short "One more step" note telling the person to tap the confirmation link in the other email. Nobody is welcomed twice.
 - **Duplicate protection, three layers:** primary key in the table, the claim step in the function, and Resend's idempotency key.
 - **Retries:** temporary problems (network, 429, 5xx) are retried up to 3 times in the function. Permanent ones (bad key, unverified domain) are recorded as `failed` and can be re-sent (below).
 - **Sign-up can never fail because of email:** the trigger catches every error and only writes it on the row.
@@ -47,12 +47,17 @@ account becomes usable ──► DB trigger (migration 004)
 8. Upload the repo (this build) so that `https://wisal.family/email/hero.jpg` and `https://wisal.family/email/logo-mark.png` open in a browser. The email loads its pictures from there.
 9. **Test:** create an account with a Gmail alias such as `yourname+welcome1@gmail.com` and a first name. The email should arrive within a minute.
 
+## Already set this up earlier? Do these two things once
+1. SQL Editor: run the updated `supabase/migrations/004_welcome_email.sql` again (safe to repeat). It changes the trigger so the welcome goes out when the account is created, together with the confirmation email.
+2. Edge Functions: open `wisal-welcome`, paste the new `supabase/functions/wisal-welcome/index.ts`, Deploy.
+Optional but nicer: in Supabase SMTP settings set the sender to `hello@wisal.family` instead of `no-reply@wisal.family`, so the sender name people read has no hyphen either.
+
 ## If it does not arrive
 SQL Editor: `select user_id, status, attempts, last_error, sent_at from welcome_emails order by created_at desc limit 10;`
 
 | status / last_error | Meaning | Fix |
 |---|---|---|
-| no row at all | trigger did not fire | confirm 004 ran; sign-up must create a *confirmed* user (Confirm email OFF) |
+| no row at all | trigger did not fire | run the latest `004` (it must say `after insert on auth.users`), and test with an account created after that |
 | `failed` · "Vault secrets … missing" | step 5 not done | run the two `vault.create_secret` lines |
 | `pending` for more than a minute | the call never reached the function | pg_net not enabled (step 3), wrong URL in `wisal_welcome_url`, function not deployed |
 | `failed` · `resend 422` / "domain is not verified" | Resend domain | step 1 |
@@ -71,6 +76,6 @@ from welcome_emails where status = 'failed' and created_at > now() - interval '3
 ```
 
 ## What was tested, and what was not
-**Tested here (automated):** the function (8 groups, with type-checking): wrong/missing secret rejected, correct sender / subject / greeting / button / link, duplicates and 3 parallel calls send once, retry after a temporary error, permanent error recorded and later re-sent, unconfirmed or missing user, stale "sending" takeover, HTML-injection in a name, non-wisal redirect rejected, no scripts or external CSS, images have alt text, HTML size well under Gmail's clipping limit. The trigger (15 checks on a real Postgres): created-confirmed, confirmed-later, no second email on later updates, duplicate row blocked, missing secrets and a failing pg_net both leave sign-up working and record the reason, browsers cannot read the table. Sign-up form (38 checks). The email was rendered at desktop and phone width.
+**Tested here (automated):** the function (10 groups, with type-checking): wrong/missing secret rejected, correct sender / subject / greeting / button / link, duplicates and 3 parallel calls send once, retry after a temporary error, permanent error recorded and later re-sent, unconfirmed or missing user, stale "sending" takeover, HTML-injection in a name, non-wisal redirect rejected, no scripts or external CSS, images have alt text, HTML size well under Gmail's clipping limit. The trigger (16 checks on a real Postgres): created confirmed or unconfirmed (one email at creation, none extra when confirming later), accounts without an email skipped, duplicate row blocked, missing secrets and a failing pg_net both leave sign-up working and record the reason, browsers cannot read the table. Sign-up form (38 checks) and a scan of all 20 pages and 75 tabs for dashes, hyphens and stars. The email was rendered at desktop and phone width.
 
 **Not tested (cannot be from here):** a real send through Resend; real pg_net and Vault on your project; how Gmail (Android/iOS/web), Outlook and Apple Mail draw it. It uses tables, inline CSS, background-colour attributes, a text-only button and alt text, which is the standard safe recipe, but please send yourself a test and look at it in Gmail on your phone, in Outlook if you use it, and in the Gmail web app. If the logo or picture looks missing, the images in step 8 are not live yet.

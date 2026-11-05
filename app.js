@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- try{ document.documentElement.setAttribute('data-build','101'); console.log('Wisal build 54 \u2014 trip details'); }catch(e){}
+ try{ document.documentElement.setAttribute('data-build','101'); console.log('Wisal build 54, trip details'); }catch(e){}
  var $ = function(s,r){ return (r||document).querySelector(s); };
  var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 
@@ -19,7 +19,7 @@
        this._full=true;
        try{
          if(typeof flash==='function')
-           flash('This device is out of storage. Recent changes are not saved \u2014 remove some photos, then try again.', 9000);
+           flash('This device is out of storage. Recent changes are not saved, remove some photos, then try again.', 9000);
        }catch(_){}
        try{ console.warn('Wisal: localStorage quota exceeded'); }catch(_){}
      }
@@ -156,7 +156,7 @@
  var H_NOTE='<svg class="ico" viewBox="0 0 24 24"><path d="M13 3.5H6.5A1.5 1.5 0 0 0 5 5v14a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9.5L13 3.5Z"/><path d="M13 3.5V9.5h6"/></svg>';
  var H_SHIELD='<svg class="ico" viewBox="0 0 24 24"><path d="M12 3.3 5 5.7v5.1c0 4.3 2.9 7.4 7 8.9 4.1-1.5 7-4.6 7-8.9V5.7L12 3.3Z"/><path d="M9.1 11.7l2 2 3.7-3.9"/></svg>';
  var H_CAL='<svg class="ico" viewBox="0 0 24 24"><rect x="4" y="5.2" width="16" height="14.8" rx="2.2"/><path d="M4 9.4h16"/><path d="M8.2 3.4v3.4M15.8 3.4v3.4"/><path d="M8.8 14.4l2 2 3.6-3.8"/></svg>';
- var APPT_TYPES=['Doctor','Dentist','Specialist','Vaccination','Lab test','Therapy','Check-up','Other'];
+ var APPT_TYPES=['Doctor','Dentist','Specialist','Vaccination','Lab test','Therapy','Check up','Other'];
  function healthAppts(){ return (FD.data.events||[]).filter(function(e){return e.kind==='appointment';}); }
  function apptTime(d){ var h=d.getHours(),mn=d.getMinutes(),ap=h<12?'AM':'PM',h12=h%12; if(h12===0)h12=12; return h12+':'+(mn<10?'0':'')+mn+' '+ap; }
  function apptWhen(dstr,allDay){ if(!dstr) return ''; var hasT=String(dstr).indexOf('T')>=0; var d=new Date(hasT?dstr:(dstr+'T00:00')); if(isNaN(d.getTime())) return esc(String(dstr)); var dp=d.getDate()+' '+MON[d.getMonth()]; var now=new Date(); if(d.getFullYear()!==now.getFullYear()) dp+=' '+d.getFullYear(); var tp=(!allDay&&hasT)?apptTime(d):''; return '<b>'+dp+'</b>'+(tp?'<span class="appt__time">'+tp+'</span>':''); }
@@ -204,9 +204,9 @@
  var hero='<div class="phero"><span class="phero__av">'+avatarHTML(m,'phero__ini')+'</span><div class="phero__info"><div class="phero__nm">'+esc(m.name)+'</div><div class="phero__sub">'+(heroSub.join(' \u00b7 ')||'Family member')+'</div></div><button class="btn btn--soft hedit" data-modal="healthprofile" data-mid="'+m.id+'"><svg class="ico" viewBox="0 0 24 24"><path d="M5 19h3.5L18 9.5 14.5 6 5 15.5V19Z"/><path d="M13 7.5 16.5 11"/></svg>Edit profile</button></div>';
  var vs='<div class="pstats">'
  +'<div class="pstat"><div class="pstat__l">Blood type</div><div class="pstat__v">'+(m.bloodGroup?esc(m.bloodGroup):'<span class="pmut">Not set</span>')+'</div></div>'
- +'<div class="pstat"><div class="pstat__l">Height</div><div class="pstat__v">'+(h.heightCm?esc(String(h.heightCm))+' cm':'<span class="pmut">\u2014</span>')+'</div></div>'
- +'<div class="pstat"><div class="pstat__l">Weight</div><div class="pstat__v">'+(h.weightKg?esc(String(h.weightKg))+' kg':'<span class="pmut">\u2014</span>')+'</div></div>'
- +'<div class="pstat"><div class="pstat__l">BMI</div><div class="pstat__v">'+(bmi?bmi:'<span class="pmut">\u2014</span>')+'</div></div>'
+ +'<div class="pstat"><div class="pstat__l">Height</div><div class="pstat__v">'+(h.heightCm?esc(String(h.heightCm))+' cm':'<span class="pmut">·</span>')+'</div></div>'
+ +'<div class="pstat"><div class="pstat__l">Weight</div><div class="pstat__v">'+(h.weightKg?esc(String(h.weightKg))+' kg':'<span class="pmut">·</span>')+'</div></div>'
+ +'<div class="pstat"><div class="pstat__l">BMI</div><div class="pstat__v">'+(bmi?bmi:'<span class="pmut">·</span>')+'</div></div>'
  +'</div>';
  var em=[];
  if(h.doctor) em.push(emRow('Doctor',esc(h.doctor)+(h.doctorPhone?' \u00b7 '+esc(h.doctorPhone):'')));
@@ -247,7 +247,7 @@
  if(!ms.length){ el.innerHTML=hEmpty(H_CAL,'No members yet','Add your family members first, then schedule their appointments here.','<button class="btn btn--primary" data-view="family" style="margin-top:4px">Open Family</button>'); return; }
  var add='<div class="happt-top"><button class="btn btn--primary" data-modal="appointment"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add appointment</button></div>';
  var appts=healthAppts();
- if(!appts.length){ el.innerHTML=add+hEmpty(H_CAL,'No appointments yet','Schedule a visit, it\u2019ll appear here and on your shared family Calendar, colour-coded for everyone to see.',''); return; }
+ if(!appts.length){ el.innerHTML=add+hEmpty(H_CAL,'No appointments yet','Schedule a visit, it\u2019ll appear here and on your shared family Calendar, colour coded for everyone to see.',''); return; }
  var now=Date.now(), up=[], past=[];
  appts.forEach(function(e){ var t=new Date(String(e.date).indexOf('T')>=0?e.date:(e.date+'T00:00')).getTime(); if(isNaN(t))t=0; if(t>=now-3600000 && !e.completed) up.push(e); else past.push(e); });
  up.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
@@ -272,14 +272,14 @@
  ];
  function vitalMeta(k){ for(var i=0;i<VITAL_TYPES.length;i++){ if(VITAL_TYPES[i].key===k) return VITAL_TYPES[i]; } return VITAL_TYPES[0]; }
  function todayStr(){ var d=new Date(),mo=d.getMonth()+1,da=d.getDate(); return d.getFullYear()+'-'+(mo<10?'0':'')+mo+'-'+(da<10?'0':'')+da; }
- function fmtNum(n){ n=Number(n); if(isNaN(n)) return '\u2013'; return (Math.round(n*10)/10).toString(); }
+ function fmtNum(n){ n=Number(n); if(isNaN(n)) return '·'; return (Math.round(n*10)/10).toString(); }
  function vSorted(arr){ return arr.slice().sort(function(a,b){ return String(a.date)<String(b.date)?-1:(String(a.date)>String(b.date)?1:0); }); }
  function sparkline(series,w,h){ w=w||220;h=h||46; var pad=5,all=[]; series.forEach(function(s){ all=all.concat(s.points); }); if(all.length<2) return '<div class="spark spark--mini">Add one more reading to see the trend</div>'; var min=Math.min.apply(null,all),max=Math.max.apply(null,all),range=(max-min)||1; var svg='<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'; series.forEach(function(s){ if(s.points.length<2) return; var step=(w-pad*2)/(s.points.length-1); var d=s.points.map(function(p,i){ var x=pad+i*step,y=h-pad-((p-min)/range)*(h-pad*2); return (i===0?'M':'L')+x.toFixed(1)+' '+y.toFixed(1); }).join(' '); svg+='<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="'+(s.dim?'.4':'1')+'"/>'; var lp=s.points[s.points.length-1],lx=w-pad,ly=h-pad-((lp-min)/range)*(h-pad*2); svg+='<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="2.6" fill="'+s.color+'"/>'; }); svg+='</svg>'; return svg; }
  function vitalCard(m,t){
  var rs=vSorted((m.vitals||[]).filter(function(r){return r.type===t.key;}));
  if(!rs.length) return '';
  var latest=rs[rs.length-1], prev=rs.length>1?rs[rs.length-2]:null;
- var valStr=t.bp?(fmtNum(latest.value)+'<span class="vcard__sep">/</span>'+(latest.value2!=null?fmtNum(latest.value2):'\u2013')):fmtNum(latest.value);
+ var valStr=t.bp?(fmtNum(latest.value)+'<span class="vcard__sep">/</span>'+(latest.value2!=null?fmtNum(latest.value2):'·')):fmtNum(latest.value);
  var delta='';
  if(prev && !t.bp){ var diff=Math.round((latest.value-prev.value)*10)/10; if(diff>0) delta='<span class="vdelta vdelta--up">\u2191 '+Math.abs(diff)+'</span>'; else if(diff<0) delta='<span class="vdelta vdelta--down">\u2193 '+Math.abs(diff)+'</span>'; else delta='<span class="vdelta vdelta--same">\u2192 0</span>'; }
  var series=t.bp?[{points:rs.map(function(r){return r.value;}),color:t.color},{points:rs.map(function(r){return r.value2!=null?r.value2:r.value;}),color:t.color,dim:true}]:[{points:rs.map(function(r){return r.value;}),color:t.color}];
@@ -300,7 +300,7 @@
  var empty=(!vitals.length)?hEmpty(PULSE,'No readings yet','Pick a measurement below to log the first reading for '+esc(m.name)+'.',''):'';
  var startc=untracked.length?('<div class="vstart"><div class="vstart__lab">'+(vitals.length?'Track something new':'Start tracking')+'</div><div class="vstart__chips">'+untracked.map(function(t){ return '<button class="vchip" data-vadd="'+t.key+'" data-mid="'+m.id+'"><span class="vchip__ic" style="color:'+t.color+'">'+t.icon+'</span>'+esc(t.label)+'</button>'; }).join('')+'</div></div>'):'';
  var hist='';
- if(vitals.length){ var sorted=vitals.slice().sort(function(a,b){ return String(b.date)<String(a.date)?-1:(String(b.date)>String(a.date)?1:0); }); hist='<div class="hsec-h" style="margin-top:18px">History \u00b7 '+vitals.length+'</div><div class="hcard">'+sorted.map(function(r){ var t=vitalMeta(r.type); var val=t.bp?(fmtNum(r.value)+'/'+(r.value2!=null?fmtNum(r.value2):'\u2013')):fmtNum(r.value); return '<div class="lrow"><span class="vrow__ic" style="color:'+t.color+'">'+t.icon+'</span><div class="lrow__main"><div class="lrow__title">'+esc(t.label)+' \u00b7 '+val+' '+t.unit+'</div><div class="lrow__sub">'+ovDate(r.date)+(r.note?' \u00b7 '+esc(r.note):'')+'</div></div><button class="lrow__x" data-vdel="'+r.id+'" data-mid="'+m.id+'" aria-label="Delete"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'; }).join('')+'</div>'; }
+ if(vitals.length){ var sorted=vitals.slice().sort(function(a,b){ return String(b.date)<String(a.date)?-1:(String(b.date)>String(a.date)?1:0); }); hist='<div class="hsec-h" style="margin-top:18px">History \u00b7 '+vitals.length+'</div><div class="hcard">'+sorted.map(function(r){ var t=vitalMeta(r.type); var val=t.bp?(fmtNum(r.value)+'/'+(r.value2!=null?fmtNum(r.value2):'·')):fmtNum(r.value); return '<div class="lrow"><span class="vrow__ic" style="color:'+t.color+'">'+t.icon+'</span><div class="lrow__main"><div class="lrow__title">'+esc(t.label)+' \u00b7 '+val+' '+t.unit+'</div><div class="lrow__sub">'+ovDate(r.date)+(r.note?' \u00b7 '+esc(r.note):'')+'</div></div><button class="lrow__x" data-vdel="'+r.id+'" data-mid="'+m.id+'" aria-label="Delete"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'; }).join('')+'</div>'; }
  el.innerHTML=pills+addBtn+cards+empty+startc+hist;
  }
 
@@ -425,7 +425,7 @@
  var STATS_ICO='<svg class="ico" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>';
  function curSymbol(){ var c=FD.data.finance.currency; for(var i=0;i<CURRENCIES.length;i++){ if(CURRENCIES[i].code===c) return CURRENCIES[i].sym; } return '$'; }
  function nfmt(n){ n=Math.round((Number(n)||0)*100)/100; var p=n.toFixed(2).split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,','); return p[0]+(p[1]==='00'?'':'.'+p[1]); }
- function fmtMoney(n){ n=Number(n)||0; return (n<0?'-':'')+curSymbol()+nfmt(Math.abs(n)); }
+ function fmtMoney(n){ n=Number(n)||0; return (n<0?'\u2212':'')+curSymbol()+nfmt(Math.abs(n)); }
  function ymOf(ds){ return String(ds).slice(0,7); }
  function curYM(){ var d=new Date(),mo=d.getMonth()+1; return d.getFullYear()+'-'+(mo<10?'0':'')+mo; }
  function ymLabel(ym){ var p=String(ym).split('-'); return (MON[parseInt(p[1],10)-1]||'')+' '+p[0]; }
@@ -703,7 +703,7 @@
  function planRow(p){
  var cm=finCatMeta(p.type,p.category); var d=p.active?daysUntil(p.nextDue):null; var badge,bcls='';
  if(!p.active){ badge='Paused'; bcls='is-paused'; }
- else if(d==null){ badge='\u2014'; }
+ else if(d==null){ badge='·'; }
  else if(d<0){ badge='Overdue '+Math.abs(d)+'d'; bcls='is-over'; }
  else if(d===0){ badge='Due today'; bcls='is-today'; }
  else if(d<=7){ badge='in '+d+'d'; bcls='is-soon'; }
@@ -806,7 +806,7 @@
  var kpis='<div class="skpi"><div class="skpi__t"><div class="skpi__k">Income</div><div class="skpi__v skpi__v--in">'+fmtMoney(totInc)+'</div></div><div class="skpi__t"><div class="skpi__k">Expenses</div><div class="skpi__v skpi__v--ex">'+fmtMoney(totExp)+'</div></div><div class="skpi__t"><div class="skpi__k">'+(net>=0?'Net saved':'Overspent')+'</div><div class="skpi__v '+(net>=0?'skpi__v--in':'skpi__v--ex')+'">'+fmtMoney(Math.abs(net))+'</div></div><div class="skpi__t"><div class="skpi__k">Savings rate</div><div class="skpi__v">'+saveRate+'%</div></div></div>';
  var lastYM=ymShift(cur,-1), tE=0, lE=0; FD.data.finance.transactions.forEach(function(t){ if(t.type==='expense'){ if(ymOf(t.date)===cur) tE+=t.amount; else if(ymOf(t.date)===lastYM) lE+=t.amount; } });
  var momPct=lE>0?Math.round((tE-lE)/lE*100):(tE>0?100:0), up=tE>=lE, momKnown=(lE>0||tE>0);
- var mom='<div class="fcard smom"><div class="smom__l"><div class="smom__k">This month\u2019s spending</div><div class="smom__v">'+fmtMoney(tE)+'</div><div class="smom__sub">vs '+fmtMoney(lE)+' last month</div></div><div class="smom__badge '+(up?'is-up':'is-down')+'">'+(momKnown?('<svg class="ico" viewBox="0 0 24 24"><path d="'+(up?'M12 19V5M6 11l6-6 6 6':'M12 5v14M6 13l6 6 6-6')+'"/></svg>'+Math.abs(momPct)+'%'):'\u2014')+'</div></div>';
+ var mom='<div class="fcard smom"><div class="smom__l"><div class="smom__k">This month\u2019s spending</div><div class="smom__v">'+fmtMoney(tE)+'</div><div class="smom__sub">vs '+fmtMoney(lE)+' last month</div></div><div class="smom__badge '+(up?'is-up':'is-down')+'">'+(momKnown?('<svg class="ico" viewBox="0 0 24 24"><path d="'+(up?'M12 19V5M6 11l6-6 6 6':'M12 5v14M6 13l6 6 6-6')+'"/></svg>'+Math.abs(momPct)+'%'):'·')+'</div></div>';
  var catTot={}; FD.data.finance.transactions.forEach(function(t){ if(t.type==='expense'&&months.indexOf(ymOf(t.date))>=0) catTot[t.category]=(catTot[t.category]||0)+t.amount; });
  var catArr=Object.keys(catTot).map(function(k){ return {key:k,val:catTot[k]}; }).sort(function(a,b){ return b.val-a.val; });
  var catMax=catArr.length?catArr[0].val:1;
@@ -952,7 +952,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  el.innerHTML=html;
  }
  function wisdomCard(w){
- return '<article class="lgwis"><div class="lgwis__mark">\u201C</div><div class="lgwis__text">'+esc(w.text||'').replace(/\n/g,'<br>')+'</div><div class="lgwis__foot"><span class="lgwis__from">'+(w.from?'\u2014 '+esc(w.from):'\u2014 Family wisdom')+(w.when?' <span class="lgwis__when">'+esc(w.when)+'</span>':'')+'</span><span class="lgwis__acts"><button class="ckmeal__b" data-lgwe="'+w.id+'" aria-label="Edit">'+J_ICO.pen+'</button><button class="ckmeal__b ckmeal__b--del" data-lgwd="'+w.id+'" aria-label="Delete">'+LG_ICO.x+'</button></span></div></article>';
+ return '<article class="lgwis"><div class="lgwis__mark">\u201C</div><div class="lgwis__text">'+esc(w.text||'').replace(/\n/g,'<br>')+'</div><div class="lgwis__foot"><span class="lgwis__from">'+(w.from?'From '+esc(w.from):'Family wisdom')+(w.when?' <span class="lgwis__when">'+esc(w.when)+'</span>':'')+'</span><span class="lgwis__acts"><button class="ckmeal__b" data-lgwe="'+w.id+'" aria-label="Edit">'+J_ICO.pen+'</button><button class="ckmeal__b ckmeal__b--del" data-lgwd="'+w.id+'" aria-label="Delete">'+LG_ICO.x+'</button></span></div></article>';
  }
  function renderLegWisdom(){
  var el=$('#lgWisdom'); if(!el) return;
@@ -970,7 +970,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var deedsWk=L.deeds.filter(function(x){return wset[x.date];}).length;
  var stats='<div class="hstats">'+hStat('Du\u2019ās',L.duas.length,LG_ICO.hands)+hStat('Good deeds',L.deeds.length,LG_ICO.heart)+hStat('This week',deedsWk,LG_ICO.star)+hStat('Sayings',L.wisdom.length,LG_ICO.quote)+'</div>';
  var wisCard='';
- if(L.wisdom.length){ var w=L.wisdom[Math.floor(Math.random()*L.wisdom.length)]; wisCard='<div class="lgquote"><div class="lgquote__mark">\u201C</div><div class="lgquote__text">'+esc((w.text||'').slice(0,200)).replace(/\n/g,'<br>')+((w.text||'').length>200?'\u2026':'')+'</div><div class="lgquote__from">'+(w.from?'\u2014 '+esc(w.from):'\u2014 Family wisdom')+'</div></div>'; }
+ if(L.wisdom.length){ var w=L.wisdom[Math.floor(Math.random()*L.wisdom.length)]; wisCard='<div class="lgquote"><div class="lgquote__mark">\u201C</div><div class="lgquote__text">'+esc((w.text||'').slice(0,200)).replace(/\n/g,'<br>')+((w.text||'').length>200?'\u2026':'')+'</div><div class="lgquote__from">'+(w.from?'From '+esc(w.from):'Family wisdom')+'</div></div>'; }
  var recent=L.deeds.slice().sort(function(a,b){ var c=String(b.date).localeCompare(String(a.date)); return c||(b.createdAt-a.createdAt); }).slice(0,4);
  var deedCard= recent.length? '<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">Recent good deeds</h3><button class="fcard__link" style="color:var(--m-legacy)" data-sub="legacy-deeds">All deeds</button></div>'+recent.map(function(x){ return '<div class="lrow"><span class="vrow__ic" style="color:var(--m-legacy)">'+LG_ICO.heart+'</span><div class="lrow__main"><div class="lrow__title">'+esc(x.what)+'</div><div class="lrow__sub">'+jDateLabel(x.date)+(x.member?' \u00b7 '+esc(x.member):'')+'</div></div></div>'; }).join('')+'</div>' : '';
  var duaCardP= L.duas.length? '<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">Du\u2019ās to return to</h3><button class="fcard__link" style="color:var(--m-legacy)" data-sub="legacy-duas">All du\u2019ās</button></div>'+L.duas.slice(0,3).map(function(d){ return '<div class="lrow"><span class="vrow__ic" style="color:var(--m-legacy)">'+LG_ICO.moon+'</span><div class="lrow__main"><div class="lrow__title">'+esc(d.title||'Du\u2019a')+'</div><div class="lrow__sub">'+esc((d.text||'').slice(0,60))+((d.text||'').length>60?'\u2026':'')+'</div></div></div>'; }).join('')+'</div>' : '';
@@ -1036,24 +1036,24 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var rows=mems.map(function(m){ var tc=wbTodayCheckin(m.name); var mm=tc?moodMeta(tc.mood):null; return '<div class="lrow"><span class="lnav">'+avatarHTML(m,'lnav__t')+'</span><div class="lrow__main"><div class="lrow__title">'+esc(m.name)+'</div><div class="lrow__sub">'+(tc?(JMOOD_LABELS[tc.mood]+' \u00b7 '+WB_ENERGY[tc.energy]):'Not checked in yet today')+'</div></div>'+(tc?'<span class="jmood" style="--mc:'+(mm?mm.color:'#999')+'"><span class="jmood__dot"></span>'+JMOOD_LABELS[tc.mood]+'</span><button class="ckmeal__b" data-wbcedit="'+tc.id+'" aria-label="Edit">'+J_ICO.pen+'</button>':'<button class="lnup" style="color:var(--m-wellbeing);background:color-mix(in srgb,var(--m-wellbeing) 12%,var(--surface));border-color:color-mix(in srgb,var(--m-wellbeing) 30%,transparent)" data-wbadd="'+esc(m.name)+'">Check in</button>')+'</div>'; }).join('');
  html+='<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">How is everyone today?</h3></div>'+rows+'</div>';
  } else {
- html+=hEmpty(WB_ICO.sun,'Add your people first','Check-ins are per person, a ten-second pulse of mood and energy.','<button class="btn btn--primary" data-modal="member" style="margin-top:4px">'+WB_ICO.plus+'Add member</button>');
+ html+=hEmpty(WB_ICO.sun,'Add your people first','Check ins are per person, a ten second pulse of mood and energy.','<button class="btn btn--primary" data-modal="member" style="margin-top:4px">'+WB_ICO.plus+'Add member</button>');
  }
  var bars=wbMoodBars();
  if(bars) html+='<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">Mood \u00b7 last 14 days</h3></div><div class="jmbars">'+bars+'</div></div>';
  var recent=cs.slice().sort(function(a,b){ var c2=String(b.date).localeCompare(String(a.date)); return c2||(b.createdAt-a.createdAt); }).slice(0,6);
- if(recent.length) html+='<div class="hsec-h" style="margin-top:4px">Recent check-ins</div><div class="hmlist">'+recent.map(checkinRow).join('')+'</div>';
+ if(recent.length) html+='<div class="hsec-h" style="margin-top:4px">Recent check ins</div><div class="hmlist">'+recent.map(checkinRow).join('')+'</div>';
  el.innerHTML=html;
  }
  function careCard(c){
  var wk=careWeekCount(c), tot=c.log.length, tdy=careTodayCount(c);
  var last=c.log.length?c.log[c.log.length-1]:'';
- return '<div class="lncard'+(wbGlowId===c.id?' rlglow':'')+'" style="'+(wbGlowId===c.id?'border-color:var(--m-wellbeing);':'')+'"><div class="lncard__top"><div class="lncard__hl"><div class="lncard__t">'+esc(c.title||'Self-care')+(c.member?' <span class="lnwho" style="color:var(--m-wellbeing);background:color-mix(in srgb,var(--m-wellbeing) 12%,var(--surface));border-color:color-mix(in srgb,var(--m-wellbeing) 26%,transparent)">'+esc(c.member)+'</span>':'')+'</div><div class="lncard__s">'+(wk?wk+'\u00d7 this week':'Not yet this week')+' \u00b7 '+tot+' total'+(last?' \u00b7 last '+jDateLabel(last):'')+'</div></div></div><div class="lncard__acts"><button class="wbdid" data-wbdid="'+c.id+'">'+WB_ICO.check+'I did this</button>'+(tdy?'<button class="rllock__link" style="margin:0" data-wbundo="'+c.id+'">Undo today</button>':'')+'<span class="lncard__sp"></span><button class="ckmeal__b" data-wbsedit="'+c.id+'" aria-label="Edit">'+J_ICO.pen+'</button><button class="ckmeal__b ckmeal__b--del" data-wbsdel="'+c.id+'" aria-label="Delete">'+WB_ICO.x+'</button></div></div>';
+ return '<div class="lncard'+(wbGlowId===c.id?' rlglow':'')+'" style="'+(wbGlowId===c.id?'border-color:var(--m-wellbeing);':'')+'"><div class="lncard__top"><div class="lncard__hl"><div class="lncard__t">'+esc(c.title||'Self care')+(c.member?' <span class="lnwho" style="color:var(--m-wellbeing);background:color-mix(in srgb,var(--m-wellbeing) 12%,var(--surface));border-color:color-mix(in srgb,var(--m-wellbeing) 26%,transparent)">'+esc(c.member)+'</span>':'')+'</div><div class="lncard__s">'+(wk?wk+'\u00d7 this week':'Not yet this week')+' \u00b7 '+tot+' total'+(last?' \u00b7 last '+jDateLabel(last):'')+'</div></div></div><div class="lncard__acts"><button class="wbdid" data-wbdid="'+c.id+'">'+WB_ICO.check+'I did this</button>'+(tdy?'<button class="rllock__link" style="margin:0" data-wbundo="'+c.id+'">Undo today</button>':'')+'<span class="lncard__sp"></span><button class="ckmeal__b" data-wbsedit="'+c.id+'" aria-label="Edit">'+J_ICO.pen+'</button><button class="ckmeal__b ckmeal__b--del" data-wbsdel="'+c.id+'" aria-label="Delete">'+WB_ICO.x+'</button></div></div>';
  }
  function renderWbCare(){
  var el=$('#wbCare'); if(!el) return;
  var arr=FD.data.wellbeing.selfcare;
- var add='<div class="happt-top"><button class="btn btn--primary" data-modal="selfcare">'+WB_ICO.plus+'Add self-care</button>'+(arr.length>1?'<button class="btn btn--soft" data-wbsuggest="1">'+WB_ICO.heart+'Suggest one</button>':'')+(!arr.length?'<button class="btn btn--soft" data-wbseed="1">'+WB_ICO.heart+'Add starter ideas</button>':'')+'</div>';
- if(!arr.length){ el.innerHTML=add+hEmpty(WB_ICO.heart,'Your self-care menu is empty','The little things that refill you, a walk, a call, quiet dhikr. Keep them here, and tap when you\u2019ve done one.',''); return; }
+ var add='<div class="happt-top"><button class="btn btn--primary" data-modal="selfcare">'+WB_ICO.plus+'Add self care</button>'+(arr.length>1?'<button class="btn btn--soft" data-wbsuggest="1">'+WB_ICO.heart+'Suggest one</button>':'')+(!arr.length?'<button class="btn btn--soft" data-wbseed="1">'+WB_ICO.heart+'Add starter ideas</button>':'')+'</div>';
+ if(!arr.length){ el.innerHTML=add+hEmpty(WB_ICO.heart,'Your self care menu is empty','The little things that refill you, a walk, a call, quiet dhikr. Keep them here, and tap when you\u2019ve done one.',''); return; }
  var list=arr.slice().sort(function(a,b){ return careWeekCount(b)-careWeekCount(a) || (b.createdAt-a.createdAt); });
  el.innerHTML=add+'<div class="hmlist">'+list.map(careCard).join('')+'</div>';
  }
@@ -1079,7 +1079,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var el=$('#wbOverview'); if(!el) return;
  var W=FD.data.wellbeing, mems=FD.data.members;
  var add='<div class="happt-top"><button class="btn btn--primary" data-modal="checkin">'+WB_ICO.plus+'Check in</button><button class="btn btn--soft" data-modal="growth">'+WB_ICO.sprout+'Add intention</button></div>';
- if(!W.checkins.length&&!W.selfcare.length&&!W.growth.length){ el.innerHTML=add+hEmpty(WB_ICO.sun,'The quiet heart of the app','Ten-second check-ins, a self-care menu, and intentions that grow through reflection, wellbeing, held gently.',''); return; }
+ if(!W.checkins.length&&!W.selfcare.length&&!W.growth.length){ el.innerHTML=add+hEmpty(WB_ICO.sun,'The quiet heart of the app','Ten second check ins, a self care menu, and intentions that grow through reflection, wellbeing, held gently.',''); return; }
  var t=todayStr();
  var checkedToday=0; mems.forEach(function(m){ if(wbTodayCheckin(m.name)) checkedToday++; });
  var wk=ckWeekDates(0), wset={}; wk.forEach(function(d){wset[d]=1;});
@@ -1089,9 +1089,9 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var avgM=moods.length?Math.round(moods.reduce(function(a,b){return a+b;},0)/moods.length):0;
  var careWk=0; W.selfcare.forEach(function(c){ careWk+=careWeekCount(c); });
  var reflN=0; W.growth.forEach(function(g){ reflN+=g.reflections.length; });
- var stats='<div class="hstats">'+hStat('Checked in today',mems.length?checkedToday+'/'+mems.length:W.checkins.filter(function(c){return c.date===t;}).length,WB_ICO.sun)+hStat('Mood \u00b7 7 days',avgM?JMOOD_LABELS[avgM]:'\u2014',WB_ICO.heart)+hStat('Self-care this week',careWk,WB_ICO.check)+hStat('Reflections',reflN,WB_ICO.sprout)+'</div>';
+ var stats='<div class="hstats">'+hStat('Checked in today',mems.length?checkedToday+'/'+mems.length:W.checkins.filter(function(c){return c.date===t;}).length,WB_ICO.sun)+hStat('Mood \u00b7 7 days',avgM?JMOOD_LABELS[avgM]:'·',WB_ICO.heart)+hStat('Self care this week',careWk,WB_ICO.check)+hStat('Reflections',reflN,WB_ICO.sprout)+'</div>';
  var pend=mems.filter(function(m){return !wbTodayCheckin(m.name);});
- var quick= pend.length? '<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">Still to check in</h3><button class="fcard__link" style="color:var(--m-wellbeing)" data-sub="wellbeing-checkins">Check-ins</button></div>'+pend.slice(0,4).map(function(m){ return '<div class="lrow"><span class="lnav">'+avatarHTML(m,'lnav__t')+'</span><div class="lrow__main"><div class="lrow__title">'+esc(m.name)+'</div></div><button class="lnup" style="color:var(--m-wellbeing);background:color-mix(in srgb,var(--m-wellbeing) 12%,var(--surface));border-color:color-mix(in srgb,var(--m-wellbeing) 30%,transparent)" data-wbadd="'+esc(m.name)+'">Check in</button></div>'; }).join('')+'</div>' : '';
+ var quick= pend.length? '<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">Still to check in</h3><button class="fcard__link" style="color:var(--m-wellbeing)" data-sub="wellbeing-checkins">Check ins</button></div>'+pend.slice(0,4).map(function(m){ return '<div class="lrow"><span class="lnav">'+avatarHTML(m,'lnav__t')+'</span><div class="lrow__main"><div class="lrow__title">'+esc(m.name)+'</div></div><button class="lnup" style="color:var(--m-wellbeing);background:color-mix(in srgb,var(--m-wellbeing) 12%,var(--surface));border-color:color-mix(in srgb,var(--m-wellbeing) 30%,transparent)" data-wbadd="'+esc(m.name)+'">Check in</button></div>'; }).join('')+'</div>' : '';
  var bars=wbMoodBars();
  var moodCard= bars? '<div class="fcard"><div class="fcard__h"><h3 class="fcard__t">Family mood \u00b7 14 days</h3></div><div class="jmbars">'+bars+'</div></div>' : '';
  var ftw=ftWeekStats(null); var wtr=0; mems.forEach(function(m){ wtr+=ntWaterToday(m.name); });
@@ -1249,14 +1249,14 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  if(rlMode==='change'){
  inner='<div class="rllock__t">Change your PIN</div><div class="rllock__s">Enter the current PIN, then choose a new one.</div>'
  +'<input class="rlpin" id="rlCur" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Current PIN">'
- +'<input class="rlpin" id="rlNewA" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="New PIN (4\u20138 digits)">'
+ +'<input class="rlpin" id="rlNewA" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="New PIN (4 to 8 digits)">'
  +'<input class="rlpin" id="rlNewB" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Repeat new PIN">'
  +'<div class="rllock__err" id="rlErr"></div>'
  +'<button class="btn btn--primary rllock__go" data-rlchangesave="1">Save new PIN</button>'
  +'<button class="rllock__link" data-rlcancel="1">Cancel</button>';
  } else if(!R.pinHash){
  inner='<div class="rllock__t">A room of your own</div><div class="rllock__s">This space is just for the two of you, love notes, special dates, little plans. Set a PIN so it opens only for you.</div>'
- +'<input class="rlpin" id="rlPinA" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Choose a PIN (4\u20138 digits)">'
+ +'<input class="rlpin" id="rlPinA" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Choose a PIN (4 to 8 digits)">'
  +'<input class="rlpin" id="rlPinB" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="Repeat the PIN">'
  +'<div class="rllock__err" id="rlErr"></div>'
  +'<button class="btn btn--primary rllock__go" data-rlset="1">Create private space</button>'
@@ -1302,7 +1302,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
       // first-time setup
       lock.innerHTML='<div class="vlock reveal"><div class="vlock__ic"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>'
         +'<div class="vlock__ttl">Create your vault password</div>'
-        +'<div class="vlock__sub">This is separate from your login. It protects your bank details, documents and keys. Choose something strong and memorable \u2014 if you forget it, the vault cannot be recovered.</div>'
+        +'<div class="vlock__sub">This is separate from your login. It protects your bank details, documents and keys. Choose something strong and memorable, if you forget it, the vault cannot be recovered.</div>'
         +'<input id="vaultNewA" class="vlock__in" type="password" placeholder="New vault password" autocomplete="new-password">'
         +'<div id="vaultMeter" class="vlock__meter"><span></span></div>'
         +'<input id="vaultNewB" class="vlock__in" type="password" placeholder="Confirm password" autocomplete="new-password">'
@@ -1402,7 +1402,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var el=$('#rlNotes'); if(!el||!rlUnlocked) return;
  var arr=FD.data.relationship.notes;
  var add='<div class="happt-top"><button class="btn btn--primary" data-modal="relNote">'+RL_ICO.plus+'Write a note</button></div>';
- if(!arr.length){ el.innerHTML=add+hEmpty(RL_ICO.letter,'No notes yet','Little letters for the one you love, a thank-you, a memory, a line that made you think of them. They\u2019ll wait here, safe.',''); return; }
+ if(!arr.length){ el.innerHTML=add+hEmpty(RL_ICO.letter,'No notes yet','Little letters for the one you love, a thank you, a memory, a line that made you think of them. They\u2019ll wait here, safe.',''); return; }
  var list=arr.slice().sort(function(a,b){ var c=String(b.date).localeCompare(String(a.date)); return c||(b.createdAt-a.createdAt); });
  el.innerHTML=add+'<div class="jlist">'+list.map(function(n){return rlNoteCard(n,false);}).join('')+'</div>';
  }
@@ -1544,7 +1544,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
   html+=sec('Today',PJ_ICO.cal,'var(--m-planning)',G.today);
   html+=sec('Upcoming',PJ_ICO.clock,'var(--pjc-travel)',G.upcoming);
   html+=sec('Someday \u00b7 no date',PJ_ICO.box,'var(--pjc-archived)',G.nodate);
-  if(!openN) html+='<div class="plo-quiet">Nothing open '+(pltFilter!=='all'?'for this filter':'\u2014 clear runway, mashallah')+'.</div>';
+  if(!openN) html+='<div class="plo-quiet">Nothing open '+(pltFilter!=='all'?'for this filter':'right now, clear runway, mashallah')+'.</div>';
   if(G.done.length){
    d+=0.05;
    html+='<section class="pj-sec pl-rise" style="animation-delay:'+d.toFixed(2)+'s"><div class="pj-sec__h">'
@@ -1614,7 +1614,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
 
   /* ---- option lists for the project form ---- */
  function pjParentOpts(selfId){
-  var out=['Top level \u2014 a project of its own'];
+  var out=['Top level, a project of its own'];
   pjAllProjects().forEach(function(x){
    if(x.id===selfId || x.status==='archived') return;
    if(!pjCanParent(selfId||'__new__', x.id)) return;
@@ -1624,7 +1624,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  }
  function pjParentValue(pj){
   var par=pjParent(pj);
-  return par ? ('Phase of: '+(par.name||'Untitled')) : 'Top level \u2014 a project of its own';
+  return par ? ('Phase of: '+(par.name||'Untitled')) : 'Top level, a project of its own';
  }
  function pjParentIdFromLabel(label,selfId){
   label=String(label||'');
@@ -1848,7 +1848,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  function pjResultsHTML(){
   var all=FD.data.planning.projects;
   if(!all.length) return hEmpty(PL_ICO.folder,'No projects yet',
-   'Bigger undertakings \u2014 a renovation, Eid preparations, admission paperwork \u2014 broken into tasks that tick a progress bar as they\u2019re done.',
+   'Bigger undertakings, a renovation, Eid preparations, admission paperwork, broken into tasks that tick a progress bar as they\u2019re done.',
    '<button class="btn btn--primary" data-modal="project">'+PL_ICO.plus+'Create your first project</button>');
   var q=pjQuery.trim().toLowerCase();
   if(q){
@@ -1875,7 +1875,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
   var done=pjSortList(all.filter(function(p){ return pjBucket(p)==='completed' && !pjIsSub(p); }));
   var arch=pjSortList(all.filter(function(p){ return pjBucket(p)==='archived'; }));
   if(!active.length){
-   var body=hEmpty(PJ_ICO.party,'All caught up! \ud83c\udf89','Every active project is complete, mashallah. Take a breath \u2014 or start the next one.',
+   var body=hEmpty(PJ_ICO.party,'All caught up! \ud83c\udf89','Every active project is complete, mashallah. Take a breath, or start the next one.',
     '<button class="btn btn--primary" data-modal="project">'+PL_ICO.plus+'New project</button>');
    if(f==='all'){
     if(done.length) body+=pjSection('Completed',PJ_ICO.check,'var(--ok)',done,' pj-sec--done');
@@ -2020,7 +2020,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
    var fam=FD.data.members||[];
    it='<button class="pj-menu__i" type="button" data-pjact="menu" data-pjid="'+p.id+'" data-pjval="main">'+PJ_ICO.back+'Back</button>'
      + '<div class="pj-menu__sep"></div><div class="pj-menu__hd">Assign to</div>';
-   if(!fam.length) return it+'<div class="pj-menu__none">No family members yet \u2014 add them in Family.</div>';
+   if(!fam.length) return it+'<div class="pj-menu__none">No family members yet, add them in Family.</div>';
    var cur=(Array.isArray(p.members)?p.members:[]);
    fam.forEach(function(m){
     var on=cur.indexOf(m.name)>-1;
@@ -2384,7 +2384,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
       + '<span class="pj-phr__n">'+PJ_ICO.up+'</span><span class="pj-phr__m"><span class="pj-phr__t">'+esc((pjParent(p)||{}).name||'')+'</span></span></button>':'')
    + '<div class="pj-dr__sec">Open tasks \u00b7 '+inf.open.length+'</div>'
    + (inf.open.length?'<div class="hmlist">'+inf.open.map(taskRowSlim).join('')+'</div>'
-      :'<div class="docempty">'+(inf.st.total?'All tasks done, project complete! \ud83c\udf89':'No tasks yet \u2014 add the first one above.')+'</div>')
+      :'<div class="docempty">'+(inf.st.total?'All tasks done, project complete! \ud83c\udf89':'No tasks yet, add the first one above.')+'</div>')
    + (doneT.length?'<div class="pj-dr__sec">Completed \u00b7 '+doneT.length+'</div><div class="hmlist">'+doneT.map(taskRowSlim).join('')+'</div>':'')
    + '</div>';
  }
@@ -2438,7 +2438,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
   var days=ckWeekDates(plWeekOff), today=todayStr();
   var tasks=FD.data.planning.tasks;
   var p0=days[0].split('-'), p6=days[6].split('-');
-  var lab=(+p0[2])+' '+MON[+p0[1]-1]+' \u2013 '+(+p6[2])+' '+MON[+p6[1]-1]+' '+p6[0];
+  var lab=(+p0[2])+' '+MON[+p0[1]-1]+' to '+(+p6[2])+' '+MON[+p6[1]-1]+' '+p6[0];
   var sub=(plWeekOff===0)?'This week':(plWeekOff===1?'Next week':(plWeekOff===-1?'Last week':(plWeekOff>0?('In '+plWeekOff+' weeks'):(Math.abs(plWeekOff)+' weeks ago'))));
 
   var head='<div class="plw-nav">'
@@ -2548,7 +2548,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
    + '<span class="plo-card__t">Today\u2019s focus</span><span class="plo-card__sp"></span>'
    + '<button class="plo-link" type="button" data-sub="planning-tasks">All tasks'+PJ_ICO.arrow+'</button></div>'
    + (focus.length?'<div class="plt-list" style="margin-bottom:0">'+focus.map(taskRowSlim).join('')+'</div>'
-      :'<div class="plo-quiet">Nothing needs you today \u2014 enjoy it.</div>')+'</div>';
+      :'<div class="plo-quiet">Nothing needs you today, enjoy it.</div>')+'</div>';
 
   /* coming up */
   var evs=FD.data.events.filter(function(e){ return String(e.date||'').slice(0,10)>=td; })
@@ -2682,7 +2682,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var el=$('#ntOverview'); if(!el) return;
  var N=FD.data.nutrition, meals=N.meals, habits=N.habits;
  var add='<div class="happt-top"><button class="btn btn--primary" data-modal="nmeal">'+NT_ICO.plus+'Log a meal</button><button class="btn btn--soft" data-modal="habit">'+NT_ICO.leaf+'Add habit</button></div>';
- if(!meals.length&&!habits.length&&!N.water.length){ el.innerHTML=add+hEmpty(NT_ICO.apple,'Gentle nutrition, together','A kind food diary, per-person water glasses, and small daily habits, nourishment without the numbers game.',''); return; }
+ if(!meals.length&&!habits.length&&!N.water.length){ el.innerHTML=add+hEmpty(NT_ICO.apple,'Gentle nutrition, together','A kind food diary, per person water glasses, and small daily habits, nourishment without the numbers game.',''); return; }
  var t=todayStr();
  var totalW=0; FD.data.members.forEach(function(m){ totalW+=ntWaterToday(m.name); });
  var mealsToday=meals.filter(function(m){return m.date===t;}).length;
@@ -2775,7 +2775,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var el=$('#ftRoutines'); if(!el) return;
  var arr=FD.data.fitness.routines;
  var add='<div class="happt-top"><button class="btn btn--primary" data-modal="routine">'+FT_ICO.plus+'Add routine</button></div>';
- if(!arr.length){ el.innerHTML=add+hEmpty(FT_ICO.listr,'No routines saved','Save your go-to workouts, exercises, days, and log them with one tap when you\u2019re done.',''); return; }
+ if(!arr.length){ el.innerHTML=add+hEmpty(FT_ICO.listr,'No routines saved','Save your go to workouts, exercises, days, and log them with one tap when you\u2019re done.',''); return; }
  el.innerHTML=add+'<div class="cklist">'+arr.slice().sort(function(a,b){return b.createdAt-a.createdAt;}).map(routineCard).join('')+'</div>';
  }
  function renderFitOverview(){
@@ -2826,7 +2826,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var tpTrip='';
  function tripStatus(t){ var td=todayStr(); if(!t.start&&!t.end) return 'planning'; if(t.end&&t.end<td) return 'past'; if(t.start&&t.start>td) return 'upcoming'; return 'ongoing'; }
  function daysTo(ds){ if(!ds) return null; var p=ds.split('-'); var a=new Date(+p[0],+p[1]-1,+p[2]); var n=new Date(); n.setHours(0,0,0,0); return Math.round((a-n)/86400000); }
- function fmtRange(s,e){ if(s&&e) return jDateLabel(s)+' \u2013 '+jDateLabel(e); if(s) return 'From '+jDateLabel(s); if(e) return 'Until '+jDateLabel(e); return 'Dates to decide'; }
+ function fmtRange(s,e){ if(s&&e) return jDateLabel(s)+' to '+jDateLabel(e); if(s) return 'From '+jDateLabel(s); if(e) return 'Until '+jDateLabel(e); return 'Dates to decide'; }
  function tvCountdown(t){ var st=tripStatus(t); if(st==='ongoing') return 'Happening now \u2708'; if(st==='upcoming'){ var n=daysTo(t.start); if(n===0) return 'Today!'; if(n===1) return 'Tomorrow'; return 'In '+n+' days'; } return ''; }
  var TV_PILL={ongoing:'Happening now',upcoming:'Upcoming',planning:'Planning',past:'Past trip'};
  function tvTravChips(str){ var parts=String(str||'').split(',').map(function(x){return x.trim();}).filter(Boolean); if(!parts.length) return ''; return '<div class="jtags" style="margin-top:9px">'+parts.map(function(p){return '<span class="jtag">'+esc(p)+'</span>';}).join('')+'</div>'; }
@@ -3136,7 +3136,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var steps=gsSteps(); var done=steps.filter(function(s){return s.d;}).length;
  if(done===steps.length){ Store.set(GS_HIDE,'1'); el.innerHTML=''; return; }
  var rows=steps.map(function(s){ return '<div class="gs__row'+(s.d?' is-done':'')+'"><span class="gs__chk">'+(s.d?'<svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':'')+'</span><span class="gs__t">'+s.t+'</span>'+(s.d?'':'<button class="gs__go" data-gsgo="'+s.k+'">Go</button>')+'</div>'; }).join('');
- el.innerHTML='<section class="gs reveal"><div class="gs__head"><div><div class="gs__title">Getting started</div><div class="gs__sub">'+done+' of '+steps.length+' done, a two-minute setup</div></div><button class="gs__x" data-gsgo="hide" aria-label="Dismiss"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="gs__bar"><span style="width:'+Math.round(done/steps.length*100)+'%"></span></div>'+rows+'</section>';
+ el.innerHTML='<section class="gs reveal"><div class="gs__head"><div><div class="gs__title">Getting started</div><div class="gs__sub">'+done+' of '+steps.length+' done, a two minute setup</div></div><button class="gs__x" data-gsgo="hide" aria-label="Dismiss"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="gs__bar"><span style="width:'+Math.round(done/steps.length*100)+'%"></span></div>'+rows+'</section>';
  }
 
  /* ===================== COOKING ===================== */
@@ -3212,7 +3212,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var days=ckWeekDates(ckWeekOff), today=todayStr();
  var byKey={}; FD.data.cooking.meals.forEach(function(m){ var k=m.date+'|'+m.slot; (byKey[k]=byKey[k]||[]).push(m); });
  var p0=days[0].split('-'), p6=days[6].split('-');
- var lab=(+p0[2])+' '+MON[+p0[1]-1]+' \u2013 '+(+p6[2])+' '+MON[+p6[1]-1];
+ var lab=(+p0[2])+' '+MON[+p0[1]-1]+' to '+(+p6[2])+' '+MON[+p6[1]-1];
  var mid=(ckWeekOff===0)?'<span>This week</span>':(ckWeekOff===1?'<span>Next week</span>':(ckWeekOff===-1?'<span>Last week</span>':'<button class="ckwback" data-ckweek="today">Back to this week</button>'));
  var head='<div class="ckwnav"><button class="ckwbtn" data-ckweek="prev" aria-label="Previous week"><svg class="ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><div class="ckwlab"><strong>'+lab+'</strong>'+mid+'</div><button class="ckwbtn" data-ckweek="next" aria-label="Next week"><svg class="ico" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>';
  var grid='<div class="ckweek">'+days.map(function(ds){
@@ -3550,7 +3550,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
       FD.addJournalEntry({ date:today, title:'', body:'', mood:v, tags:[] });
     }
     renderJournalToday();
-    if(typeof flash==='function') flash(MOODS[v].label+' \u2014 noted');
+    if(typeof flash==='function') flash(MOODS[v].label+', noted');
   }
 
   function jtRenderExtra(){
@@ -3831,7 +3831,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
       hit.body=txt;
       try{ FD.save(); }catch(e){}
     } else {
-      FD.addJournalEntry({ date:jToday(), title:jReflTitle(jReflWin)+' \u2014 reflection',
+      FD.addJournalEntry({ date:jToday(), title:jReflTitle(jReflWin)+', reflection',
         body:txt, mood:'', tags:['reflection'], reflKey:k });
     }
     renderJournalReflection();
@@ -3860,7 +3860,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
     if(!rows.length){
       var d=new Date();
       return '<div class="tl__empty">'
-        + '<p>Nothing from this day in earlier years \u2014 yet.</p>'
+        + '<p>Nothing from this day in earlier years, yet.</p>'
         + '<p class="tl__esub">Keep writing, and '
         + d.toLocaleDateString(undefined,{day:'numeric',month:'long'})
         + ' will have something to show you next year.</p></div>';
@@ -3887,7 +3887,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
     var rows=jrAll({type:'milestone'});
     if(!rows.length){
       return '<div class="tl__empty"><p>Keep the moments that matter.</p>'
-        + '<p class="tl__esub">A first step, a hard-won finish, a day that changed something.</p>'
+        + '<p class="tl__esub">A first step, a hard won finish, a day that changed something.</p>'
         + '<button class="btn btn--primary" data-modal="milestone">Add a milestone</button></div>';
     }
     /* a life reads best forwards */
@@ -3928,7 +3928,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
   function jMemCollections(){
     var cols=jCollections();
     var add='<div class="jcol__add">'
-      + '<input class="input" type="text" id="jcolName" placeholder="Name a collection \u2014 Rome trip, Ramadan, 2026\u2026">'
+      + '<input class="input" type="text" id="jcolName" placeholder="Name a collection. Rome trip, Ramadan, 2026\u2026">'
       + '<button class="btn" data-jcoladd>Create</button></div>';
     if(!cols.length){
       return '<div class="tl__empty"><p>Gather what belongs together.</p>'
@@ -4656,7 +4656,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  /* Wellbeing, daily check-in pending (only if they use it) */
  try{
  var chk=(D.wellbeing&&D.wellbeing.checkins)||[];
- if(chk.length){ var hasToday=chk.some(function(c){ return String(c.date||'').slice(0,10)===t; }); if(!hasToday) add('wellbeing','leaf','--m-wellbeing','soon','Today\u2019s check-in is waiting','Wellbeing','wellbeing:checkins'); }
+ if(chk.length){ var hasToday=chk.some(function(c){ return String(c.date||'').slice(0,10)===t; }); if(!hasToday) add('wellbeing','leaf','--m-wellbeing','soon','Today\u2019s check in is waiting','Wellbeing','wellbeing:checkins'); }
  }catch(e){}
 
  /* Cooking, items waiting on the shopping list (gentle) */
@@ -4769,7 +4769,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  push(D.memory&&D.memory.albums,'memory','albums','photo','Album');
  push(D.memory&&D.memory.stories,'memory','stories','pen','Story');
  push(D.memory&&D.memory.capsules,'memory','capsule','capsule','Capsule');
- push(D.wellbeing&&D.wellbeing.selfcare,'wellbeing','selfcare','leaf','Self-care');
+ push(D.wellbeing&&D.wellbeing.selfcare,'wellbeing','selfcare','leaf','Self care');
  push(D.wellbeing&&D.wellbeing.growth,'wellbeing','growth','star','Reflection');
  push(D.legacy&&D.legacy.duas,'legacy','duas','star','Du\u2019a');
  push(D.legacy&&D.legacy.deeds,'legacy','deeds','heart','Deed');
@@ -5177,8 +5177,8 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  var m=String((err&&err.message)||'').toLowerCase();
  try{ var _c=(err&&(err.code||err.status))||''; _authDetail=(_c?_c+': ':'')+String((err&&err.message)||'').slice(0,140); console.warn('Wisal auth error',err); }catch(e){}
  if((m.indexOf('sending')>=0&&m.indexOf('email')>=0)||m.indexOf('not authorized')>=0||(err&&(err.code==='unexpected_failure'||err.status===500))&&m.indexOf('email')>=0) return 'We couldn\u2019t send the email right now. Please try again in a few minutes. If it keeps happening, please tell the Wisal team.';
- if(m.indexOf('captcha')>=0||m.indexOf('timeout-or-duplicate')>=0) return 'The security check expired. It has been refreshed \u2014 wait for the tick, then try again.';
- if(m.indexOf('invalid email')>=0||m.indexOf('email address')>=0&&m.indexOf('invalid')>=0) return 'That email address doesn\u2019t look right \u2014 please check it.';
+ if(m.indexOf('captcha')>=0||m.indexOf('timeout-or-duplicate')>=0) return 'The security check expired. It has been refreshed, wait for the tick, then try again.';
+ if(m.indexOf('invalid email')>=0||m.indexOf('email address')>=0&&m.indexOf('invalid')>=0) return 'That email address doesn\u2019t look right, please check it.';
  if(m.indexOf('rate limit')>=0||m.indexOf('over_email_send_rate_limit')>=0||m.indexOf('too many')>=0||m.indexOf('security purposes')>=0) return 'Too many emails requested just now. Please wait a minute or two and try again.';
  if(m.indexOf('different from the old')>=0||m.indexOf('same as the old')>=0) return 'Please choose a password you haven\u2019t used before.';
  if(m.indexOf('session')>=0&&m.indexOf('missing')>=0) return 'This reset link has expired or was already used. Please request a new one.';
@@ -5211,7 +5211,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
  if(pw){ pw.setAttribute('autocomplete',(m==='in')?'current-password':'new-password'); pw.type='password'; if(m==='reset'||m==='forgot') pw.value=''; }
  if(p2){ p2.value=''; p2.type='password'; }
  if(n&&m==='forgot') n.textContent='Enter the email you signed up with. We\u2019ll send a link to choose a new password.';
- if(n&&m==='reset') n.textContent='Almost done \u2014 pick a new password for your account.';
+ if(n&&m==='reset') n.textContent='Almost done, pick a new password for your account.';
  authErr('');
  }
  function authBackToSignIn(){
@@ -5277,7 +5277,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
         +'<div class="onb__mark"><svg viewBox="0 0 24 24"><circle cx="7.85" cy="12" r="5.7" stroke-dasharray="2.64 3.34 29.84"/><circle cx="16.15" cy="12" r="5.7" stroke-dasharray="20.54 3.34 11.93"/></svg></div>'
         +'<h1 class="onb__h">Welcome to Wisal</h1>'
         +'<p class="onb__eyebrow" style="margin-bottom:16px">Your family\u2019s calm, in one place</p>'
-        +'<p class="onb__p">In a minute or two, I\u2019ll understand what your family needs \u2014 then build you a personal plan to make life calmer and free up your time.</p>'
+        +'<p class="onb__p">In a minute or two, I\u2019ll understand what your family needs, then build you a personal plan to make life calmer and free up your time.</p>'
         +'<button class="btn btn--primary onb__go" data-onbnext>Let\u2019s begin</button>'
         +'<button class="onb__skip" data-onbskip>Skip for now</button>'
       +'</div>';
@@ -5286,7 +5286,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
       html=onbQ('Who is Wisal for?','So I can shape everything around your household.',
         opts.map(function(o){ return onbPill('family',o[0],o[1],onbState.family===o[0]); }).join(''), onbState.family);
     } else if(s===2){
-      html=onbQ('What feels hardest right now?','Pick as many as you like \u2014 be honest, this stays private.',
+      html=onbQ('What feels hardest right now?','Pick as many as you like, be honest, this stays private.',
         ONB_CHALLENGES.map(function(o){ return onbPill('challenges',o[0],o[1],onbState.challenges.indexOf(o[0])>=0); }).join(''), onbState.challenges.length);
     } else if(s===3){
       html=onbQ('Where should we focus first?','Choose the areas you most want Wisal\u2019s help with.',
@@ -5294,7 +5294,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
     } else if(s===4){
       html='<div class="onbc">'
         +'<h2 class="onb__q">One thing that would make life easier?</h2>'
-        +'<p class="onb__qs">In your own words \u2014 the AI will use this to shape your plan. (Optional)</p>'
+        +'<p class="onb__qs">In your own words, the AI will use this to shape your plan. (Optional)</p>'
         +'<textarea class="onb__ta" id="onbGoalInput" placeholder="e.g. Keep track of the kids\u2019 appointments and our monthly budget without the stress\u2026">'+esc(onbState.goal)+'</textarea>'
         +'<div class="onb__q" style="font-size:1rem;margin-top:18px">What should I call you?</div>'
         +'<input class="onb__in" id="onbNameInput" placeholder="Your name" value="'+esc(onbState.name)+'">'
@@ -5381,9 +5381,9 @@ if(space==='finance' && sub==='transactions') renderFinTx();
     // used if the AI call fails, so the user always gets a plan
     var focusLabels=onbState.focus.map(function(k){ for(var i=0;i<ONB_FOCUS.length;i++){ if(ONB_FOCUS[i][0]===k) return ONB_FOCUS[i][1]; } return k; });
     if(!focusLabels.length) focusLabels=['Planning & tasks','Family','Wellbeing'];
-    return { summary:'Here\u2019s a simple starting plan built around what you told me. Take it one step at a time \u2014 Wisal will handle the rest.',
+    return { summary:'Here\u2019s a simple starting plan built around what you told me. Take it one step at a time. Wisal will handle the rest.',
       focus:focusLabels.slice(0,4),
-      steps:['Add your family members so everything connects to the right person.','Log this week\u2019s tasks \u2014 or just ask the AI to add them for you.','Open Home each morning to see your day in 3 seconds.'],
+      steps:['Add your family members so everything connects to the right person.','Log this week\u2019s tasks, or just ask the AI to add them for you.','Open Home each morning to see your day in 3 seconds.'],
       addStarters:true };
   }
   function onbApplyPlan(plan){
@@ -5443,7 +5443,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
           var txt='';
           if(data && data.text){ txt=data.text; }
           else if(data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts){ txt=data.candidates[0].content.parts.map(function(p){return p.text||'';}).join(''); }
-          finish(parsePlan(txt));
+          finish(aiCleanPlan(parsePlan(txt)));
         })
         .catch(function(){ finish(null); });
     }
@@ -5517,7 +5517,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
           +'<div class="onbpw__price"><span class="onbpw__cur">\u09F3</span><span class="onbpw__amt">'+m.amt+'</span><span class="onbpw__per">'+m.per+'</span></div>'
           +'<div class="onbpw__note">'+m.cycleLabel+' \u00b7 cancel anytime</div>'
           +'<ul class="onbpw__feats">'
-            +'<li>'+tick+'<span><b>Unlimited AI</b> \u2014 no monthly cap</span></li>'
+            +'<li>'+tick+'<span><b>Unlimited AI</b>, no monthly cap</span></li>'
             +'<li>'+tick+'<span>Bring your own Gemini key</span></li>'
             +'<li>'+tick+'<span><b>Weekly family insights</b> &amp; reports</span></li>'
             +'<li>'+tick+'<span>Unlimited members &amp; projects</span></li>'
@@ -5596,7 +5596,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
         })
         .catch(function(){
           onbPay.busy=false;
-          onbPay.note='Secure checkout isn\u2019t connected yet. Start on Free for now \u2014 you can upgrade any time from Settings once payments go live.';
+          onbPay.note='Secure checkout isn\u2019t connected yet. Start on Free for now, you can upgrade any time from Settings once payments go live.';
           onbRender();
         });
     };
@@ -5635,7 +5635,7 @@ if(space==='finance' && sub==='transactions') renderFinTx();
    sb.auth.resend({ type:'signup', email:email, options:{ captchaToken:captchaToken, emailRedirectTo:location.origin } }).then(function(res){
      if(b) b.disabled=false; tsReset();
      if(res && res.error){ authErr(authFriendly(res.error)); return; }
-     var n=document.getElementById('authNote'); if(n) n.textContent='Sent again to '+email+' \u2014 check your inbox and spam. If nothing arrives, email confirmation is likely off or unconfigured in Supabase.';
+     var n=document.getElementById('authNote'); if(n) n.textContent='Sent again to '+email+', check your inbox and spam. If nothing arrives, email confirmation is likely off or unconfigured in Supabase.';
    }).catch(function(){ if(b) b.disabled=false; tsReset(); authErr('Could not resend, please try again.'); });
  }
  function doAuth(){
@@ -5644,7 +5644,7 @@ if(_authMode==='forgot'){ doForgot(); return; }
 if(_authMode==='reset'){ doReset(); return; }
  var e=document.getElementById('authEmail'), p=document.getElementById('authPass');
  var email=((e&&e.value)||'').trim(), pass=(p&&p.value)||'';
- if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ authErr('Please enter a valid email \u2014 check for a missing dot, e.g. name@gmail.com'); return; }
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ authErr('Please enter a valid email, check for a missing dot, e.g. name@gmail.com'); return; }
  if(!pass || pass.length<6){ authErr('Password needs at least 6 characters.'); return; }
  var _ts=tsNeed(); if(!_ts.ok){ authErr(_ts.msg); return; } var captchaToken=_ts.token;
  tsReset(); /* single-use token: retire it now and start a fresh one */
@@ -5659,8 +5659,8 @@ if(_authMode==='reset'){ doReset(); return; }
  }
  if(_authMode==='up' && !sess){
  var t=document.getElementById('authTitle'); if(t) t.textContent='Check your email';
- var n=document.getElementById('authNote'); if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in \u2014 check your spam folder too.';
- tsReset(); authSetMode('in'); if(t) t.textContent='Check your email'; if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in \u2014 check your spam folder too.'; authShowResend(true); return;
+ var n=document.getElementById('authNote'); if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in, check your spam folder too.';
+ tsReset(); authSetMode('in'); if(t) t.textContent='Check your email'; if(n) n.textContent='We sent a confirmation link to '+email+'. Tap it, then come back and sign in, check your spam folder too.'; authShowResend(true); return;
  }
  var _newUid=(user&&user.id)||'';
    var _prevUid=Store.get('fw.auth.uid','');
@@ -5709,7 +5709,7 @@ if(_authMode==='reset'){ doReset(); return; }
  try{ cloudPull(); }catch(e){} try{ wisalSyncPlan(); }catch(e){}
  try{ hideAuthGate(); }catch(e){}
  try{ if(!onbDone() && !FD.data.members.length){ onbMaybeStart(); } }catch(e){}
- if(typeof flash==='function') flash('Password updated \u2014 you\u2019re signed in.');
+ if(typeof flash==='function') flash('Password updated, you\u2019re signed in.');
  }).catch(function(){ authBusy(false); authErr('Network error, please try again.'); });
  }
  function acctDelete(){
@@ -5788,7 +5788,7 @@ if(_authMode==='reset'){ doReset(); return; }
      var used = kb>1024 ? (kb/1024).toFixed(1)+' MB' : Math.round(kb)+' KB';
      sm.textContent = where+' \u00b7 '+used+' used';
      sm.className = kb > 3800 ? 'is-tight' : '';
-     if(kb > 3800) sm.title = 'Close to the browser limit \u2014 removing a few photos will help';
+     if(kb > 3800) sm.title = 'Close to the browser limit, removing a few photos will help';
    } }catch(e){}
  try{ var sw2=document.getElementById('sxWho'); if(sw2) sw2.textContent = AUTH.user? (AUTH.user.email||'Signed in') : 'Not signed in, tap Account'; }catch(e){}
  try{ renderSetIndex(); }catch(e){}
@@ -5809,7 +5809,7 @@ if(_authMode==='reset'){ doReset(); return; }
      var dirty = h.indexOf('access_token')>=0 || h.indexOf('refresh_token')>=0 || h.indexOf('type=signup')>=0 || /[?&]code=/.test(s);
      if(!dirty) return;
      try{ history.replaceState({},'',location.pathname); }catch(e){}
-     if(typeof flash==='function') flash('Email confirmed \u2014 welcome to Wisal!');
+     if(typeof flash==='function') flash('Email confirmed, welcome to Wisal!');
    }catch(e){}
  }
  function showAuthGate(){
@@ -5863,8 +5863,8 @@ if(_authMode==='reset'){ doReset(); return; }
  }
  function wisalHandlePaymentReturn(){
    try{ var q=new URLSearchParams(location.search), r=q.get('wisal_pay');
-     if(r==='success'){ wisalSetTier('plus'); try{ Store.set('fw.plan.pending',null); }catch(e){} if(typeof flash==='function') flash('Welcome to Wisal Plus \u2014 thank you!'); try{ wisalSyncPlan(); }catch(e){} }
-     else if(r==='fail'||r==='cancel'){ if(typeof flash==='function') flash('Payment not completed \u2014 you\u2019re still on Free.'); }
+     if(r==='success'){ wisalSetTier('plus'); try{ Store.set('fw.plan.pending',null); }catch(e){} if(typeof flash==='function') flash('Welcome to Wisal Plus, thank you!'); try{ wisalSyncPlan(); }catch(e){} }
+     else if(r==='fail'||r==='cancel'){ if(typeof flash==='function') flash('Payment not completed, you\u2019re still on Free.'); }
      if(r){ try{ history.replaceState({},'',location.pathname); }catch(e){} }
    }catch(e){}
  }
@@ -6211,7 +6211,7 @@ if(_authMode==='reset'){ doReset(); return; }
  g.innerHTML='<div class="chat__signin"><div><span class="chat__signint">Messages stay on this device</span><span class="chat__signins">Sign in so they reach your family, live.</span></div><button class="btn btn--soft" type="button" data-auth-open>Sign in</button></div>';
  } else if(chAlertsAsk()){
  g.hidden=false;
- g.innerHTML='<div class="chat__signin"><div><span class="chat__signint">Get alerted for new messages</span><span class="chat__signins">A gentle sound and a pop-up when your family writes.</span></div><span class="chat__gacts"><button class="btn btn--soft" type="button" data-chat-alerts>Turn on</button><button class="chat__skip" type="button" data-chat-alerts-skip>Not now</button></span></div>';
+ g.innerHTML='<div class="chat__signin"><div><span class="chat__signint">Get alerted for new messages</span><span class="chat__signins">A gentle sound and a popup when your family writes.</span></div><span class="chat__gacts"><button class="btn btn--soft" type="button" data-chat-alerts>Turn on</button><button class="chat__skip" type="button" data-chat-alerts-skip>Not now</button></span></div>';
  } else { g.hidden=true; }
  if(chSignedIn() && cloudEnabled() && !_chLoaded) chLoad();
  try{ renderComm(); }catch(e){}
@@ -6354,7 +6354,7 @@ if(_authMode==='reset'){ doReset(); return; }
  .sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); })[0]||null;
  }catch(e){}
  var stats=hStat('Open tasks',open,PF_ICO.task)+hStat('Chores',chores,PF_ICO.chore)
- +hStat('Spent this month',(tagged? sym+Math.round(spent).toLocaleString() : '\u2014'),PF_ICO.money)
+ +hStat('Spent this month',(tagged? sym+Math.round(spent).toLocaleString() : '·'),PF_ICO.money)
  +hStat('Workouts \u00b7 wk',wk,PF_ICO.fit);
  return '<section class="pf360"><div class="pf360__hd"><h3 class="pf360__t">Life at a glance</h3><span class="pf360__s">everything linked to '+esc(m.name)+'</span></div>'
  +'<div class="hstats pf360__stats">'+stats+'</div>'
@@ -6519,7 +6519,7 @@ if(_authMode==='reset'){ doReset(); return; }
       ['Projects, rebuilt', 'A Current Focus card, projects grouped by area, search and sorting, and assignees you can tap to change.'],
       ['A real weekly calendar', 'The Week view now shows every day with its events and tasks, and you can tick things off right there.'],
       ['Tasks &amp; Overview refreshed', 'Cleaner sections, a daily progress ring, and everything easier to scan.'],
-      ['Wisal AI can now do far more', 'It sees every part of your household and can add to any of them \u2014 shopping, meals, workouts, journal, savings and more.'],
+      ['Wisal AI can now do far more', 'It sees every part of your household and can add to any of them, shopping, meals, workouts, journal, savings and more.'],
       ['AI writes documents', 'Ask for a plan or a report and it writes a proper document on Wisal letterhead that you can save as PDF.'],
       ['Settings, reorganised', 'Grouped sections, a workspace health card, and search.']
     ]
@@ -6788,7 +6788,7 @@ if(_authMode==='reset'){ doReset(); return; }
  moment='<div class="fcard mdmoment"><div class="fcard__h"><h3 class="fcard__t">On this day</h3></div>'+ond.slice(0,3).map(function(o){ var y=(o.d||'').slice(0,4); var yrsAgo=yr-(+y); return '<button class="mdrow" '+o.go+'><span class="mdrow__ic" style="--mc:var(--m-memory)">'+o.ico+'</span><span class="mdrow__main"><span class="mdrow__t">'+esc(o.t)+'</span><span class="mdrow__s">'+(yrsAgo===1?'1 year ago':yrsAgo+' years ago')+'</span></span></button>'; }).join('')+'</div>';
  } else {
  var wis=(D.legacy?D.legacy.wisdom:[]); var dus=(D.legacy?D.legacy.duas:[]);
- if(wis.length){ var w=wis[now.getDate()%wis.length]; moment='<div class="fcard mdmoment mdmoment--quote"><div class="mdq__mark">\u201C</div><div class="mdq__text">'+esc((w.text||'').slice(0,180))+((w.text||'').length>180?'\u2026':'')+'</div><div class="mdq__from">'+(w.from?'\u2014 '+esc(w.from):'\u2014 Family wisdom')+'</div></div>'; }
+ if(wis.length){ var w=wis[now.getDate()%wis.length]; moment='<div class="fcard mdmoment mdmoment--quote"><div class="mdq__mark">\u201C</div><div class="mdq__text">'+esc((w.text||'').slice(0,180))+((w.text||'').length>180?'\u2026':'')+'</div><div class="mdq__from">'+(w.from?'From '+esc(w.from):'Family wisdom')+'</div></div>'; }
  else if(dus.length){ var du=dus[now.getDate()%dus.length]; moment='<div class="fcard mdmoment mdmoment--quote"><div class="fcard__h"><h3 class="fcard__t">A du\u2019a for today</h3></div><div class="mdq__text" style="padding-left:0">'+esc((du.text||'').slice(0,180))+'</div>'+(du.title?'<div class="mdq__from">'+esc(du.title)+'</div>':'')+'</div>'; }
  }
 
@@ -7361,7 +7361,7 @@ if(_authMode==='reset'){ doReset(); return; }
  updateCapsule:function(id,patch){ var x=this.getCapsule(id); if(!x) return; for(var k in patch){ x[k]=patch[k]; } this.save(); },
  removeCapsule:function(id){ this.data.memory.capsules=this.data.memory.capsules.filter(function(x){return x.id!==id;}); this.save(); },
  getCheckin:function(id){ var a=this.data.wellbeing.checkins; for(var i=0;i<a.length;i++){ if(a[i].id===id) return a[i]; } return null; },
- addCheckin:function(c){ c.id=this.uid(); c.createdAt=Date.now(); this.data.wellbeing.checkins.push(c); this.log('wellbeing','Check-in'+(c.member?': '+c.member:'')); this.save(); },
+ addCheckin:function(c){ c.id=this.uid(); c.createdAt=Date.now(); this.data.wellbeing.checkins.push(c); this.log('wellbeing','Check in'+(c.member?': '+c.member:'')); this.save(); },
  updateCheckin:function(id,patch){ var x=this.getCheckin(id); if(!x) return; for(var k in patch){ x[k]=patch[k]; } this.save(); },
  removeCheckin:function(id){ this.data.wellbeing.checkins=this.data.wellbeing.checkins.filter(function(x){return x.id!==id;}); this.save(); },
  getCare:function(id){ var a=this.data.wellbeing.selfcare; for(var i=0;i<a.length;i++){ if(a[i].id===id) return a[i]; } return null; },
@@ -7710,7 +7710,7 @@ if(_authMode==='reset'){ doReset(); return; }
  fields:[{name:'code',label:'Invite code',type:'text',ph:'6 characters, e.g. K7M2QP'}],
  save:function(v){
  var code=String(v.code||'').trim().toUpperCase();
- if(code.length<6) return 'Enter the 6-character code.';
+ if(code.length<6) return 'Enter the 6 character code.';
  if(!cloudEnabled()) return 'Sign in first.';
  syncStatus('syncing\u2026');
  sb.rpc('join_household',{code:code})
@@ -7752,7 +7752,7 @@ if(_authMode==='reset'){ doReset(); return; }
  ],save:function(v){ if(!(v.text&&v.text.trim())) return 'Please write the wisdom.'; var patch={text:v.text.trim(),from:(v.from||'').trim(),when:(v.when||'').trim()}; if(isWI) FD.updateWisdom(ctx.wisdomId,patch); else FD.addWisdom(patch); }};
  }
  if(type==='checkin'||type==='editCheckin'){ var ci=(type==='editCheckin')?(FD.getCheckin(ctx.checkinId)||{}):{}; var isCI=(type==='editCheckin');
- return {title:isCI?'Edit check-in':'How are you?',submit:isCI?'Save':'Check in',done:isCI?'Updated':'Checked in',fields:[
+ return {title:isCI?'Edit check in':'How are you?',submit:isCI?'Save':'Check in',done:isCI?'Updated':'Checked in',fields:[
  {name:'date',label:'Date',type:'date',value:ci.date||todayStr()},
  {name:'member',label:'Who?',type:'select',opts:journalWhoOpts(),value:ci.member||ctx.member||''},
  {name:'mood',label:'Mood',type:'select',opts:JMOOD_LABELS.slice(1),value:JMOOD_LABELS[ci.mood||3]},
@@ -7761,7 +7761,7 @@ if(_authMode==='reset'){ doReset(); return; }
  ],save:function(v){ var mood=JMOOD_LABELS.indexOf(v.mood); if(mood<1) mood=3; var en=WB_ENERGY.indexOf(v.energy); if(en<1) en=3; var patch={date:v.date||todayStr(),member:(v.member&&v.member!=='Not set')?v.member:'',mood:mood,energy:en,note:(v.note||'').trim()}; if(isCI) FD.updateCheckin(ctx.checkinId,patch); else FD.addCheckin(patch); }};
  }
  if(type==='selfcare'||type==='editSelfcare'){ var sc=(type==='editSelfcare')?(FD.getCare(ctx.careId)||{}):{}; var isSC=(type==='editSelfcare');
- return {title:isSC?'Edit self-care':'Add self-care',submit:isSC?'Save':'Add to menu',done:isSC?'Updated':'Added',fields:[
+ return {title:isSC?'Edit self care':'Add self care',submit:isSC?'Save':'Add to menu',done:isSC?'Updated':'Added',fields:[
  {name:'title',label:'The little thing',type:'text',ph:'e.g. Walk after Maghrib',value:sc.title||''},
  {name:'member',label:'Whose? (optional)',type:'select',opts:journalWhoOpts(),value:sc.member||''}
  ],save:function(v){ if(!(v.title&&v.title.trim())) return 'Please name it.'; var patch={title:v.title.trim(),member:(v.member&&v.member!=='Not set')?v.member:''}; if(isSC) FD.updateCare(ctx.careId,patch); else FD.addCare(patch); }};
@@ -7883,7 +7883,7 @@ if(_authMode==='reset'){ doReset(); return; }
   else { patch.status='active'; patch.pinned=false; patch.order=0; patch.parentId=''; FD.addProject(patch);
    var _l=FD.data.planning.projects; _pid=_l.length?_l[_l.length-1].id:''; }
   var _want=pjParentIdFromLabel(v.parent,_pid), _cur=((FD.getProject(_pid)||{}).parentId)||'';
-  if(_want!==_cur && !pjSetParent(_pid,_want)) return 'That would nest too deep \u2014 a phase cannot have phases of its own.';
+  if(_want!==_cur && !pjSetParent(_pid,_want)) return 'That would nest too deep, a phase cannot have phases of its own.';
  }};
  }
  if(type==='nmeal'||type==='editNmeal'){ var nm=(type==='editNmeal')?(FD.getNMeal(ctx.nmealId)||{}):{}; var isNM=(type==='editNmeal');
@@ -8094,7 +8094,7 @@ if(_authMode==='reset'){ doReset(); return; }
  fields:[
  {name:'title',label:'Title',type:'text',value:ev.title||'',ph:'e.g. Dentist appointment'},
  {name:'category',label:'Category',type:'category',value:isEdit?catLabel(ev.category):''},
- {name:'allDay',label:'All-day event',type:'checkbox',value:!!ev.allDay},
+ {name:'allDay',label:'All day event',type:'checkbox',value:!!ev.allDay},
  {name:'date',label:'Date & time',type:'datetime-local',value:dval},
  {name:'location',label:'Location (optional)',type:'text',value:ev.location||'',ph:'e.g. City Clinic'},
  {name:'participants',label:'Participants',type:'participants'},
@@ -8123,10 +8123,10 @@ if(_authMode==='reset'){ doReset(); return; }
  {name:'text',label:'Action item',type:'text',ph:'e.g. Book dentist appointments'},
  {name:'owner',label:'Owner (optional)',type:'select',opts:ownerOpts()}
  ],save:function(v){ if(!v.text) return 'Please enter an action item.'; FD.addEvItem(ctx.meetingId,'actionItems',{text:v.text,owner:v.owner||'',done:false}); }};
- if(type==='followUp') return {title:'Add Follow-up Task',submit:'Add',done:'Follow-up added',fields:[
- {name:'text',label:'Follow-up task',type:'text',ph:'e.g. Revisit budget next month'},
+ if(type==='followUp') return {title:'Add Follow up Task',submit:'Add',done:'Follow up added',fields:[
+ {name:'text',label:'Follow up task',type:'text',ph:'e.g. Revisit budget next month'},
  {name:'owner',label:'Owner (optional)',type:'select',opts:ownerOpts()}
- ],save:function(v){ if(!v.text) return 'Please enter a follow-up task.'; FD.addEvItem(ctx.meetingId,'followUps',{text:v.text,owner:v.owner||'',done:false}); }};
+ ],save:function(v){ if(!v.text) return 'Please enter a follow up task.'; FD.addEvItem(ctx.meetingId,'followUps',{text:v.text,owner:v.owner||'',done:false}); }};
  if(type==='announcement'){ var opts=['Family'].concat(FD.data.members.map(function(mm){return mm.name;})); return {title:'Create Announcement',submit:'Post',done:'Announcement posted',fields:[
  {name:'text',label:'Message',type:'textarea',ph:'Share something with the family\u2026'},
  {name:'author',label:'From',type:'select',opts:opts}
@@ -8139,7 +8139,7 @@ if(_authMode==='reset'){ doReset(); return; }
  {name:'dose',label:'Dose / schedule (optional)',type:'text',ph:'e.g. 1000 IU, once daily'}
  ],save:function(v){ if(!v.name) return 'Please enter a medication.'; FD.addSubItem(ctx.memberId,'medications',{name:v.name,dose:v.dose||''}); }};
  if(type==='record') return {title:'Add Medical Record',submit:'Add',done:'Record added',fields:[
- {name:'title',label:'Title',type:'text',ph:'e.g. Annual check-up'},
+ {name:'title',label:'Title',type:'text',ph:'e.g. Annual check up'},
  {name:'date',label:'Date (optional)',type:'date'},
  {name:'note',label:'Notes (optional)',type:'textarea',ph:'Diagnosis, results, doctor\u2019s notes\u2026'}
  ],save:function(v){ if(!v.title) return 'Please enter a title.'; FD.addSubItem(ctx.memberId,'records',{title:v.title,date:v.date||'',note:v.note||''}); }};
@@ -8188,7 +8188,7 @@ if(_authMode==='reset'){ doReset(); return; }
  if(type==='appointment'){ var defM=(hMember&&FD.getMember(hMember))?hMember:((FD.data.members[0]||{}).id||''); return {title:'Add Appointment',submit:'Add',done:'Appointment added',fields:[
  {name:'member',label:'Who is it for',type:'memberselect',value:defM},
  {name:'apptType',label:'Type',type:'select',opts:APPT_TYPES},
- {name:'title',label:'Title',type:'text',ph:'e.g. Dentist check-up'},
+ {name:'title',label:'Title',type:'text',ph:'e.g. Dentist check up'},
  {name:'date',label:'Date & time',type:'datetime-local'},
  {name:'doctor',label:'Doctor / provider (optional)',type:'text',ph:'e.g. Dr. Smith'},
  {name:'location',label:'Location (optional)',type:'text',ph:'e.g. City Clinic'},
@@ -8299,7 +8299,7 @@ if(_authMode==='reset'){ doReset(); return; }
  else if(f.type==='subtasks'){
  var _arr=Array.isArray(f.value)?f.value:[];
  var _rows=_arr.map(function(s,i){ return '<div class="stw__row'+(s.done?' is-done':'')+'" data-stw-row="'+i+'"><button type="button" class="stw__chk" data-stw-toggle="'+i+'"><span class="stw__box"></span></button><input class="stw__in" data-stw-text="'+i+'" value="'+esc(s.t||'')+'" placeholder="Sub-task"><button type="button" class="stw__del" data-stw-del="'+i+'" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'; }).join('');
- inner='<div class="stw" data-stw><input type="hidden" name="'+f.name+'" data-stw-val>'+'<div class="stw__list" data-stw-list>'+_rows+'</div>'+'<button type="button" class="stw__add" data-stw-add><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add a sub-task</button></div>';
+ inner='<div class="stw" data-stw><input type="hidden" name="'+f.name+'" data-stw-val>'+'<div class="stw__list" data-stw-list>'+_rows+'</div>'+'<button type="button" class="stw__add" data-stw-add><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add a subtask</button></div>';
  }
  else if(f.type==='range') inner='<div class="range-row"><input type="range" name="'+f.name+'" min="'+(f.min||0)+'" max="'+(f.max||100)+'" value="'+(f.val||0)+'"><span class="range-val">'+(f.val||0)+'%</span></div>';
  else if(f.type==='number') inner='<input type="number" inputmode="decimal" step="any" min="0" name="'+f.name+'" placeholder="'+esc(f.ph||'')+'" value="'+esc(f.value||'')+'">';
@@ -8483,10 +8483,10 @@ if(_authMode==='reset'){ doReset(); return; }
  var host=$('#memberDetail'); var m=FD.getMember(id); if(!host||!m){ showMembersList(); return; }
  var age=ageOf(m);
  var ov='';
- ov+='<span class="ovchip"><span class="ovchip__k">Relation</span><span class="ovchip__v">'+(m.relation?esc(m.relation):'\u2014')+'</span></span>';
- ov+='<span class="ovchip"><span class="ovchip__k">Age</span><span class="ovchip__v">'+(age!=null?age:'\u2014')+'</span></span>';
- ov+='<span class="ovchip"><span class="ovchip__k">Blood</span><span class="ovchip__v">'+(m.bloodGroup?esc(m.bloodGroup):'\u2014')+'</span></span>';
- ov+='<span class="ovchip"><span class="ovchip__k">Birthday</span><span class="ovchip__v">'+(m.birthday?ovDate(m.birthday).replace(/ \d{4}$/,''):'\u2014')+'</span></span>';
+ ov+='<span class="ovchip"><span class="ovchip__k">Relation</span><span class="ovchip__v">'+(m.relation?esc(m.relation):'·')+'</span></span>';
+ ov+='<span class="ovchip"><span class="ovchip__k">Age</span><span class="ovchip__v">'+(age!=null?age:'·')+'</span></span>';
+ ov+='<span class="ovchip"><span class="ovchip__k">Blood</span><span class="ovchip__v">'+(m.bloodGroup?esc(m.bloodGroup):'·')+'</span></span>';
+ ov+='<span class="ovchip"><span class="ovchip__k">Birthday</span><span class="ovchip__v">'+(m.birthday?ovDate(m.birthday).replace(/ \d{4}$/,''):'·')+'</span></span>';
  var I=MODAL_ICON;
  var aBody=m.allergies.length?('<div class="chiplist">'+m.allergies.map(function(a){return '<span class="dchip">'+esc(a.text)+'<button class="dchip__x" data-del data-mid="'+m.id+'" data-key="allergies" data-id="'+a.id+'" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>';}).join('')+'</div>'):'<p class="sec__empty">No allergies recorded.</p>';
  var medBody=m.medications.length?m.medications.map(function(x){return '<div class="lrow"><div class="lrow__main"><div class="lrow__title">'+esc(x.name)+'</div>'+(x.dose?'<div class="lrow__sub">'+esc(x.dose)+'</div>':'')+'</div>'+xbtn(m.id,'medications',x.id)+'</div>';}).join(''):'<p class="sec__empty">No medications recorded.</p>';
@@ -8601,7 +8601,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var notesCard='<div class="seccard seccard--wide"><div class="sec__head"><span class="sec__ico">'+I.record+'</span><h4 class="sec__title">Meeting Notes</h4></div><div class="sec__body">'+notesBody+'</div></div>';
  var decCard=secCardE(I.decision,'Decisions',e.id,'decision',evList(e,'decisions','No decisions recorded.',false));
  var aiCard=secCardE(I.actionItem,'Action Items',e.id,'actionItem',evList(e,'actionItems','No action items yet.',true),openMeta(e,'actionItems'));
- var fuCard=secCardE(I.followUp,'Follow-up Tasks',e.id,'followUp',evList(e,'followUps','No follow-up tasks yet.',true),openMeta(e,'followUps'));
+ var fuCard=secCardE(I.followUp,'Follow up Tasks',e.id,'followUp',evList(e,'followUps','No follow up tasks yet.',true),openMeta(e,'followUps'));
  var html='';
  html+='<div class="dtopbar"><button class="backbtn" data-action="meetings-back"><svg class="ico" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg>Meetings</button><span class="dtopbar__sp"></span><button class="iconbtn--sm" data-action="edit-meeting" data-mid="'+e.id+'" aria-label="Edit"><svg class="ico" viewBox="0 0 24 24"><path d="M16.5 4.5l3 3M4.5 19.5l.9-3.6L15 5.3a1.3 1.3 0 0 1 1.8 0l1.9 1.9a1.3 1.3 0 0 1 0 1.8L8.1 18.6 4.5 19.5Z"/></svg></button><button class="iconbtn--sm danger" data-action="del-meeting" data-mid="'+e.id+'" aria-label="Delete"><svg class="ico" viewBox="0 0 24 24"><path d="M19 7 18 19.5a2 2 0 0 1-2 1.5H8a2 2 0 0 1-2-1.5L5 7M3.5 7h17M9.5 7V4.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5V7"/></svg></button></div>';
  html+='<div class="mtg-hero"><div class="mtg-hero__top"><span class="stbadge stbadge--'+st.cls+'">'+st.label+'</span><span class="mtg-hero__date">'+fmtDate(e.date)+' \u00b7 '+fmtTime(e.date)+(e.location?(' \u00b7 '+esc(e.location)):'')+'</span></div><h2 class="mtg-hero__topic">'+esc(e.title)+'</h2></div>';
@@ -8628,7 +8628,7 @@ if(_authMode==='reset'){ doReset(); return; }
  {key:'health',label:'Health',color:'#C75D66',icon:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3s-7-4.4-7-9.4A3.8 3.8 0 0 1 12 8.2a3.8 3.8 0 0 1 7 2.7c0 5-7 9.4-7 9.4Z"/></svg>',
  fields:[{name:'startWeight',label:'Starting weight',type:'number',ph:'e.g. 80'},{name:'currentWeight',label:'Current weight',type:'number',ph:'e.g. 76'},{name:'targetWeight',label:'Target weight',type:'number',ph:'e.g. 70'},{name:'exercisePlan',label:'Exercise plan',type:'text',ph:'e.g. Walk 30 min daily'},{name:'deadline',label:'Target date (optional)',type:'date'}],
  progress:function(g){ var s=gnum(g.startWeight),c=gnum(g.currentWeight),t=gnum(g.targetWeight); if(!s||!t||s===t||!c) return null; return clampPct((s-c)/(s-t)*100); },
- stats:function(g){ var out=[],c=gnum(g.currentWeight),t=gnum(g.targetWeight); if(c||t) out.push({k:'Weight',v:(c?c:'\u2014')+' \u2192 '+(t?t:'\u2014')}); if(g.exercisePlan) out.push({k:'Plan',v:g.exercisePlan}); return out; }},
+ stats:function(g){ var out=[],c=gnum(g.currentWeight),t=gnum(g.targetWeight); if(c||t) out.push({k:'Weight',v:(c?c:'·')+' \u2192 '+(t?t:'·')}); if(g.exercisePlan) out.push({k:'Plan',v:g.exercisePlan}); return out; }},
  {key:'fitness',label:'Fitness',color:'#2E86A8',icon:'<svg class="ico" viewBox="0 0 24 24"><path d="M6.5 9v6M4 10.5v3M17.5 9v6M20 10.5v3M6.5 12h11"/></svg>',
  fields:[{name:'workoutTarget',label:'Workout target',type:'text',ph:'e.g. 4 workouts / week'},{name:'gymDone',label:'Gym sessions done',type:'number',ph:'e.g. 12'},{name:'gymTarget',label:'Gym sessions target',type:'number',ph:'e.g. 30'},{name:'runningDistance',label:'Running distance (km)',type:'number',ph:'e.g. 25'},{name:'deadline',label:'Deadline (optional)',type:'date'}],
  progress:function(g){ var t=gnum(g.gymTarget); return t>0?clampPct(gnum(g.gymDone)/t*100):null; },
@@ -8733,7 +8733,7 @@ if(_authMode==='reset'){ doReset(); return; }
  }
  function calLabel(){
  if(calView==='day') return DOW_FULL[calCursor.getDay()]+', '+calCursor.getDate()+' '+MON[calCursor.getMonth()]+' '+calCursor.getFullYear();
- if(calView==='week'){ var r=calRange(),a=r[0],b=r[1]; return a.getDate()+' '+MON[a.getMonth()]+' \u2013 '+b.getDate()+' '+MON[b.getMonth()]+' '+b.getFullYear(); }
+ if(calView==='week'){ var r=calRange(),a=r[0],b=r[1]; return a.getDate()+' '+MON[a.getMonth()]+' to '+b.getDate()+' '+MON[b.getMonth()]+' '+b.getFullYear(); }
  if(calView==='year') return ''+calCursor.getFullYear();
  return MONTHS_FULL[calCursor.getMonth()]+' '+calCursor.getFullYear();
  }
@@ -8758,7 +8758,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var r=calRange(),map=bucketByDay(expandEvents(r[0],r[1])); var s=new Date(r[0]),today=ymdKey(new Date());
  var cols='';
  for(var i=0;i<7;i++){ var d=new Date(s); d.setDate(s.getDate()+i); var key=ymdKey(d),items=map[key]||[],tod=(key===today)?' is-today':'';
- var list=items.length?items.map(evRow).join(''):'<div class="wk-empty">\u2014</div>';
+ var list=items.length?items.map(evRow).join(''):'<div class="wk-empty">·</div>';
  cols+='<div class="wk-day'+tod+'"><button class="wk-dayhd" data-day="'+key+'"><span class="wk-dow">'+DOW[d.getDay()]+'</span><span class="wk-dnum">'+d.getDate()+'</span></button><div class="wk-list">'+list+'</div></div>';
  }
  return '<div class="wk-grid">'+cols+'</div>';
@@ -8768,7 +8768,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var allday=items.filter(function(o){return o.allDay;}),timed=items.filter(function(o){return !o.allDay;});
  if(!items.length) return '<div class="day-empty"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="5.2" width="16" height="14.8" rx="2.2"/><path d="M4 9.4h16M8.2 3.4v3.4M15.8 3.4v3.4"/></svg><p>Nothing planned for this day.</p><button class="btn btn--primary" data-modal="event"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add event</button></div>';
  var out='';
- if(allday.length) out+='<div class="day-sec"><div class="day-seclbl">All-day</div><div class="day-list">'+allday.map(evRow).join('')+'</div></div>';
+ if(allday.length) out+='<div class="day-sec"><div class="day-seclbl">All day</div><div class="day-list">'+allday.map(evRow).join('')+'</div></div>';
  if(timed.length) out+='<div class="day-sec"><div class="day-seclbl">Schedule</div><div class="day-list">'+timed.map(evRow).join('')+'</div></div>';
  return '<div class="day-wrap">'+out+'</div>';
  }
@@ -8990,7 +8990,7 @@ if(_authMode==='reset'){ doReset(); return; }
       projs.forEach(function(p){
         var pt=tasks.filter(function(t){return t.projectId===p.id;});
         var done=pt.filter(function(t){return t.done;}).length;
-        S.push('- '+(p.name||'Project')+': '+done+'/'+pt.length+' tasks done'+(p.note?' \u2014 '+p.note:''));
+        S.push('- '+(p.name||'Project')+': '+done+'/'+pt.length+' tasks done'+(p.note?' · '+p.note:''));
       });
     }
     var fin=d.finance||{};
@@ -9051,7 +9051,7 @@ if(_authMode==='reset'){ doReset(); return; }
       var wToday=water.filter(function(w){ return String(w.date||'')===today; }).reduce(function(a,w){ return a+(+w.glasses||+w.amount||1); },0);
       if(nToday.length||wToday||habits.length){
         var nL=[];
-        if(nToday.length) nL.push('- Today\u2019s meals logged: '+_list(nToday,6,function(m){ return (m.meal||'')+' \u2013 '+_cut(m.what,40)+(m.member?' ('+m.member+')':''); }));
+        if(nToday.length) nL.push('- Today\u2019s meals logged: '+_list(nToday,6,function(m){ return (m.meal||'')+' to '+_cut(m.what,40)+(m.member?' ('+m.member+')':''); }));
         if(wToday) nL.push('- Water today: '+wToday+' glass(es)');
         if(habits.length) nL.push('- Habits tracked: '+_list(habits,8,function(h){ return (h.title||'habit')+(h.member?' ('+h.member+')':''); }));
         S.push('\n## Nutrition\n'+nL.join('\n'));
@@ -9106,14 +9106,14 @@ if(_authMode==='reset'){ doReset(); return; }
           });
           (t.tasks||[]).forEach(function(x){
             if(x.done) return;
-            tL.push('  · to do: '+x.title+(x.due?' by '+x.due:'')+(x.who?' \u2014 '+x.who:''));
+            tL.push('  · to do: '+x.title+(x.due?' by '+x.due:'')+(x.who?' · '+x.who:''));
           });
           try{
             var mine=trdPackItems(t).filter(function(p){ return !p.done; });
             var byWho={};
             mine.forEach(function(p){ var w=p.who||'unassigned'; byWho[w]=(byWho[w]||0)+1; });
             var whoTxt=Object.keys(byWho).map(function(w){ return w+': '+byWho[w]; }).join(', ');
-            if(whoTxt) tL.push('  · still to pack \u2014 '+whoTxt);
+            if(whoTxt) tL.push('  · still to pack, '+whoTxt);
           }catch(e){}
           (t.contacts||[]).forEach(function(c){
             tL.push('  · contact: '+(c.name||'')+(c.role?' ('+c.role+')':'')+(c.phone?' '+c.phone:''));
@@ -9185,7 +9185,7 @@ if(_authMode==='reset'){ doReset(); return; }
         var gL=[];
         if(dua.length) gL.push('- Duas saved: '+_list(dua,6,function(x){ return _cut(x.title,40); }));
         if(deed.length) gL.push('- Good deeds logged: '+deed.length+'. Recent: '+_list(deed,4,function(x){ return _cut(x.what,35)+(x.date?' ('+x.date+')':''); }));
-        if(wis.length) gL.push('- Wisdom notes: '+_list(wis,4,function(x){ return _cut(x.text,45)+(x.from?' \u2014 '+x.from:''); }));
+        if(wis.length) gL.push('- Wisdom notes: '+_list(wis,4,function(x){ return _cut(x.text,45)+(x.from?' · '+x.from:''); }));
         S.push('\n## Faith & legacy\n'+gL.join('\n'));
       }
 
@@ -9321,7 +9321,7 @@ if(_authMode==='reset'){ doReset(); return; }
 
     /* --- wellbeing --- */
     checkin:         function(a){ FD.addCheckin({ date:aiStr(a.date)||aiToday(), member:aiStr(a.member), mood:aiStr(a.mood), energy:aiStr(a.energy), note:aiStr(a.note) }); },
-    selfcare:        function(a){ FD.addCare({ title:aiStr(a.title)||'Self-care', member:aiStr(a.member) }); },
+    selfcare:        function(a){ FD.addCare({ title:aiStr(a.title)||'Self care', member:aiStr(a.member) }); },
     growth:          function(a){ FD.addGrowth({ title:aiStr(a.title)||'Growth goal', member:aiStr(a.member), why:aiStr(a.why) }); },
 
     /* --- memories --- */
@@ -9342,8 +9342,8 @@ if(_authMode==='reset'){ doReset(); return; }
     shopping:'Shopping item', recipe:'Recipe', mealplan:'Planned meal',
     nmeal:'Meal log', habit:'Habit', workout:'Workout', fitgoal:'Fitness goal', routine:'Routine',
     course:'Course', book:'Book', skill:'Skill', trip:'Trip', idea:'Travel idea',
-    journal:'Journal entry', milestone:'Milestone', checkin:'Well-being check-in',
-    selfcare:'Self-care item', growth:'Growth goal', album:'Photo album', story:'Family story',
+    journal:'Journal entry', milestone:'Milestone', checkin:'Well being check in',
+    selfcare:'Self care item', growth:'Growth goal', album:'Photo album', story:'Family story',
     capsule:'Time capsule', dua:'Dua', deed:'Good deed', wisdom:'Wisdom note'
   };
 
@@ -9359,7 +9359,7 @@ if(_authMode==='reset'){ doReset(); return; }
     return s;
   }
   function aiDocMd(src){
-    var lines=String(src||'').replace(/\r/g,'').split('\n');
+    var lines=aiClean(String(src||'')).replace(/\r/g,'').split('\n');
     var out=[], i=0;
     function listBlock(ordered, baseIndent){
       var tag=ordered?'ol':'ul', html='<'+tag+'>';
@@ -9587,7 +9587,8 @@ if(_authMode==='reset'){ doReset(); return; }
       + "If asked about something not in the snapshot, say you don't see it yet and suggest where they can add it. "
       + "Be concise, kind and practical. Match the user's language (they often write in Bengali/Banglish or English). "
       + "You may reference specific members, tasks or amounts from the snapshot to be helpful. "
-      + "Respect privacy: this data is the family's own.\n\n"
+      + "Respect privacy: this data is the family's own. "
+      + "Writing style: plain, natural sentences. Never use em dashes or en dashes, never join words with hyphens, and do not use asterisks except for bold. Use commas, full stops or the word to instead.\n\n"
       + "=== ACTIONS YOU CAN TAKE ===\n"
       + "You can DO things in the app, not just talk. When the user asks you to add, create, schedule, remind, or log something, respond with a short friendly sentence AND include an action block at the very end of your message.\n"
       + "Use this EXACT format on its own line (you may include more than one):\n"
@@ -9651,6 +9652,7 @@ if(_authMode==='reset'){ doReset(); return; }
       + "- Ground every section in the snapshot: real member names, real task titles, real amounts, real dates. If the snapshot lacks something, say so plainly instead of inventing it.\n"
       + "- Use a markdown TABLE whenever you present money, dates, owners or comparisons \u2014 header row, then '|---|' separator, then rows.\n"
       + "- Use '##' for sections and '###' for sub-sections. Use '-' bullets and '1.' numbered steps. Bold key figures with **.\n"
+      + "- Write in plain sentences. Never use em dashes, en dashes or hyphens between words.\n"
       + "- Assign owners and dates on checklists so the family can act on it.\n"
       + "- JSON safety: the body is ONE JSON string. Write every line break as \\n, escape any double quote as \\\", and never put a raw newline inside it.\n"
       + "- Keep your chat reply to one short sentence; the document carries the detail.\n"
@@ -9682,7 +9684,7 @@ if(_authMode==='reset'){ doReset(); return; }
   }
   function aiFinishReply(out){
     var parsed=aiParseActions(out);
-    var msg={role:'assistant', content:parsed.text, ts:Date.now()};
+    var msg={role:'assistant', content:aiClean(parsed.text), ts:Date.now()};
     if(parsed.actions.length){ msg.actions=parsed.actions; msg.actionState='pending'; }
     if(parsed.docs && parsed.docs.length){ msg.docs=parsed.docs; }
     aiThread.push(msg);
@@ -9765,7 +9767,7 @@ if(_authMode==='reset'){ doReset(); return; }
       if(spent>=1000000) return sym+r1(spent/1000000)+'M';
       if(spent>=1000) return sym+r1(spent/1000)+'k';
       return sym+Math.round(spent);
-    }catch(e){ return '\u2014'; }
+    }catch(e){ return '·'; }
   }
   function aiSnapStats(){
     var d=FD.data;
@@ -9776,9 +9778,33 @@ if(_authMode==='reset'){ doReset(); return; }
     var evs=(d.events||[]).filter(function(e){ return String(e.date||'').slice(0,10)>=td; }).length;
     return [['Members',mem],['Tasks',openT],['Upcoming',evs],['Money',aiMoneyChip()]];
   }
+  /* AI replies: plain sentences only. No em or en dashes, no hyphens joining words (code, links and emails are left alone). */
+  function aiClean(t){
+    t=String(t==null?'':t);
+    var JOIN={'e-mail':'email','sub-task':'subtask','sub-tasks':'subtasks','pop-up':'popup','follow-up':'follow up','to-do':'task','to-dos':'tasks'};
+    var parts=t.split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/\S+|[\w.+-]+@[\w-]+\.[\w.-]+)/);
+    for(var i=0;i<parts.length;i+=2){
+      parts[i]=parts[i]
+        .replace(/(\d)[ \t]*[\u2013\u2014][ \t]*(\d)/g,'$1 to $2')
+        .replace(/(^|\n)[ \t]*[\u2013\u2014][ \t]*/g,'$1')
+        .replace(/[ \t]*[\u2013\u2014][ \t]*/g,', ')
+        .replace(/(\d)-(?=[A-Za-z])/g,'$1 ')
+        .replace(/([A-Za-z\u0980-\u09FF]+)-([A-Za-z\u0980-\u09FF]+)/g,function(m,a,b){ var k=(a+'-'+b).toLowerCase(); return JOIN[k]!==undefined?JOIN[k]:a+' '+b; });
+    }
+    return parts.join('').replace(/,[ \t]*,/g,',');
+  }
+  function aiCleanPlan(plan){
+    if(!plan||typeof plan!=='object') return plan;
+    try{
+      if(typeof plan.summary==='string') plan.summary=aiClean(plan.summary);
+      if(Array.isArray(plan.focus)) plan.focus=plan.focus.map(function(x){ return typeof x==='string'?aiClean(x):x; });
+      if(Array.isArray(plan.steps)) plan.steps=plan.steps.map(function(x){ return typeof x==='string'?aiClean(x):x; });
+    }catch(e){}
+    return plan;
+  }
   function aiMd(t){
     // tiny, safe markdown -> html (bold, italics, line breaks, bullets)
-    var s=esc(t);
+    var s=esc(aiClean(t));
     s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
     s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
     s=s.replace(/^\s*[-\u2022]\s+(.*)$/gm,'<span class="aim-li">$1</span>');
@@ -9789,7 +9815,7 @@ if(_authMode==='reset'){ doReset(); return; }
     return '<div class="aikey">'
       +'<div class="aikey__ic"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg></div>'
       +'<div class="aikey__ttl">'+(isBad?'That key did not work':'Use your own AI key (optional)')+'</div>'
-      +'<div class="aikey__sub">'+(isBad?'Please double-check the key and paste it again.':'The AI already works for free. If you ever hit the daily limit, add your own free Gemini key here for unlimited use \u2014 it stays private on this device.')+'</div>'
+      +'<div class="aikey__sub">'+(isBad?'Please double check the key and paste it again.':'The AI already works for free. If you ever hit the daily limit, add your own free Gemini key here for unlimited use, it stays private on this device.')+'</div>'
       +'<a class="aikey__link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key from Google AI Studio →</a>'
       +'<div class="aikey__row"><input id="aiKeyInput" class="aikey__in" type="password" placeholder="Paste your Gemini API key" autocomplete="off"><button type="button" class="aikey__save" data-aikeysave>Save</button></div>'
       +'<div class="aikey__hint">Your key is stored only in this browser, never sent to us.</div>'
@@ -9838,7 +9864,7 @@ if(_authMode==='reset'){ doReset(); return; }
       ];
       msgs='<div class="aiwelcome">'
         +'<p class="aiwelcome__t">Ask me anything about your family.</p>'
-        +'<p class="aiwelcome__s">I can see your members, tasks, projects, finances, events and home \u2014 all private to you.</p>'
+        +'<p class="aiwelcome__s">I can see your members, tasks, projects, finances, events and home, all private to you.</p>'
         +'<div class="aiprompts">'+prompts.map(function(p){ return '<button type="button" class="aiprompt" data-aiask="'+esc(p).replace(/"/g,'&quot;')+'">'+esc(p)+'</button>'; }).join('')+'</div>'
       +'</div>';
     } else {
@@ -9937,7 +9963,7 @@ if(_authMode==='reset'){ doReset(); return; }
 
  /* ---- Reset ---- */
  function resetAll(){
- if(!window.confirm('This clears EVERYTHING on this device, members, health records, finances, documents and settings. If cloud sync is on, your cloud copy stays safe and sign-in will restore it. Continue?')) return;
+ if(!window.confirm('This clears EVERYTHING on this device, members, health records, finances, documents and settings. If cloud sync is on, your cloud copy stays safe and sign in will restore it. Continue?')) return;
  Store.clearAll();
  if(history.replaceState) history.replaceState(null,'',location.pathname+location.search);
  location.reload();
@@ -10450,7 +10476,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var rlc = e.target.closest('[data-rlchange]');
  if(rlc){ rlMode='change'; renderRelLock(); return; }
  var rlcs = e.target.closest('[data-rlchangesave]');
- if(rlcs){ var _cur=($('#rlCur')||{}).value||'', _na=($('#rlNewA')||{}).value||'', _nb=($('#rlNewB')||{}).value||''; if(!/^[0-9]{4,8}$/.test(_na)){ rlErr('New PIN must be 4\u20138 digits.'); return; } if(_na!==_nb){ rlErr('The new PINs don\u2019t match.'); return; } rlHash(_cur,FD.data.relationship.pinSalt,function(h){ if(h!==FD.data.relationship.pinHash){ rlErr('Current PIN isn\u2019t right.'); return; } var _s2=rlRandSalt(); rlHash(_na,_s2,function(h2){ FD.setRelPin(h2,_s2); rlMode='unlock'; renderRelLock(); flash('PIN changed'); }); }); return; }
+ if(rlcs){ var _cur=($('#rlCur')||{}).value||'', _na=($('#rlNewA')||{}).value||'', _nb=($('#rlNewB')||{}).value||''; if(!/^[0-9]{4,8}$/.test(_na)){ rlErr('New PIN must be 4 to 8 digits.'); return; } if(_na!==_nb){ rlErr('The new PINs don\u2019t match.'); return; } rlHash(_cur,FD.data.relationship.pinSalt,function(h){ if(h!==FD.data.relationship.pinHash){ rlErr('Current PIN isn\u2019t right.'); return; } var _s2=rlRandSalt(); rlHash(_na,_s2,function(h2){ FD.setRelPin(h2,_s2); rlMode='unlock'; renderRelLock(); flash('PIN changed'); }); }); return; }
  var rlx = e.target.closest('[data-rlcancel]');
  if(rlx){ rlMode='unlock'; renderRelLock(); return; }
  var rlsn = e.target.closest('[data-rlsince]');
@@ -10502,7 +10528,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var wbce = e.target.closest('[data-wbcedit]');
  if(wbce){ openModal('editCheckin',{checkinId:wbce.getAttribute('data-wbcedit')}); return; }
  var wbcd = e.target.closest('[data-wbcdel]');
- if(wbcd){ if(window.confirm('Delete this check-in?')){ FD.removeCheckin(wbcd.getAttribute('data-wbcdel')); if($('#wbCheckins')) renderWbCheckins(); if($('#wbOverview')) renderWbOverview(); flash('Deleted'); } return; }
+ if(wbcd){ if(window.confirm('Delete this check in?')){ FD.removeCheckin(wbcd.getAttribute('data-wbcdel')); if($('#wbCheckins')) renderWbCheckins(); if($('#wbOverview')) renderWbOverview(); flash('Deleted'); } return; }
  var wbd = e.target.closest('[data-wbdid]');
  if(wbd){ FD.logCare(wbd.getAttribute('data-wbdid')); wbGlowId=''; if($('#wbCare')) renderWbCare(); if($('#wbOverview')) renderWbOverview(); flash(WB_AFFIRM[Math.floor(Math.random()*WB_AFFIRM.length)]); return; }
  var wbu = e.target.closest('[data-wbundo]');
@@ -10510,7 +10536,7 @@ if(_authMode==='reset'){ doReset(); return; }
  var wbse = e.target.closest('[data-wbsedit]');
  if(wbse){ openModal('editSelfcare',{careId:wbse.getAttribute('data-wbsedit')}); return; }
  var wbsd = e.target.closest('[data-wbsdel]');
- if(wbsd){ if(window.confirm('Remove this from the self-care menu?')){ FD.removeCare(wbsd.getAttribute('data-wbsdel')); renderWbCare(); if($('#wbOverview')) renderWbOverview(); flash('Removed'); } return; }
+ if(wbsd){ if(window.confirm('Remove this from the self care menu?')){ FD.removeCare(wbsd.getAttribute('data-wbsdel')); renderWbCare(); if($('#wbOverview')) renderWbOverview(); flash('Removed'); } return; }
  var wbss = e.target.closest('[data-wbseed]');
  if(wbss){ WB_STARTERS.forEach(function(t){ FD.addCare({title:t,member:'',log:[]}); }); renderWbCare(); flash('Starter ideas added'); return; }
  var wbsu = e.target.closest('[data-wbsuggest]');
@@ -11154,7 +11180,7 @@ if(_authMode==='reset'){ doReset(); return; }
     var pk=tvPackStats(t.id);
 
     var stats=[
-      ['Days away', n? (n+1)+'' : '\u2014'],
+      ['Days away', n? (n+1)+'' : '·'],
       ['Travellers', String(Math.max(1,(t.travelers||[]).length||1))],
       ['Spent', spent? fmtMoney(spent) : 'Nothing recorded'],
       ['Plans kept', String((t.itinerary||[]).length)],
@@ -11187,7 +11213,7 @@ if(_authMode==='reset'){ doReset(); return; }
       + '</div>'
       + memory
       + (pk.total && pk.done<pk.total
-          ? '<div class="sum__note">'+(pk.total-pk.done)+' packing items were never ticked off \u2014 harmless now.</div>' : '')
+          ? '<div class="sum__note">'+(pk.total-pk.done)+' packing items were never ticked off, harmless now.</div>' : '')
       + '</div>';
   }
 
@@ -11199,10 +11225,10 @@ if(_authMode==='reset'){ doReset(); return; }
   function trdOverviewFacts(t){
     var r=trdReadiness(t), left=trdRemaining(t), n=trdNights(t);
     var facts=[
-      ['Destination', t.dest||'\u2014'],
+      ['Destination', t.dest||'·'],
       ['Departure', t.start? fmtDate(t.start) : 'To decide'],
       ['Return', t.end? fmtDate(t.end) : 'To decide'],
-      ['Duration', n? (n+' night'+(n>1?'s':'')) : '\u2014'],
+      ['Duration', n? (n+' night'+(n>1?'s':'')) : '·'],
       ['Travellers', (t.travelers&&t.travelers.length)? t.travelers.join(', ') : 'Everyone'],
       ['Packing', r.pack.total? (r.pack.done+' of '+r.pack.total+' packed') : 'Not started'],
       ['Spent', (t.expenses&&t.expenses.length)? fmtMoney(trdSpent(t)) : 'Nothing yet']
@@ -11299,7 +11325,7 @@ if(_authMode==='reset'){ doReset(); return; }
         + '</button>'
         + (evs.length ? '<div class="itn__line">' + evs.map(function(ev){
               return '<div class="itn__ev">'
-                + '<span class="itn__t">'+esc(fmt12(ev.time)||'\u2014')+'</span>'
+                + '<span class="itn__t">'+esc(fmt12(ev.time)||'·')+'</span>'
                 + '<span class="itn__c"><span class="itn__title">'+esc(ev.title)+'</span>'
                 + ((ev.place||ev.cost)
                     ? '<span class="itn__bits">'
@@ -11370,9 +11396,9 @@ if(_authMode==='reset'){ doReset(); return; }
 
     var planned = trdPlanned(t);
     var head = '<div class="bdg__top">'
-      + '<div class="bdg__t"><div class="bdg__tl">Estimated</div><div class="bdg__tv">'+(est?fmtMoney(est):'\u2014')+'</div></div>'
+      + '<div class="bdg__t"><div class="bdg__tl">Estimated</div><div class="bdg__tv">'+(est?fmtMoney(est):'·')+'</div></div>'
       + '<div class="bdg__t bdg__t--spent"><div class="bdg__tl">Spent</div><div class="bdg__tv">'+fmtMoney(spent)+'</div></div>'
-      + '<div class="bdg__t '+(est&&left<0?'bdg__t--over':'bdg__t--left')+'"><div class="bdg__tl">'+(left<0?'Over by':'Remaining')+'</div><div class="bdg__tv">'+(est?fmtMoney(Math.abs(left)):'\u2014')+'</div></div>'
+      + '<div class="bdg__t '+(est&&left<0?'bdg__t--over':'bdg__t--left')+'"><div class="bdg__tl">'+(left<0?'Over by':'Remaining')+'</div><div class="bdg__tv">'+(est?fmtMoney(Math.abs(left)):'·')+'</div></div>'
       + '</div>'
       + (planned ? '<div class="bdg__planned">Planned on the itinerary: <b>'+fmtMoney(planned)+'</b>'
           + (est ? ' \u00b7 '+Math.round(planned/est*100)+'% of the budget' : '')+'</div>' : '')
@@ -11688,7 +11714,7 @@ if(_authMode==='reset'){ doReset(); return; }
             + '<span class="tvmap__k"><i class="tvmap__i tvmap__i--planning"></i>Dreaming</span>'
             + '</div>'
           : '<div class="tvmap__empty">Add a trip with a destination and it will appear here.</div>')
-      + (missing>0 ? '<div class="tvmap__note">'+missing+' trip'+(missing===1?'':'s')+' not placed \u2014 try a city or country name.</div>' : '')
+      + (missing>0 ? '<div class="tvmap__note">'+missing+' trip'+(missing===1?'':'s')+' not placed, try a city or country name.</div>' : '')
       + '</div>';
   }
 
@@ -11826,7 +11852,7 @@ if(_authMode==='reset'){ doReset(); return; }
     if(!(parseFloat(t.budget)||0))
       return {tone:'calm', text:'No budget set for this trip', act:'budget', cta:'Set a budget'};
     if(r.pc>=100) return {tone:'done', text:'Everything is ready', act:'', cta:''};
-    return {tone:'calm', text:'Keep going \u2014 '+(100-r.pc)+'% left', act:'overview', cta:'See what is left'};
+    return {tone:'calm', text:'Keep going, '+(100-r.pc)+'% left', act:'overview', cta:'See what is left'};
   }
 
   /* ==================== TRAVEL DAY ====================
@@ -11871,7 +11897,7 @@ if(_authMode==='reset'){ doReset(); return; }
 
     var nextCard = L.next
       ? '<div class="live__next"><div class="live__nlbl">Next</div>'
-        + '<div class="live__nrow"><span class="live__nt">'+esc(fmt12(L.next.time)||'\u2014')+'</span>'
+        + '<div class="live__nrow"><span class="live__nt">'+esc(fmt12(L.next.time)||'·')+'</span>'
         + '<span class="live__ntt">'+esc(L.next.title)+'</span></div>'
         + (L.next.note? '<div class="live__nn">'+esc(L.next.note)+'</div>' : '')
         + '</div>'
@@ -11884,7 +11910,7 @@ if(_authMode==='reset'){ doReset(); return; }
     var rest = L.later.length
       ? '<div class="trd__secH">Later today</div><div class="itn__line">'
         + L.later.map(function(e){
-            return '<div class="itn__ev"><span class="itn__t">'+esc(fmt12(e.time)||'\u2014')+'</span>'
+            return '<div class="itn__ev"><span class="itn__t">'+esc(fmt12(e.time)||'·')+'</span>'
               + '<span class="itn__c"><span class="itn__title">'+esc(e.title)+'</span></span></div>';
           }).join('') + '</div>'
       : '';
@@ -11991,7 +12017,7 @@ if(_authMode==='reset'){ doReset(); return; }
             + (c.note? '<div class="trx__ref">'+esc(c.note)+'</div>' : '')
             + '</div>';
         }).join('')+'</div>'
-      : '<div class="itn__empty">Add the hotel, a doctor, the embassy, someone at home \u2014 anyone worth reaching in a hurry.</div>';
+      : '<div class="itn__empty">Add the hotel, a doctor, the embassy, someone at home, anyone worth reaching in a hurry.</div>';
 
     return lines
       + '<div class="trd__secH" style="margin-top:24px">People to reach</div>'
@@ -12100,7 +12126,7 @@ if(_authMode==='reset'){ doReset(); return; }
       + '<div class="tjread__body">'
         + '<div class="tjread__d">'+esc(fmtDate(j.date))+'</div>'
         + '<div class="tjread__place">'+esc(t.dest||t.name||'This journey')+'</div>'
-        + (j.text? '<div class="tjread__t">'+esc(j.text)+'</div>' : '<div class="tjread__t tjread__t--none">No words for this one \u2014 just the picture.</div>')
+        + (j.text? '<div class="tjread__t">'+esc(j.text)+'</div>' : '<div class="tjread__t tjread__t--none">No words for this one, just the picture.</div>')
         + '<div class="tjread__meta">'+(words? words+' word'+(words===1?'':'s') : 'Photo only')+'</div>'
       + '</div></div>';
     host.classList.add('is-on');
@@ -12365,7 +12391,7 @@ if(_authMode==='reset'){ doReset(); return; }
       if(!nm || !nm.trim()) return;
       if(trdSaveTemplate(tS2, nm.trim())){
         trdRender();
-        if(typeof flash==='function') flash('Saved \u2014 reuse it on any trip');
+        if(typeof flash==='function') flash('Saved, reuse it on any trip');
       }
       return;
     }
@@ -12482,7 +12508,7 @@ if(_authMode==='reset'){ doReset(); return; }
       var col=jCollections().filter(function(x){ return x.id===did; })[0];
       var n=jCollRecords(did).length;
       if(!confirm('Delete the collection "'+(col?col.name:'')+'"?\n\n'
-        + (n? 'The '+n+' memor'+(n===1?'y':'ies')+' inside stay safe \u2014 only the grouping is removed.'
+        + (n? 'The '+n+' memor'+(n===1?'y':'ies')+' inside stay safe, only the grouping is removed.'
             : 'It is empty.'))) return;
       FD.data.journal.collections=jCollections().filter(function(x){ return x.id!==did; });
       /* clear the reference from every record that pointed at it */

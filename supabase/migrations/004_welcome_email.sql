@@ -19,7 +19,7 @@ create table if not exists public.welcome_emails (
 alter table public.welcome_emails enable row level security;       -- no policies: only the server touches it
 revoke all on public.welcome_emails from anon, authenticated;
 
--- Fires when an account first becomes usable: created already-confirmed, or confirmed later.
+-- Fires once, the moment an account is created, so the welcome goes out together with the confirmation email.
 create or replace function public.wisal_welcome_on_user()
 returns trigger
 language plpgsql security definer set search_path = public
@@ -27,8 +27,7 @@ as $$
 declare
   n int; v_secret text; v_url text;
 begin
-  if new.email_confirmed_at is null then return new; end if;
-  if tg_op = 'UPDATE' and old.email_confirmed_at is not null then return new; end if;
+  if new.email is null then return new; end if;     -- only people who signed up with an email
 
   insert into public.welcome_emails(user_id) values (new.id) on conflict (user_id) do nothing;
   get diagnostics n = row_count;
@@ -61,7 +60,7 @@ revoke all on function public.wisal_welcome_on_user() from public, anon, authent
 
 drop trigger if exists wisal_welcome_on_user on auth.users;
 create trigger wisal_welcome_on_user
-  after insert or update of email_confirmed_at on auth.users
+  after insert on auth.users
   for each row execute function public.wisal_welcome_on_user();
 
 -- ---------------------------------------------------------------------
