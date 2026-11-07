@@ -7,9 +7,11 @@ Family life OS (PWA). Static site (no build step) + Supabase backend.
 - `pricing.html`, `privacy.html` — public pages
 - `sw.js`, `manifest.json`, `icon-*.png` — PWA / offline
 - `vercel.json` — Vercel headers and clean URLs
-- `supabase/migrations/` — database setup, run 001 → 002 → 003 → 004 in the Supabase SQL Editor
+- `supabase/migrations/` — database setup, run 001 → 002 → 003 → 004 → 005 in the Supabase SQL Editor
 - `supabase/functions/` — Edge Functions (`wisal-ai`, `wisal-welcome`, `wisal-pay`, `wisal-pay-ipn`, `wisal-delete-account`); not deployed by Vercel
 - `docs/SETUP-FROM-SCRATCH.md` — the full server setup, in order
+- `docs/REFORM-PHASE1-PLAN.md` — the family-centric reform: audit, design and the staged plan (Stage 1 is built)
+- `supabase/tests/` — database test scripts (run on a scratch Postgres, never on your project)
 - `docs/WELCOME-EMAIL.md` — the automatic welcome email: how it works, setup, troubleshooting
 - `email/` — pictures used inside the welcome email (must stay at `/email/…`)
 - `docs/EMAIL-AND-LOGIN-CHECKLIST.md` — what to check when sign-up or password reset fails

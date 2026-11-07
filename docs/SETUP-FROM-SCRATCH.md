@@ -22,6 +22,7 @@ Open each file from `supabase/migrations/`, paste everything, press **Run**. Saf
 | 2 | `002_subscriptions.sql` | `subscriptions` (Wisal Plus; written only by the payment function) |
 | 3 | `003_ai_usage.sql` | `ai_usage` + `ai_bump()` (daily free-AI limit) |
 | 4 | `004_welcome_email.sql` | automatic Welcome email (do this last, after sign-up works; see `docs/WELCOME-EMAIL.md`) |
+| 5 | `005_family_core.sql` | family roles (owner, admin, adult, teen, child, guest), permissions, plans with member limits, invitations, suspending members; see `docs/REFORM-PHASE1-PLAN.md` |
 
 Check afterwards: **Table Editor** shows 6 tables (all with the RLS shield on); **Storage** shows `chat-media`.
 Older file `supabase/sql/subscriptions.sql` is replaced by migration 002, you can ignore or delete it.

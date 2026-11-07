@@ -7715,7 +7715,7 @@ if(_authMode==='reset'){ doReset(); return; }
  syncStatus('syncing\u2026');
  sb.rpc('join_household',{code:code})
  .then(function(r){
- if(r.error){ var m=String(r.error.message||''); flash(m.indexOf('own_code')>=0?'That\u2019s your own code':'Code not found, check it and try again'); syncStatus('up to date'); return null; }
+ if(r.error){ var m=String(r.error.message||''); flash(m.indexOf('own_code')>=0?'That\u2019s your own code':m.indexOf('family_full')>=0?'This family is full. Ask the family owner to make room or upgrade the plan.':m.indexOf('suspended')>=0?'Your access to this family is paused. Please contact the family owner.':'Code not found, check it and try again'); syncStatus('up to date'); return null; }
  var hid=r.data; if(!hid){ flash('Code not found, check it and try again'); syncStatus('up to date'); return null; }
  Store.set('fw.sync.row', hid); Store.set('fw.sync.ts','');
  return sb.from('family_data').select('user_id,data,updated_at').eq('user_id',hid).maybeSingle();
